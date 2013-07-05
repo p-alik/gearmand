@@ -69,10 +69,20 @@ struct gearman_job_st
   gearman_packet_st assigned;
   gearman_packet_st work;
   struct gearman_job_reducer_st *reducer;
-  gearman_return_t error_code;
+  gearman_return_t _error_code;
 
   gearman_universal_st& universal()
   {
     return _worker.universal;
+  }
+
+  gearman_universal_st& universal() const
+  {
+    return _worker.universal;
+  }
+
+  gearman_return_t error_code() const
+  {
+    return universal().error_code();
   }
 };

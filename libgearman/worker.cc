@@ -1043,19 +1043,19 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
                                                           static_cast<void *>(worker->impl()->work_function->context)))
           {
             case GEARMAN_FUNCTION_INVALID_ARGUMENT:
-              worker->impl()->work_job->error_code= gearman_error(worker->impl()->universal, GEARMAN_INVALID_ARGUMENT, "worker returned an invalid response, gearman_return_t");
+              worker->impl()->work_job->_error_code= gearman_error(worker->impl()->universal, GEARMAN_INVALID_ARGUMENT, "worker returned an invalid response, gearman_return_t");
             case GEARMAN_FUNCTION_FATAL:
               if (gearman_job_send_fail_fin(worker->impl()->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
               {
-                worker->impl()->work_job->error_code= GEARMAN_LOST_CONNECTION;
+                worker->impl()->work_job->_error_code= GEARMAN_LOST_CONNECTION;
                 break;
               }
               worker->impl()->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
-              return worker->impl()->work_job->error_code;
+              return worker->impl()->work_job->_error_code;
 
             case GEARMAN_FUNCTION_ERROR: // retry 
               gearman_reset(worker->impl()->universal);
-              worker->impl()->work_job->error_code= GEARMAN_LOST_CONNECTION;
+              worker->impl()->work_job->_error_code= GEARMAN_LOST_CONNECTION;
               break;
 
             case GEARMAN_FUNCTION_SHUTDOWN:
@@ -1065,7 +1065,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
               break;
           }
 
-          if (worker->impl()->work_job->error_code == GEARMAN_LOST_CONNECTION)
+          if (worker->impl()->work_job->_error_code == GEARMAN_LOST_CONNECTION)
           {
             break;
           }
@@ -1073,12 +1073,12 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
       case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
         {
-          worker->impl()->work_job->error_code= gearman_job_send_complete_fin(worker->impl()->work_job,
+          worker->impl()->work_job->_error_code= gearman_job_send_complete_fin(worker->impl()->work_job,
                                                                               worker->impl()->work_result, worker->impl()->work_result_size);
-          if (worker->impl()->work_job->error_code == GEARMAN_IO_WAIT)
+          if (worker->impl()->work_job->_error_code == GEARMAN_IO_WAIT)
           {
             worker->impl()->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
-            return gearman_error(worker->impl()->universal, worker->impl()->work_job->error_code,
+            return gearman_error(worker->impl()->universal, worker->impl()->work_job->_error_code,
                                  "A failure occurred after worker had successful complete, unless gearman_job_send_complete() was called directly by worker, client has not been informed of success.");
           }
 
@@ -1089,31 +1089,31 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker)
           }
 
           // If we lost the connection, we retry the work, otherwise we error
-          if (worker->impl()->work_job->error_code == GEARMAN_LOST_CONNECTION)
+          if (worker->impl()->work_job->_error_code == GEARMAN_LOST_CONNECTION)
           {
             break;
           }
-          else if (worker->impl()->work_job->error_code == GEARMAN_SHUTDOWN)
+          else if (worker->impl()->work_job->_error_code == GEARMAN_SHUTDOWN)
           { }
-          else if (gearman_failed(worker->impl()->work_job->error_code))
+          else if (gearman_failed(worker->impl()->work_job->_error_code))
           {
             worker->impl()->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
 
-            return worker->impl()->work_job->error_code;
+            return worker->impl()->work_job->_error_code;
           }
         }
         break;
 
       case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
         {
-          if (gearman_failed(worker->impl()->work_job->error_code= gearman_job_send_fail_fin(worker->impl()->work_job)))
+          if (gearman_failed(worker->impl()->work_job->_error_code= gearman_job_send_fail_fin(worker->impl()->work_job)))
           {
-            if (worker->impl()->work_job->error_code == GEARMAN_LOST_CONNECTION)
+            if (worker->impl()->work_job->_error_code == GEARMAN_LOST_CONNECTION)
             {
               break;
             }
 
-            return worker->impl()->work_job->error_code;
+            return worker->impl()->work_job->_error_code;
           }
         }
         break;

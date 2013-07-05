@@ -132,6 +132,11 @@ struct Worker
     return universal.error();
   }
 
+  gearman_return_t error_code() const
+  {
+    return universal.error_code();
+  }
+
 private:
   gearman_worker_st* _shell;
   gearman_worker_st _owned_shell;

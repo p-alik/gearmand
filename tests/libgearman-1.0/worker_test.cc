@@ -759,6 +759,12 @@ static test_return_t GEARMAN_FAIL_return_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static gearman_return_t exception_fn(gearman_task_st* task)
+{
+  Out << "Task Handle: " <<  gearman_task_job_handle(task);
+  return GEARMAN_SUCCESS;
+}
+
 static test_return_t gearman_job_send_exception_mass_TEST(void *)
 {
   gearman_function_t call_exception_WORKER_FN= gearman_function_create(call_exception_WORKER);
@@ -772,6 +778,10 @@ static test_return_t gearman_job_send_exception_mass_TEST(void *)
 
   std::vector<gearman_task_st*> tasks;
   libgearman::Client client(libtest::default_port());
+
+  gearman_exception_fn *func= exception_fn;
+  gearman_client_set_exception_fn(&client, func);
+
   for (size_t x= 0; x < 100; ++x)
   {
     char buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH];
@@ -1371,14 +1381,17 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
     max_block_size= 24;
   }
 
+  libtest::vchar_t workload;
+  libtest::vchar::make(workload, block_size);
+
   for (size_t x= 1; x < max_block_size; ++x)
   {
     if (valgrind_is_caller() and (x * block_size) > 15728640)
     {
       continue;
     }
-    libtest::vchar_t workload;
-    libtest::vchar::make(workload, x * block_size);
+
+    workload.resize(x * block_size);
 
     gearman_argument_t value= gearman_argument_make(0, 0, vchar_param(workload));
 
@@ -1403,7 +1416,7 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
                  gearman_task_return(task));
 
     gearman_result_st *result= gearman_task_result(task);
-    test_true(result);
+    ASSERT_TRUE(result);
     ASSERT_EQ(gearman_result_size(result), workload.size());
   }
 
