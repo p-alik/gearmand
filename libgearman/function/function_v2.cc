@@ -56,19 +56,19 @@ gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context
   switch (error)
   {
   case GEARMAN_SHUTDOWN:
-    job->error_code= GEARMAN_SUCCESS;
+    job->_error_code= GEARMAN_SUCCESS;
     return GEARMAN_FUNCTION_SHUTDOWN;
 
   case GEARMAN_FATAL:
-    job->error_code= GEARMAN_FATAL;
+    job->_error_code= GEARMAN_FATAL;
     return GEARMAN_FUNCTION_FATAL;
 
   case GEARMAN_ERROR:
-    job->error_code= GEARMAN_ERROR;
+    job->_error_code= GEARMAN_ERROR;
     return GEARMAN_FUNCTION_ERROR;
 
   case GEARMAN_SUCCESS:
-    job->error_code= GEARMAN_SUCCESS;
+    job->_error_code= GEARMAN_SUCCESS;
     return GEARMAN_FUNCTION_SUCCESS;
 
   case GEARMAN_IO_WAIT:

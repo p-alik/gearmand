@@ -61,7 +61,11 @@ gearmand_error_t gearman_queue_add(gearman_server_st *server,
 {
   assert(server->state.queue_startup == false);
   gearmand_error_t ret;
-  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  if (server->queue_version == QUEUE_VERSION_NONE)
+  {
+    return GEARMAND_SUCCESS;
+  }
+  else if (server->queue_version == QUEUE_VERSION_FUNCTION)
   {
     assert(server->queue.functions->_add_fn);
     ret= (*(server->queue.functions->_add_fn))(server,
@@ -114,7 +118,11 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                     const char *function_name,
                                     size_t function_name_size)
 {
-  if (server->queue_version == QUEUE_VERSION_FUNCTION)
+  if (server->queue_version == QUEUE_VERSION_NONE)
+  {
+    return GEARMAND_SUCCESS;
+  }
+  else if (server->queue_version == QUEUE_VERSION_FUNCTION)
   {
     assert(server->queue.functions->_done_fn);
     return (*(server->queue.functions->_done_fn))(server,
@@ -123,12 +131,14 @@ gearmand_error_t gearman_queue_done(gearman_server_st *server,
                                                   function_name,
                                                   function_name_size);
   }
-
-  assert(server->queue.object);
-  return server->queue.object->done(server,
-                                    unique, unique_size,
-                                    function_name,
-                                    function_name_size);
+  else
+  {
+    assert(server->queue.object);
+    return server->queue.object->done(server,
+                                      unique, unique_size,
+                                      function_name,
+                                      function_name_size);
+  }
 }
 
 void gearman_server_save_job(gearman_server_st& server,

@@ -1052,7 +1052,7 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
                       unique,
                       workload, workload_size,
                       time_t(0),
-                      ret_ptr,
+                      *ret_ptr,
                       client->impl()->actions);
 }
 
@@ -1082,7 +1082,7 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
                       unique,
                       workload, workload_size,
                       time_t(0),
-                      ret_ptr,
+                      *ret_ptr,
                       client->impl()->actions);
 }
 
@@ -1111,7 +1111,7 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
                       unique,
                       workload, workload_size,
                       time_t(0),
-                      ret_ptr,
+                      *ret_ptr,
                       client->impl()->actions);
 }
 
@@ -1140,7 +1140,7 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
                       unique,
                       workload, workload_size,
                       time_t(0),
-                      ret_ptr,
+                      *ret_ptr,
                       client->impl()->actions);
 }
 
@@ -1171,7 +1171,7 @@ gearman_client_add_task_high_background(gearman_client_st *client,
                       unique,
                       workload, workload_size,
                       time_t(0),
-                      ret_ptr,
+                      *ret_ptr,
                       client->impl()->actions);
 }
 
@@ -1201,7 +1201,7 @@ gearman_task_st* gearman_client_add_task_low_background(gearman_client_st *clien
                       unique,
                       workload, workload_size,
                       time_t(0),
-                      ret_ptr,
+                      *ret_ptr,
                       client->impl()->actions);
 
 }

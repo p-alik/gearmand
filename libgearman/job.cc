@@ -191,7 +191,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
     job->options.finished= false;
 
     job->reducer= NULL;
-    job->error_code= GEARMAN_UNKNOWN_STATE;
+    job->_error_code= GEARMAN_UNKNOWN_STATE;
 
     if (job->_worker.job_list)
     {
@@ -456,7 +456,6 @@ gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
       {
         return ret;
       }
-
       job->finished(true);
     }
 
@@ -488,7 +487,13 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
         job->options.work_in_use= true;
       }
 
-      return _job_send(job);
+      if (gearman_failed(_job_send(job)))
+      {
+        return job->error_code();
+      }
+#if 0
+      job->finished(true);
+#endif
     }
 
     return GEARMAN_SUCCESS;

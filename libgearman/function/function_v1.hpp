@@ -62,20 +62,20 @@ public:
       gearman_job_build_reducer(job, NULL);
     }
 
-    job->error_code= GEARMAN_SUCCESS;
-    job->_worker.work_result= _worker_fn(job, context_arg, &(job->_worker.work_result_size), &job->error_code);
+    job->_error_code= GEARMAN_SUCCESS;
+    job->_worker.work_result= _worker_fn(job, context_arg, &(job->_worker.work_result_size), &job->_error_code);
 
-    if (job->error_code == GEARMAN_LOST_CONNECTION)
+    if (job->_error_code == GEARMAN_LOST_CONNECTION)
     {
       return GEARMAN_FUNCTION_ERROR;
     }
 
-    if (job->error_code == GEARMAN_SHUTDOWN)
+    if (job->_error_code == GEARMAN_SHUTDOWN)
     {
       return GEARMAN_FUNCTION_SHUTDOWN;
     }
 
-    if (gearman_failed(job->error_code))
+    if (gearman_failed(job->_error_code))
     {
       return GEARMAN_FUNCTION_FATAL;
     }
