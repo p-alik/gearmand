@@ -94,6 +94,9 @@ struct gearmand_io_st
   char recv_buffer[GEARMAND_RECV_BUFFER_SIZE];
 
   gearmand_io_st() { }
+
+  const char* host() const;
+  const char* port() const;
 };
 
 namespace gearmand { namespace protocol {class Context; } }
@@ -149,6 +152,26 @@ struct gearman_server_con_st
 
   ~gearman_server_con_st()
   {
+  }
+
+  const char* host() const
+  {
+    if (_host)
+    {
+      return _host;
+    }
+
+    return "-";
+  }
+
+  const char* port() const
+  {
+    if (_port)
+    {
+      return _port;
+    }
+
+    return "-";
   }
 
   void set_protocol(gearmand::protocol::Context* arg)

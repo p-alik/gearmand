@@ -317,21 +317,17 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
 
     CyaSSL_set_fd(connection->_ssl, connection->con.fd);
 
-    bool connecting= true;
-    while (connecting)
+    if (CyaSSL_accept(connection->_ssl) != SSL_SUCCESS)
     {
-      if (CyaSSL_accept(connection->_ssl) == SSL_SUCCESS)
-      {
-        connecting= false;
-        break;
-      }
-
       if (CyaSSL_get_error(connection->_ssl, 0) != SSL_ERROR_WANT_READ)
       {
         int cyassl_error= CyaSSL_get_error(connection->_ssl, 0);
         char cyassl_error_buffer[1024]= { 0 };
         CyaSSL_ERR_error_string(cyassl_error, cyassl_error_buffer);
-        return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s(%d)", cyassl_error_buffer, cyassl_error);
+        return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s:%s %s(%d)", 
+                                   connection->host(),
+                                   connection->port(),
+                                   cyassl_error_buffer, cyassl_error);
       }
     }
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "GearSSL connection made: %d", connection->con.fd);
