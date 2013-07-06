@@ -89,7 +89,7 @@ static gearman_return_t _client_add_server(const char *host, in_port_t port,
 /**
  * Real do function.
  */
-static void *_client_do(gearman_client_st *client, gearman_command_t command,
+static void *_client_do(gearman_client_st *client_shell, gearman_command_t command,
                         const char *function_name,
                         const char *unique,
                         const void *workload_str, size_t workload_size,
@@ -101,13 +101,15 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     ret_ptr= &unused;
   }
 
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  client->impl()->universal.reset_error();
+  Client* client= client_shell->impl();
+
+  client->universal.reset_error();
 
   size_t unused_size;
   if (result_size == NULL)
@@ -122,17 +124,17 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
 
   gearman_task_st do_task;
   {
-    client->impl()->universal.options.no_new_data= true;
-    gearman_task_st *do_task_ptr= add_task(*client, &do_task, NULL, command,
+    client->universal.options.no_new_data= true;
+    gearman_task_st *do_task_ptr= add_task(*(client->shell()), &do_task, NULL, command,
                                            function,
                                            local_unique,
                                            workload,
                                            time_t(0),
                                            gearman_actions_do_default());
-    client->impl()->universal.options.no_new_data= false;
+    client->universal.options.no_new_data= false;
     if (do_task_ptr == NULL)
     {
-      *ret_ptr= client->impl()->universal.error_code();
+      *ret_ptr= client->universal.error_code();
       return NULL;
     }
     assert_msg(do_task.impl(), "Bad return by add_task()");
@@ -141,10 +143,10 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
 
   do_task.impl()->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client, &do_task);
+  gearman_return_t ret= gearman_client_run_block_tasks(client->shell(), &do_task);
 
   // gearman_client_run_tasks failed
-  assert(client->impl()->task_list); // Programmer error, we should always have the task that we used for do
+  assert(client->task_list); // Programmer error, we should always have the task that we used for do
 
   char *returnable= NULL;
   if (gearman_failed(ret))
@@ -153,7 +155,7 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     { }
     else
     {
-      gearman_error(client->impl()->universal, ret, "occured during gearman_client_run_tasks()");
+      gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
     }
 
     *ret_ptr= ret;
@@ -164,13 +166,13 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
     *ret_ptr= do_task.impl()->result_rc;
     if (gearman_task_result(&do_task))
     {
-      if (gearman_has_allocator(client->impl()->universal))
+      if (gearman_has_allocator(client->universal))
       {
         gearman_string_t result= gearman_result_string(do_task.impl()->result());
-        returnable= static_cast<char *>(gearman_malloc(client->impl()->universal, gearman_size(result) +1));
+        returnable= static_cast<char *>(gearman_malloc(client->universal, gearman_size(result) +1));
         if (returnable == NULL)
         {
-          gearman_error(client->impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "custom workload_fn failed to allocate memory");
+          gearman_error(client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "custom workload_fn failed to allocate memory");
           *result_size= 0;
         }
         else // NULL terminate
@@ -194,15 +196,15 @@ static void *_client_do(gearman_client_st *client, gearman_command_t command,
   }
   else // gearman_client_run_tasks() was successful, but the task was not
   {
-    gearman_error(client->impl()->universal, do_task.impl()->result_rc, "occured during gearman_client_run_tasks()");
+    gearman_error(client->universal, do_task.impl()->result_rc, "occured during gearman_client_run_tasks()");
 
     *ret_ptr= do_task.impl()->result_rc;
     *result_size= 0;
   }
 
   gearman_task_free(&do_task);
-  client->impl()->new_tasks= 0;
-  client->impl()->running_tasks= 0;
+  client->new_tasks= 0;
+  client->running_tasks= 0;
 
   return returnable;
 }
