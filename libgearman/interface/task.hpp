@@ -154,6 +154,11 @@ struct Task
 
   bool create_result(size_t initial_size);
 
+  void set_state(const enum gearman_task_state_t state_)
+  {
+    state= state_;
+  }
+
 private:
   gearman_task_st* _shell;
   gearman_task_st _owned_shell;
