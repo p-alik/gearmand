@@ -379,7 +379,7 @@ gearmand_error_t gearmand_run(gearmand_st *gearmand)
     uint32_t x= 0;
     do
     {
-      gearmand->ret= gearmand_thread_create(gearmand);
+      gearmand->ret= gearmand_thread_create(*gearmand);
       if (gearmand->ret != GEARMAND_SUCCESS)
         return gearmand->ret;
       x++;
