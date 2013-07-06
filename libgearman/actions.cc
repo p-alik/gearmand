@@ -68,7 +68,7 @@ static gearman_return_t _client_pause_data(gearman_task_st* shell)
     {
       if (task->create_result(gearman_task_data_size(shell)) == false)
       {
-        return gearman_error(task->client->impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Failed to create result_st");
+        return gearman_error(task->client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Failed to create result_st");
       }
     }
     assert_msg(task->result(), "programmer error, result_ptr has not been allocated for task");
@@ -137,7 +137,7 @@ static gearman_return_t _client_do_data(gearman_task_st* shell)
     {
       if (task->create_result(gearman_task_data_size(shell)) == false)
       {
-        return gearman_error(task->client->impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Failed to create result_st");
+        return gearman_error(task->client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Failed to create result_st");
       }
     }
 
@@ -158,7 +158,7 @@ static gearman_return_t _client_do_complete(gearman_task_st *shell)
     {
       if (task->create_result(gearman_task_data_size(shell)) == false)
       {
-        return gearman_error(task->client->impl()->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Failed to create result_st");
+        return gearman_error(task->client->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "Failed to create result_st");
       }
     }
 

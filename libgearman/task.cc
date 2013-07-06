@@ -59,7 +59,6 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
   Task* task= new (std::nothrow) Task(client, task_shell);
   if (task)
   {
-    assert(task->client == &client);
     return task->shell();
   }
 
@@ -69,6 +68,10 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
   return NULL;
 }
 
+void gearman_task_free(Task* task)
+{
+  gearman_task_free(task->shell());
+}
 
 void gearman_task_free(gearman_task_st *task_shell)
 {
@@ -91,14 +94,14 @@ void gearman_task_free(gearman_task_st *task_shell)
             gearman_packet_free(&(task->send));
           }
 
-          if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->impl()->task_context_free_fn)
+          if (task->type != GEARMAN_TASK_KIND_DO  and task->context and  task->client->task_context_free_fn)
           {
-            task->client->impl()->task_context_free_fn(task_shell, static_cast<void *>(task->context));
+            task->client->task_context_free_fn(task_shell, static_cast<void *>(task->context));
           }
 
-          if (task->client->impl()->task_list == task_shell)
+          if (task->client->task_list == task_shell)
           {
-            task->client->impl()->task_list= task->next;
+            task->client->task_list= task->next;
           }
 
           if (task->prev)
@@ -111,13 +114,13 @@ void gearman_task_free(gearman_task_st *task_shell)
             task->next->impl()->prev= task->prev;
           }
 
-          task->client->impl()->task_count--;
+          task->client->task_count--;
 
           // If the task we are removing is a current task, remove it from the client
           // structures.
-          if (task->client->impl()->task == task_shell)
+          if (task->client->task == task_shell)
           {
-            task->client->impl()->task= NULL;
+            task->client->task= NULL;
           }
           task->client= NULL;
         }
