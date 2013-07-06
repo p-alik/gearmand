@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ struct Task
   uint32_t numerator;
   uint32_t denominator;
   uint32_t client_count;
-  gearman_client_st *client;
+  Client *client;
   gearman_task_st *next;
   gearman_task_st *prev;
   void *context;
@@ -97,7 +97,7 @@ struct Task
     numerator(0),
     denominator(0),
     client_count(0),
-    client(&client_),
+    client(client_.impl()),
     next(NULL),
     prev(NULL),
     context(NULL),
