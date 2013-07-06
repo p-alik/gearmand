@@ -127,6 +127,7 @@ test_return_t gearman_execute_partition_check_parameters(void *object)
 test_return_t gearman_execute_partition_basic(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
+  ASSERT_TRUE(client);
 
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_client_echo(client, test_literal_param("this is mine")));

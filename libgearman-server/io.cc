@@ -99,6 +99,27 @@ static void _connection_close(gearmand_io_st *connection)
   connection->recv_buffer_size= 0;
 }
 
+
+const char* gearmand_io_st::host() const
+{
+  if (context)
+  {
+    return context->host;
+  }
+
+  return "-";
+}
+
+const char* gearmand_io_st::port() const
+{
+  if (context)
+  {
+    return context->port;
+  }
+
+  return "-";
+}
+
 static size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size, gearmand_error_t &ret)
 {
   ssize_t read_size;
