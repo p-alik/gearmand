@@ -68,6 +68,10 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
   return NULL;
 }
 
+void gearman_task_free(Task* task)
+{
+  gearman_task_free(task->shell());
+}
 
 void gearman_task_free(gearman_task_st *task_shell)
 {

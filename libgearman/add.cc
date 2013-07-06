@@ -377,15 +377,16 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     return NULL;
   }
 
-  gearman_task_st *task= gearman_task_internal_create(*client, NULL);
-  if (task == NULL)
+  gearman_task_st *task_shell= gearman_task_internal_create(*client, NULL);
+  if (task_shell == NULL)
   {
     assert(client->impl()->universal.error_code());
     return NULL;
   }
 
-  task->impl()->context= context;
-  task->impl()->func= actions;
+  Task* task= task_shell->impl();
+  task->context= context;
+  task->func= actions;
 
   /**
     @todo fix it so that NULL is done by default by the API not by happenstance.
@@ -411,33 +412,33 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
 
   if (gearman_unique_is_hash(unique))
   {
-    task->impl()->unique_length= snprintf(task->impl()->unique, GEARMAN_MAX_UNIQUE_SIZE, "%u", libhashkit_murmur3(gearman_string_param(workload)));
+    task->unique_length= snprintf(task->unique, GEARMAN_MAX_UNIQUE_SIZE, "%u", libhashkit_murmur3(gearman_string_param(workload)));
   }
-  else if ((task->impl()->unique_length= gearman_size(unique)))
+  else if ((task->unique_length= gearman_size(unique)))
   {
-    if (task->impl()->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
+    if (task->unique_length >= GEARMAN_MAX_UNIQUE_SIZE)
     {
-      task->impl()->unique_length= GEARMAN_MAX_UNIQUE_SIZE -1; // Leave space for NULL byte
+      task->unique_length= GEARMAN_MAX_UNIQUE_SIZE -1; // Leave space for NULL byte
     }
 
-    strncpy(task->impl()->unique, gearman_c_str(unique), GEARMAN_MAX_UNIQUE_SIZE);
-    task->impl()->unique[task->impl()->unique_length]= 0;
+    strncpy(task->unique, gearman_c_str(unique), GEARMAN_MAX_UNIQUE_SIZE);
+    task->unique[task->unique_length]= 0;
   }
   else
   {
     if (client->impl()->options.generate_unique or is_background(command))
     {
-      safe_uuid_generate(task->impl()->unique, task->impl()->unique_length);
+      safe_uuid_generate(task->unique, task->unique_length);
     }
     else
     {
-      task->impl()->unique_length= 0;
-      task->impl()->unique[0]= 0;
+      task->unique_length= 0;
+      task->unique[0]= 0;
     }
   }
 
-  args[1]= task->impl()->unique;
-  args_size[1]= task->impl()->unique_length +1; // +1 is for the needed null
+  args[1]= task->unique;
+  args_size[1]= task->unique_length +1; // +1 is for the needed null
 
   assert_msg(command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB or command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND,
              "Command was not appropriate for request");
@@ -472,14 +473,14 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
   args_size[4]= gearman_size(workload);
 
   gearman_return_t rc;
-  if (gearman_success(rc= gearman_packet_create_args(client->impl()->universal, task->impl()->send,
+  if (gearman_success(rc= gearman_packet_create_args(client->impl()->universal, task->send,
                                                      GEARMAN_MAGIC_REQUEST, command,
                                                      args, args_size,
                                                      5)))
   {
     client->impl()->new_tasks++;
     client->impl()->running_tasks++;
-    task->impl()->options.send_in_use= true;
+    task->options.send_in_use= true;
   }
   else
   {
@@ -487,7 +488,7 @@ gearman_task_st *add_reducer_task(gearman_client_st *client,
     gearman_task_free(task);
     task= NULL;
   }
-  task->impl()->type= GEARMAN_TASK_KIND_EXECUTE;
+  task->type= GEARMAN_TASK_KIND_EXECUTE;
 
-  return task;
+  return task->shell();
 }
