@@ -56,6 +56,8 @@ public:
     {
       throw std::runtime_error("gearman_client_create() failed");
     }
+
+    enable_ssl();
   }
 
   Client(const gearman_client_st* arg)
@@ -66,6 +68,8 @@ public:
     {
       throw std::runtime_error("gearman_client_create() failed");
     }
+
+    enable_ssl();
   }
 
   Client(in_port_t arg)
@@ -77,6 +81,8 @@ public:
       throw std::runtime_error("gearman_client_create() failed");
     }
     gearman_client_add_server(_client, "localhost", arg);
+
+    enable_ssl();
   }
 
   gearman_client_st* operator&() const
@@ -92,6 +98,14 @@ public:
   ~Client()
   {
     gearman_client_free(_client);
+  }
+
+  void enable_ssl()
+  { 
+    if (getenv("GEARMAND_CA_CERTIFICATE"))
+    {
+      gearman_client_add_options(_client, GEARMAN_CLIENT_SSL);
+    }
   }
 
 private:

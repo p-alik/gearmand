@@ -55,6 +55,8 @@ public:
     {
       throw std::runtime_error("gearman_worker_create() failed");
     }
+
+    enable_ssl();
   }
 
   Worker(in_port_t arg)
@@ -66,6 +68,8 @@ public:
       throw std::runtime_error("gearman_worker_create() failed");
     }
     gearman_worker_add_server(_worker, "localhost", arg);
+
+    enable_ssl();
   }
 
   gearman_worker_st* operator&() const
@@ -81,6 +85,14 @@ public:
   ~Worker()
   {
     gearman_worker_free(_worker);
+  }
+
+  void enable_ssl()
+  { 
+    if (getenv("GEARMAND_CA_CERTIFICATE"))
+    {
+      gearman_worker_add_options(_worker, GEARMAN_WORKER_SSL);
+    }
   }
 
 private:

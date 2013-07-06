@@ -104,6 +104,11 @@ struct gearman_vector_st {
     return string;
   }
 
+  const char* c_str() const
+  {
+    return string;
+  }
+
   const void* void_ptr() const
   {
     return (const void*)string;

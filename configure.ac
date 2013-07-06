@@ -226,15 +226,23 @@ LT_LIB_M
 # Check for CyaSSL
 AC_DEFUN([AX_ENABLE_SSL],
          [AC_PREREQ([2.63])dnl
+         m4_define([_SSL_ENABLE_DEFAULT], [m4_if($1, no, no, no)])dnl
          AC_ARG_ENABLE([ssl],
                        [AS_HELP_STRING([--enable-ssl],
-                                       [Enable ssl support for Gearman --enable-debug (yes|no) @<:@default=no@:>@])],
-                                       [AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl])],
-                                       [AC_MSG_WARN([ssl will not be enabled])])
+                                       [Enable ssl support for Gearman @<:@default=]_SSL_ENABLE_DEFAULT[@:>@])],
+                                       [AS_CASE([$enableval],
+                                                [yes],[enable_ssl=yes],
+                                                [no],[enable_ssl=no],
+                                                [enable_ssl=no])
+                                        ],
+                                        [enable_ssl=]_SSL_ENABLE_DEFAULT)
+         AS_IF([test "x${enable_ssl}" = "xyes"],
+               [AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl],[],
+                                 [AC_MSG_ERROR([Unable to find cyassl])
+                                 enable_ssl=no])])
          ])
 AX_ENABLE_SSL
-#AC_SUBST([CYASSL])
-#AC_SUBST([CYASSL_LIB])
+
 AX_ENABLE_LIBMEMCACHED
 
 AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])

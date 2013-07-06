@@ -150,6 +150,9 @@ bool Gearmand::build()
   if (is_ssl())
   {
     add_option("--ssl");
+    add_option("--ssl-ca-file=" YATL_CA_CERT_PEM);
+    add_option("--ssl-certificate=" YATL_CERT_PEM);
+    add_option("--ssl-key=" YATL_CERT_KEY_PEM);
   }
 
   return true;

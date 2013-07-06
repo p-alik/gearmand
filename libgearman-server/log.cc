@@ -116,6 +116,26 @@ gearmand_error_t gearmand_initialize_thread_logging(const char *identity)
   return GEARMAND_INVALID_ARGUMENT;
 }
 
+static gearmand_error_t __errno_to_gearmand_error_t(int local_errno)
+{
+  gearmand_error_t error_to_report= GEARMAND_ERRNO;
+
+  switch (local_errno)
+  {
+  case ENOMEM:
+    error_to_report= GEARMAND_MEMORY_ALLOCATION_FAILURE;
+
+  case ECONNRESET:
+  case EHOSTDOWN:
+    error_to_report= GEARMAND_LOST_CONNECTION;
+
+  default:
+    break;
+  }
+
+  return error_to_report;
+}
+
 /**
  * Log a message.
  *
@@ -303,20 +323,7 @@ gearmand_error_t gearmand_log_fatal_perror(const char *position, const char *fun
     }
   }
 
-  switch (local_errno)
-  {
-  case ENOMEM:
-    return GEARMAND_MEMORY_ALLOCATION_FAILURE;
-
-  case ECONNRESET:
-  case EHOSTDOWN:
-    return GEARMAND_LOST_CONNECTION;
-
-  default:
-    break;
-  }
-
-  return GEARMAND_ERRNO;
+  return __errno_to_gearmand_error_t(local_errno);
 }
 
 gearmand_error_t gearmand_log_error(const char *position, const char *function, const char *format, ...)
@@ -415,20 +422,7 @@ gearmand_error_t gearmand_log_perror(const char *position, const char *function,
     }
   }
 
-  switch (local_errno)
-  {
-  case ENOMEM:
-    return GEARMAND_MEMORY_ALLOCATION_FAILURE;
-
-  case ECONNRESET:
-  case EHOSTDOWN:
-    return GEARMAND_LOST_CONNECTION;
-
-  default:
-    break;
-  }
-
-  return GEARMAND_ERRNO;
+  return __errno_to_gearmand_error_t(local_errno);
 }
 
 gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)

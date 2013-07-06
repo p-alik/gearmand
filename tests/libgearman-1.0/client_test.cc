@@ -459,7 +459,7 @@ static test_return_t submit_job_test(void *object)
 
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
 
-  test_truth(job_result);
+  ASSERT_TRUE(job_result);
   ASSERT_EQ(gearman_size(value), result_length);
 
   test_memcmp(gearman_c_str(value), job_result, gearman_size(value));

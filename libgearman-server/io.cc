@@ -242,6 +242,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
       return GEARMAND_ERRNO;
 
     case gearmand_io_st::GEARMAND_CON_UNIVERSAL_CONNECTED:
+      uint32_t loop_counter= 0;
       while (connection->send_buffer_size)
       {
         ssize_t write_size;
@@ -249,6 +250,37 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
         if (con->_ssl)
         {
           write_size= CyaSSL_send(con->_ssl, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
+
+          // I consider this to be a bug in CyaSSL_send() that is uses a zero in this manner
+          if (write_size <= 0)
+          {
+            int err;
+            switch ((err= CyaSSL_get_error(con->_ssl, write_size)))
+            {
+              case SSL_ERROR_WANT_CONNECT:
+              case SSL_ERROR_WANT_ACCEPT:
+                write_size= -1;
+                errno= EAGAIN;
+                break;
+
+              case SSL_ERROR_WANT_WRITE:
+              case SSL_ERROR_WANT_READ:
+                write_size= -1;
+                errno= EAGAIN;
+                break;
+
+              default:
+                {
+                  char errorString[80];
+                  CyaSSL_ERR_error_string(err, errorString);
+                  _connection_close(connection);
+                  return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s:%s SSL failure(%s)",
+                                             connection->context == NULL ? "-" : connection->context->host,
+                                             connection->context == NULL ? "-" : connection->context->port,
+                                             errorString);
+                }
+            }
+          }
         }
         else
 #endif
@@ -258,9 +290,17 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 
         if (write_size == 0) // detect infinite loop?
         {
-          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() sent zero bytes to peer %s:%s",
+          ++loop_counter;
+          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() sent zero bytes of %u to peer %s:%s",
+                             uint32_t(connection->send_buffer_size),
                              connection->context == NULL ? "-" : connection->context->host,
                              connection->context == NULL ? "-" : connection->context->port);
+
+          if (loop_counter > 5)
+          {
+            _connection_close(connection);
+            return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "send() failed to send data");
+          }
           continue;
         }
         else if (write_size == -1)
@@ -268,6 +308,9 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           int local_errno= errno;
           switch (local_errno)
           {
+#if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
+          case EWOULDBLOCK:
+#endif
           case EAGAIN:
             {
               gearmand_error_t gret= gearmand_io_set_events(con, POLLOUT);
@@ -706,7 +749,10 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
         }
         return ret;
       }
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "read %lu bytes", (unsigned long)recv_size);
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "%s:%s read %lu bytes",
+                         connection->context == NULL ? "-" : connection->context->host,
+                         connection->context == NULL ? "-" : connection->context->port,
+                         (unsigned long)recv_size);
 
       connection->recv_buffer_size+= recv_size;
     }
@@ -927,24 +973,25 @@ static gearmand_error_t _io_setsockopt(gearmand_io_st &connection)
 
 void gearmand_sockfd_close(int& sockfd)
 {
-  if (sockfd == INVALID_SOCKET)
+  if (sockfd != INVALID_SOCKET)
   {
-    gearmand_error("gearmand_sockfd_close() called with an invalid socket");
-    return;
-  }
+    /* in case of death shutdown to avoid blocking at close() */
+    if (shutdown(sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
+    {
+      gearmand_perror(errno, "shutdown");
+      assert(errno != ENOTSOCK);
+    }
+    else if (closesocket(sockfd) == SOCKET_ERROR)
+    {
+      gearmand_perror(errno, "close");
+    }
 
-  /* in case of death shutdown to avoid blocking at close() */
-  if (shutdown(sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
-  {
-    gearmand_perror(errno, "shutdown");
-    assert(errno != ENOTSOCK);
+    sockfd= INVALID_SOCKET;
   }
-  else if (closesocket(sockfd) == SOCKET_ERROR)
+  else
   {
-    gearmand_perror(errno, "close");
+    gearmand_warning("gearmand_sockfd_close() called with an invalid socket");
   }
-
-  sockfd= INVALID_SOCKET;
 }
 
 void gearmand_pipe_close(int& pipefd)

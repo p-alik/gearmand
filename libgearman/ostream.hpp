@@ -43,6 +43,7 @@
 static inline std::ostream& operator<<(std::ostream& output, const gearman_packet_st &arg)
 {
   const char* command_str;
+  // gearman_strcommand()
   switch(arg.command)
   {
   case GEARMAN_COMMAND_TEXT: command_str=  "GEARMAN_COMMAND_TEXT";
