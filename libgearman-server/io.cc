@@ -53,6 +53,10 @@
 # define SOCK_NONBLOCK 0
 #endif
 
+#ifndef MSG_DONTWAIT
+# define MSG_DONTWAIT 0
+#endif
+
 static void _connection_close(gearmand_io_st *connection)
 {
   if (connection->fd == INVALID_SOCKET)
