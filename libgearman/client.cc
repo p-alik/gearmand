@@ -1424,7 +1424,6 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
             break;
           }
 
-          assert_msg(client == client->impl()->task->impl()->client, "Programmer error, client and task member client are not the same");
           gearman_return_t local_ret= _client_run_task(client->impl()->task->impl());
           if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
           {
@@ -1462,7 +1461,6 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
               client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
               break;
             }
-            assert_msg(client == client->impl()->task->impl()->client, "Programmer error, client and task member client are not the same");
             gearman_return_t local_ret= _client_run_task(client->impl()->task->impl());
             if (local_ret == GEARMAN_COULD_NOT_CONNECT)
             {
@@ -1630,7 +1628,6 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
 
   case GEARMAN_CLIENT_STATE_PACKET:
           /* Let task process job created or result packet. */
-          assert_msg(client == client->impl()->task->impl()->client, "Programmer error, client and task member client are not the same");
           gearman_return_t local_ret= _client_run_task(client->impl()->task->impl());
           if (local_ret == GEARMAN_IO_WAIT)
           {

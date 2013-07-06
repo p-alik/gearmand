@@ -202,7 +202,6 @@ gearman_task_st *add_task(gearman_client_st& client,
     return NULL;
   }
   assert(task_shell->impl()->client);
-  assert(task_shell->impl()->client == &client);
 
   Task* task= task_shell->impl();
 
@@ -229,7 +228,7 @@ gearman_task_st *add_task(gearman_client_st& client,
     {
       if (safe_uuid_generate(task->unique, task->unique_length) == -1)
       {
-        gearman_log_debug(task->client->impl()->universal, "uuid_generate_time_safe() failed or does not exist on this platform");
+        gearman_log_debug(task->client->universal, "uuid_generate_time_safe() failed or does not exist on this platform");
       }
     }
     else
@@ -242,7 +241,6 @@ gearman_task_st *add_task(gearman_client_st& client,
   gearman_unique_t final_unique= gearman_unique_make(task->unique, task->unique_length);
 
   assert(task->client);
-  assert(task->client == &client);
 
   gearman_return_t rc= GEARMAN_INVALID_ARGUMENT;
   switch (command)
@@ -250,7 +248,7 @@ gearman_task_st *add_task(gearman_client_st& client,
   case GEARMAN_COMMAND_SUBMIT_JOB:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH:
-    rc= libgearman::protocol::submit(task->client->impl()->universal,
+    rc= libgearman::protocol::submit(task->client->universal,
                                      task->send,
                                      final_unique,
                                      command,
@@ -259,7 +257,7 @@ gearman_task_st *add_task(gearman_client_st& client,
     break;
 
   case GEARMAN_COMMAND_SUBMIT_JOB_EPOCH:
-    rc= libgearman::protocol::submit_epoch(task->client->impl()->universal,
+    rc= libgearman::protocol::submit_epoch(task->client->universal,
                                            task->send,
                                            final_unique,
                                            function,
@@ -270,7 +268,7 @@ gearman_task_st *add_task(gearman_client_st& client,
   case GEARMAN_COMMAND_SUBMIT_JOB_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG:
   case GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG:
-    rc= libgearman::protocol::submit_background(task->client->impl()->universal,
+    rc= libgearman::protocol::submit_background(task->client->universal,
                                                 task->send,
                                                 final_unique,
                                                 command,
