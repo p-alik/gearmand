@@ -1406,94 +1406,96 @@ void gearman_client_clear_fn(gearman_client_st* client)
   }
 }
 
-static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gearman_task_st* exit_task)
+static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell, gearman_task_st* exit_task)
 {
   gearman_return_t ret= GEARMAN_MAX_RETURN;
 
-  switch(client->impl()->state)
+  Client* client= client_shell->impl();
+
+  switch(client->state)
   {
   case GEARMAN_CLIENT_STATE_IDLE:
     while (1)
     {
       /* Start any new tasks. */
-      if (client->impl()->new_tasks > 0 && ! (client->impl()->options.no_new))
+      if (client->new_tasks > 0 && ! (client->options.no_new))
       {
-        for (client->impl()->task= client->impl()->task_list; client->impl()->task;
-             client->impl()->task= client->impl()->task->impl()->next)
+        for (client->task= client->task_list; client->task;
+             client->task= client->task->impl()->next)
         {
-          if (client->impl()->task->impl()->state != GEARMAN_TASK_STATE_NEW)
+          if (client->task->impl()->state != GEARMAN_TASK_STATE_NEW)
           {
             continue;
           }
 
   case GEARMAN_CLIENT_STATE_NEW:
-          if (client->impl()->task == NULL)
+          if (client->task == NULL)
           {
-            client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
             break;
           }
 
-          gearman_return_t local_ret= _client_run_task(client->impl()->task->impl());
+          gearman_return_t local_ret= _client_run_task(client->task->impl());
           if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
           {
-            client->impl()->state= GEARMAN_CLIENT_STATE_NEW;
+            client->state= GEARMAN_CLIENT_STATE_NEW;
 
             return local_ret;
           }
         }
 
-        if (client->impl()->new_tasks == 0)
+        if (client->new_tasks == 0)
         {
-          gearman_flush_all(client->impl()->universal);
+          gearman_flush_all(client->universal);
         }
       }
 
       /* See if there are any connections ready for I/O. */
-      while ((client->impl()->con= gearman_ready(client->impl()->universal)))
+      while ((client->con= gearman_ready(client->universal)))
       {
-        if (client->impl()->con->revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL))
+        if (client->con->revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL))
         {
           /* Socket is ready for writing, continue submitting jobs. */
-          for (client->impl()->task= client->impl()->task_list; client->impl()->task;
-               client->impl()->task= client->impl()->task->impl()->next)
+          for (client->task= client->task_list; client->task;
+               client->task= client->task->impl()->next)
           {
-            if (client->impl()->task->impl()->con != client->impl()->con or
-                (client->impl()->task->impl()->state != GEARMAN_TASK_STATE_SUBMIT and
-                 client->impl()->task->impl()->state != GEARMAN_TASK_STATE_WORKLOAD))
+            if (client->task->impl()->con != client->con or
+                (client->task->impl()->state != GEARMAN_TASK_STATE_SUBMIT and
+                 client->task->impl()->state != GEARMAN_TASK_STATE_WORKLOAD))
             {
               continue;
             }
 
   case GEARMAN_CLIENT_STATE_SUBMIT:
-            if (client->impl()->task == NULL)
+            if (client->task == NULL)
             {
-              client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
               break;
             }
-            gearman_return_t local_ret= _client_run_task(client->impl()->task->impl());
+            gearman_return_t local_ret= _client_run_task(client->task->impl());
             if (local_ret == GEARMAN_COULD_NOT_CONNECT)
             {
-              client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
               return local_ret;
             }
             else if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
             {
-              client->impl()->state= GEARMAN_CLIENT_STATE_SUBMIT;
+              client->state= GEARMAN_CLIENT_STATE_SUBMIT;
               return local_ret;
             }
           }
 
           /* Connection errors are fatal. */
-          if (client->impl()->con->revents & (POLLERR | POLLHUP | POLLNVAL))
+          if (client->con->revents & (POLLERR | POLLHUP | POLLNVAL))
           {
-            gearman_error(client->impl()->universal, GEARMAN_LOST_CONNECTION, "detected lost connection in _client_run_tasks()");
-            client->impl()->con->close_socket();
-            client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+            gearman_error(client->universal, GEARMAN_LOST_CONNECTION, "detected lost connection in _client_run_tasks()");
+            client->con->close_socket();
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
             return GEARMAN_LOST_CONNECTION;
           }
         }
 
-        if ((client->impl()->con->revents & POLLIN) == 0)
+        if ((client->con->revents & POLLIN) == 0)
         {
           continue;
         }
@@ -1502,17 +1504,17 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
         while (1)
         {
           /* Read packet on connection and find which task it belongs to. */
-          if (client->impl()->options.unbuffered_result)
+          if (client->options.unbuffered_result)
           {
             /* If client is handling the data read, make sure it's complete. */
-            if (client->impl()->con->recv_state == GEARMAN_CON_RECV_STATE_READ_DATA)
+            if (client->con->recv_state == GEARMAN_CON_RECV_STATE_READ_DATA)
             {
-              for (client->impl()->task= client->impl()->task_list; client->impl()->task;
-                   client->impl()->task= client->impl()->task->impl()->next)
+              for (client->task= client->task_list; client->task;
+                   client->task= client->task->impl()->next)
               {
-                if (client->impl()->task->impl()->con == client->impl()->con &&
-                    (client->impl()->task->impl()->state == GEARMAN_TASK_STATE_DATA or
-                     client->impl()->task->impl()->state == GEARMAN_TASK_STATE_COMPLETE))
+                if (client->task->impl()->con == client->con &&
+                    (client->task->impl()->state == GEARMAN_TASK_STATE_DATA or
+                     client->task->impl()->state == GEARMAN_TASK_STATE_COMPLETE))
                 {
                   break;
                 }
@@ -1522,24 +1524,24 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
                 Someone has set GEARMAN_CLIENT_UNBUFFERED_RESULT but hasn't setup the client to fetch data correctly.
                 Fatal error :(
               */
-              return gearman_universal_set_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
+              return gearman_universal_set_error(client->universal, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
                                                  "client created with GEARMAN_CLIENT_UNBUFFERED_RESULT, but was not setup to use it. %s", __func__);
             }
             else
             {
               /* Read the next packet, without buffering the data part. */
-              client->impl()->task= NULL;
-              (void)client->impl()->con->receiving(client->impl()->con->_packet, ret, false);
+              client->task= NULL;
+              (void)client->con->receiving(client->con->_packet, ret, false);
             }
           }
           else
           {
             /* Read the next packet, buffering the data part. */
-            client->impl()->task= NULL;
-            (void)client->impl()->con->receiving(client->impl()->con->_packet, ret, true);
+            client->task= NULL;
+            (void)client->con->receiving(client->con->_packet, ret, true);
           }
 
-          if (client->impl()->task == NULL)
+          if (client->task == NULL)
           {
             assert(ret != GEARMAN_MAX_RETURN);
 
@@ -1551,71 +1553,71 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
                 break;
               }
 
-              client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
               return ret;
             }
 
-            client->impl()->con->options.packet_in_use= true;
+            client->con->options.packet_in_use= true;
 
             /* We have a packet, see which task it belongs to. */
-            for (client->impl()->task= client->impl()->task_list; client->impl()->task;
-                 client->impl()->task= client->impl()->task->impl()->next)
+            for (client->task= client->task_list; client->task;
+                 client->task= client->task->impl()->next)
             {
-              if (client->impl()->task->impl()->con != client->impl()->con)
+              if (client->task->impl()->con != client->con)
               {
                 continue;
               }
 
-              if (client->impl()->con->_packet.command == GEARMAN_COMMAND_JOB_CREATED)
+              if (client->con->_packet.command == GEARMAN_COMMAND_JOB_CREATED)
               {
-                if (client->impl()->task->impl()->created_id != client->impl()->con->created_id)
+                if (client->task->impl()->created_id != client->con->created_id)
                 {
                   continue;
                 }
 
                 /* New job created, drop through below and notify task. */
-                client->impl()->con->created_id++;
+                client->con->created_id++;
               }
-              else if (client->impl()->con->_packet.command == GEARMAN_COMMAND_ERROR)
+              else if (client->con->_packet.command == GEARMAN_COMMAND_ERROR)
               {
-                gearman_return_t maybe_server_error= string2return_code(static_cast<char *>(client->impl()->con->_packet.arg[0]), int(client->impl()->con->_packet.arg_size[0]));
+                gearman_return_t maybe_server_error= string2return_code(static_cast<char *>(client->con->_packet.arg[0]), int(client->con->_packet.arg_size[0]));
 
                 if (maybe_server_error == GEARMAN_MAX_RETURN)
                 {
                   maybe_server_error= GEARMAN_SERVER_ERROR;
                 }
 
-                gearman_universal_set_error(client->impl()->universal, maybe_server_error, GEARMAN_AT,
+                gearman_universal_set_error(client->universal, maybe_server_error, GEARMAN_AT,
                                             "%s:%.*s",
-                                            static_cast<char *>(client->impl()->con->_packet.arg[0]),
-                                            int(client->impl()->con->_packet.arg_size[1]),
-                                            static_cast<char *>(client->impl()->con->_packet.arg[1]));
+                                            static_cast<char *>(client->con->_packet.arg[0]),
+                                            int(client->con->_packet.arg_size[1]),
+                                            static_cast<char *>(client->con->_packet.arg[1]));
 
                 /* 
                   Packet cleanup copied from "Clean up the packet" below, and must
                   remain in sync with its reference.
                 */
-                gearman_packet_free(&(client->impl()->con->_packet));
-                client->impl()->con->options.packet_in_use= false;
+                gearman_packet_free(&(client->con->_packet));
+                client->con->options.packet_in_use= false;
 
                 /* This step copied from _client_run_tasks() above: */
                 /* Increment this value because new job created then failed. */
-                client->impl()->con->created_id++;
+                client->con->created_id++;
 
                 return maybe_server_error;
               }
-              else if (client->impl()->con->_packet.command == GEARMAN_COMMAND_STATUS_RES_UNIQUE and
-                       (strncmp(gearman_task_unique(client->impl()->task),
-                               static_cast<char *>(client->impl()->con->_packet.arg[0]),
-                               client->impl()->con->_packet.arg_size[0]) == 0))
+              else if (client->con->_packet.command == GEARMAN_COMMAND_STATUS_RES_UNIQUE and
+                       (strncmp(gearman_task_unique(client->task),
+                               static_cast<char *>(client->con->_packet.arg[0]),
+                               client->con->_packet.arg_size[0]) == 0))
               { }
-              else if (strncmp(client->impl()->task->impl()->job_handle,
-                               static_cast<char *>(client->impl()->con->_packet.arg[0]),
-                               client->impl()->con->_packet.arg_size[0]) ||
-                       (client->impl()->con->_packet.failed() == false &&
-                        strlen(client->impl()->task->impl()->job_handle) != client->impl()->con->_packet.arg_size[0] - 1) ||
-                       (client->impl()->con->_packet.failed() &&
-                        strlen(client->impl()->task->impl()->job_handle) != client->impl()->con->_packet.arg_size[0]))
+              else if (strncmp(client->task->impl()->job_handle,
+                               static_cast<char *>(client->con->_packet.arg[0]),
+                               client->con->_packet.arg_size[0]) ||
+                       (client->con->_packet.failed() == false &&
+                        strlen(client->task->impl()->job_handle) != client->con->_packet.arg_size[0] - 1) ||
+                       (client->con->_packet.failed() &&
+                        strlen(client->task->impl()->job_handle) != client->con->_packet.arg_size[0]))
               {
                 continue;
               }
@@ -1625,19 +1627,19 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
               break;
             }
 
-            if (client->impl()->task == NULL)
+            if (client->task == NULL)
             {
               /* The client has stopped waiting for the response, ignore it. */
-              client->impl()->con->free_private_packet();
+              client->con->free_private_packet();
               continue;
             }
 
-            client->impl()->task->impl()->recv= &(client->impl()->con->_packet);
+            client->task->impl()->recv= &(client->con->_packet);
           }
 
   case GEARMAN_CLIENT_STATE_PACKET:
           /* Let task process job created or result packet. */
-          gearman_return_t local_ret= _client_run_task(client->impl()->task->impl());
+          gearman_return_t local_ret= _client_run_task(client->task->impl());
           if (local_ret == GEARMAN_IO_WAIT)
           {
             break;
@@ -1645,56 +1647,56 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
 
           if (gearman_failed(local_ret))
           {
-            client->impl()->state= GEARMAN_CLIENT_STATE_PACKET;
+            client->state= GEARMAN_CLIENT_STATE_PACKET;
             return local_ret;
           }
 
           /* Clean up the packet. */
-          client->impl()->con->free_private_packet();
+          client->con->free_private_packet();
 
           /* If exit task is set and matched, exit */
           if (exit_task)
           {
             if (exit_task->impl()->result_rc != GEARMAN_UNKNOWN_STATE)
             {
-              client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+              client->state= GEARMAN_CLIENT_STATE_IDLE;
               return GEARMAN_SUCCESS;
             }
           }
 
           /* If all tasks are done, return. */
-          if (client->impl()->running_tasks == 0)
+          if (client->running_tasks == 0)
           {
-            client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+            client->state= GEARMAN_CLIENT_STATE_IDLE;
             return GEARMAN_SUCCESS;
           }
         }
       }
 
       /* If all tasks are done, return. */
-      if (client->impl()->running_tasks == 0)
+      if (client->running_tasks == 0)
       {
         break;
       }
 
-      if (client->impl()->new_tasks > 0 and ! (client->impl()->options.no_new))
+      if (client->new_tasks > 0 and ! (client->options.no_new))
       {
         continue;
       }
 
-      if (client->impl()->options.non_blocking)
+      if (client->options.non_blocking)
       {
         /* Let the caller wait for activity. */
-        client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+        client->state= GEARMAN_CLIENT_STATE_IDLE;
 
-        return gearman_gerror(client->impl()->universal, GEARMAN_IO_WAIT);
+        return gearman_gerror(client->universal, GEARMAN_IO_WAIT);
       }
 
       /* Wait for activity on one of the connections. */
-      gearman_return_t local_ret= gearman_wait(client->impl()->universal);
+      gearman_return_t local_ret= gearman_wait(client->universal);
       if (gearman_failed(local_ret) and local_ret != GEARMAN_IO_WAIT)
       {
-        client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+        client->state= GEARMAN_CLIENT_STATE_IDLE;
 
         return local_ret;
       }
@@ -1703,73 +1705,76 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client, gear
     break;
   }
 
-  client->impl()->state= GEARMAN_CLIENT_STATE_IDLE;
+  client->state= GEARMAN_CLIENT_STATE_IDLE;
 
   return GEARMAN_SUCCESS;
 }
 
-gearman_return_t gearman_client_run_tasks(gearman_client_st *client)
+gearman_return_t gearman_client_run_tasks(gearman_client_st *client_shell)
 {
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell and client_shell->impl())
   {
-    return GEARMAN_INVALID_ARGUMENT;
-  }
+    Client* client= client_shell->impl();
 
-  if (client->impl()->task_list == NULL) // We are immediatly successful if all tasks are completed
-  {
-    return GEARMAN_SUCCESS;
-  }
+    if (client->task_list == NULL) // We are immediatly successful if all tasks are completed
+    {
+      return GEARMAN_SUCCESS;
+    }
 
-  gearman_return_t rc;
-  {
-    PUSH_NON_BLOCKING(client->impl()->universal);
+    gearman_return_t rc;
+    {
+      PUSH_NON_BLOCKING(client->universal);
 
-    rc= _client_run_tasks(client, NULL);
-  }
+      rc= _client_run_tasks(client_shell, NULL);
+    }
 
-  if (rc == GEARMAN_COULD_NOT_CONNECT)
-  {
-    gearman_reset(client->impl()->universal);
-  }
-
-  return rc;
-}
-
-gearman_return_t gearman_client_run_block_tasks(gearman_client_st *shell, gearman_task_st* exit_task)
-{
-  if (shell == NULL)
-  {
-    return GEARMAN_INVALID_ARGUMENT;
-  }
-  Client *client= shell->impl();
-
-  if (client->task_list == NULL) // We are immediatly successful if all tasks are completed
-  {
-    return GEARMAN_SUCCESS;
-  }
-
-
-  gearman_return_t rc;
-  {
-    PUSH_BLOCKING(client->universal);
-
-    rc= _client_run_tasks(shell, exit_task);
-  }
-
-  if (gearman_failed(rc))
-  {
     if (rc == GEARMAN_COULD_NOT_CONNECT)
     {
       gearman_reset(client->universal);
     }
 
-    if (client->universal.error_code() != rc and rc != GEARMAN_COULD_NOT_CONNECT)
-    {
-      assert(client->universal.error_code() == rc);
-    }
+    return rc;
   }
 
-  return rc;
+  return GEARMAN_INVALID_ARGUMENT;
+}
+
+gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client_shell, gearman_task_st* exit_task)
+{
+  if (client_shell and client_shell->impl())
+  {
+    Client *client= client_shell->impl();
+
+    if (client->task_list == NULL) // We are immediatly successful if all tasks are completed
+    {
+      return GEARMAN_SUCCESS;
+    }
+
+
+    gearman_return_t rc;
+    {
+      PUSH_BLOCKING(client->universal);
+
+      rc= _client_run_tasks(client_shell, exit_task);
+    }
+
+    if (gearman_failed(rc))
+    {
+      if (rc == GEARMAN_COULD_NOT_CONNECT)
+      {
+        gearman_reset(client->universal);
+      }
+
+      if (client->universal.error_code() != rc and rc != GEARMAN_COULD_NOT_CONNECT)
+      {
+        assert(client->universal.error_code() == rc);
+      }
+    }
+
+    return rc;
+  }
+
+  return GEARMAN_INVALID_ARGUMENT;
 }
 
 /*
