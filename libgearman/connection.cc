@@ -75,8 +75,8 @@
 # define FD_CLOEXEC 0
 #endif
 
-#ifndef MSG_DONTWAIT
-# define MSG_DONTWAIT 0
+#ifndef MSG_NOSIGNAL
+# define MSG_NOSIGNAL 0
 #endif
 
 
@@ -1105,7 +1105,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
     if (_ssl)
     {
-      read_size= CyaSSL_recv(_ssl, data, data_size, MSG_DONTWAIT);
+      read_size= CyaSSL_recv(_ssl, data, data_size, MSG_NOSIGNAL);
       if (read_size <= 0)
       {
         int sendErr= CyaSSL_get_error(_ssl, read_size);
@@ -1226,7 +1226,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
         int rval;
         do
         { 
-          rval= fcntl (fd, F_SETFD, flags | FD_CLOEXEC);
+          rval= fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
         } while (rval == -1 && (errno == EINTR or errno == EAGAIN));
 
         if (rval == -1)

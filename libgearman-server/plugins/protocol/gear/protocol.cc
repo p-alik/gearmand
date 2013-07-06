@@ -248,6 +248,15 @@ public:
                          int(packet->data_size),
                          packet->data);
     }
+    else if (packet->command == GEARMAN_COMMAND_OPTION_REQ)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s option: %.*s",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command),
+                         int(packet->data_size),
+                         packet->data);
+    }
     else
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
