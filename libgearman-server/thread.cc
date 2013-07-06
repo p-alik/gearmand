@@ -309,7 +309,7 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                        "Received %s %s:%u",
-                       gearman_command_info(con->packet->packet.command)->name,
+                       gearmand_strcommand(&con->packet->packet),
                        con->_host == NULL ? "-" : con->_host,
                        con->_port == NULL ? "-" : con->_port);
 
