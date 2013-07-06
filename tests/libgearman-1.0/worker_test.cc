@@ -546,13 +546,16 @@ static test_return_t job_order_background_TEST(void *)
   for (std::vector<gearman_task_st*>::iterator iter= tasks.begin();
        iter != tasks.end(); ++iter)
   {
-    if (gearman_task_return(*iter) != GEARMAN_UNKNOWN_STATE)
+
+    if (gearman_failed(gearman_task_return(*iter)))
     {
-      Error << ":" << gearman_task_error(*iter) << ":";
-      Error << ":" << gearman_strerror(gearman_task_return(*iter)) << ":";
+      if (gearman_task_return(*iter) != GEARMAN_UNKNOWN_STATE)
+      {
+        Error << "gearman_task_error(" << gearman_task_error(*iter) << ") gearman_task_return(" << gearman_strerror(gearman_task_return(*iter)) << ")";
+        ASSERT_EQ(GEARMAN_UNKNOWN_STATE, gearman_task_return(*iter));
+        ASSERT_NULL(gearman_task_error(*iter));
+      }
     }
-    ASSERT_EQ(GEARMAN_UNKNOWN_STATE, gearman_task_return(*iter));
-    ASSERT_NULL(gearman_task_error(*iter));
   }
 
   for (uint32_t x= 0; x < 10; ++x)

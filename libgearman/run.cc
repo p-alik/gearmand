@@ -201,6 +201,7 @@ gearman_return_t _client_run_task(Task *task)
           task->send.command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH ||
           task->send.command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND)
       {
+        task->result_rc= GEARMAN_SUCCESS;
         break;
       }
     }
@@ -411,13 +412,11 @@ gearman_return_t _client_run_task(Task *task)
   task->set_state(GEARMAN_TASK_STATE_FINISHED);
 
   // @todo this should never happen... but background tasks can signal it.
-#if 0
-  if (task->result_rc == GEARMAN_UNKNOWN_STATE)
+  if (task->result_rc == GEARMAN_UNKNOWN_STATE and task->client->impl()->universal.error())
   {
     fprintf(stderr, "%s:%u %s\n", __FILE__, __LINE__, task->client->impl()->universal.error());
   }
   assert(task->result_rc != GEARMAN_UNKNOWN_STATE);
-#endif
 
   if (task->client->impl()->options.free_tasks and task->type == GEARMAN_TASK_KIND_ADD_TASK)
   {
