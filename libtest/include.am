@@ -94,6 +94,7 @@ noinst_HEADERS+= libtest/server.h
 noinst_HEADERS+= libtest/server_container.h
 noinst_HEADERS+= libtest/signal.h
 noinst_HEADERS+= libtest/socket.hpp
+noinst_HEADERS+= libtest/ssl.h
 noinst_HEADERS+= libtest/stream.h
 noinst_HEADERS+= libtest/strerror.h
 noinst_HEADERS+= libtest/string.hpp

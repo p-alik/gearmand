@@ -58,6 +58,9 @@ public:
 
 private:
   std::string _port;
+  std::string _ssl_ca_file;
+  std::string _ssl_certificate;
+  std::string _ssl_key;
   bool opt_ssl;
 };
 

@@ -40,7 +40,7 @@
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
+#define AT __FILE__ ":" TOSTRING(__LINE__) ":"
 #define GEARMAN_AT __func__, AT
 
 #define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), __func__, AT, (__message))

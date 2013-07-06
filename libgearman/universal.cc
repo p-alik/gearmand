@@ -409,6 +409,8 @@ gearman_universal_st::~gearman_universal_st()
   {
     CyaSSL_CTX_free(_ctx_ssl);
   }
+#else
+  assert(_ctx_ssl == NULL);
 #endif
 }
 
@@ -438,32 +440,32 @@ gearman_return_t gearman_universal_st::option(const universal_options_t& option_
 
 bool gearman_universal_st::init_ssl()
 {
-  if (options._ssl)
+  if (ssl())
   {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
     CyaSSL_Init();
 
-    if ((_ctx_ssl = CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+    if ((_ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
     {
-      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, "CyaTLSv1_client_method()");
+      gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "CyaTLSv1_client_method() failed");
       return false;
     }
 
-    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, GEARMAND_CA_CERTIFICATE, 0) != SSL_SUCCESS)
+    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, ssl_ca_file(), 0) != SSL_SUCCESS)
     {
-      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CA_CERT_PEM);
+      gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "Failed to load CA certificate %s", ssl_ca_file());
       return false;
     }
 
-    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, GEARMAND_CLIENT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, ssl_certificate(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_PEM);
+      gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "Failed to load certificate %s", ssl_certificate());
       return false;
     }
 
-    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, GEARMAND_CLIENT_KEY, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, ssl_key(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      gearman_error(*this, GEARMAN_INVALID_ARGUMENT, CERT_KEY_PEM);
+      gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "Failed to load certificate key %s", ssl_key());
       return false;
     }
 #endif // defined(HAVE_CYASSL) && HAVE_CYASSL

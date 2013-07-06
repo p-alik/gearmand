@@ -821,14 +821,21 @@ gearman_return_t gearman_connection_st::flush()
         if (_ssl)
         {
           write_size= CyaSSL_send(_ssl, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
-          if (write_size < 0)
+          if (write_size <= 0)
           {
             int err;
-            switch ((err= CyaSSL_get_error(_ssl, 0)))
+            switch ((err= CyaSSL_get_error(_ssl, write_size)))
             {
+              case SSL_ERROR_WANT_CONNECT:
+              case SSL_ERROR_WANT_ACCEPT:
+                write_size= -1;
+                errno= EAGAIN;
+                break;
+
               case SSL_ERROR_WANT_WRITE:
               case SSL_ERROR_WANT_READ:
-                errno= EWOULDBLOCK;
+                write_size= -1;
+                errno= EAGAIN;
                 break;
 
               default:
@@ -1069,6 +1076,7 @@ size_t gearman_connection_st::receive_data(void *data, size_t data_size, gearman
 
   if (data_size != recv_size)
   {
+    // @note fix this to test for error before blindly doing this opperation
     recv_size+= recv_socket(static_cast<uint8_t *>(const_cast<void *>(data)) + recv_size, data_size - recv_size, ret);
     recv_data_offset+= recv_size;
   }
@@ -1098,9 +1106,9 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
     if (_ssl)
     {
       read_size= CyaSSL_recv(_ssl, data, data_size, MSG_DONTWAIT);
-      if (read_size < 0)
+      if (read_size <= 0)
       {
-        int sendErr= CyaSSL_get_error(_ssl, 0);
+        int sendErr= CyaSSL_get_error(_ssl, read_size);
         if (sendErr != SSL_ERROR_WANT_READ)
         {
           char errorString[80];

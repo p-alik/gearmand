@@ -1,9 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
- * 
- *  Gearmand client and server library.
+ *
+ *  Data Differential YATL (i.e. libtest)  library
  *
  *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
- *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -35,10 +34,12 @@
  *
  */
 
+/*
+  Location of ssl certs during testing.
+*/
+
 #pragma once
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
-
-#include "configmake.h"
+#define YATL_CA_CERT_PEM "/home/brian/cyassl/certs/ca-cert.pem"
+#define YATL_CERT_PEM "/home/brian/cyassl/certs/server-cert.pem"
+#define YATL_CERT_KEY_PEM "/home/brian/cyassl/certs/server-key.pem"

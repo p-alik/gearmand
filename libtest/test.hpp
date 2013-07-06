@@ -100,3 +100,5 @@
 #include <libtest/tmpfile.hpp>
 #include <libtest/client.hpp>
 #include <libtest/thread.hpp>
+#include <libtest/ssl.h>
+

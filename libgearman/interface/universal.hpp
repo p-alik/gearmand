@@ -43,6 +43,7 @@
 #include "libgearman/interface/packet.hpp"
 #include "libgearman/vector.h" 
 #include "libgearman/assert.hpp" 
+#include "libgearman/ssl.h"
 
 enum universal_options_t
 {
@@ -201,20 +202,59 @@ struct gearman_universal_st
         options_++;
       }
     }
-
-    // Only does something if SSL has been enabled.
-    bool ret= init_ssl();
-    if (ret == false)
-    {
-      abort();
-    }
   }
 
+  const char* ssl_ca_file() const
+  {
+    if (getenv("GEARMAND_CA_CERTIFICATE"))
+    {
+      return getenv("GEARMAND_CA_CERTIFICATE");
+    }
+
+    return GEARMAND_CA_CERTIFICATE;
+  }
+
+  const char* ssl_certificate() const
+  {
+    if (getenv("GEARMAN_CLIENT_PEM"))
+    {
+      return getenv("GEARMAN_CLIENT_PEM");
+    }
+
+    return GEARMAN_CLIENT_PEM;
+  }
+
+  const char* ssl_key() const
+  {
+    if (getenv("GEARMAN_CLIENT_KEY"))
+    {
+      return getenv("GEARMAN_CLIENT_KEY");
+    }
+
+    return GEARMAN_CLIENT_KEY;
+  }
+
+private:
   bool init_ssl();
 
+public:
   struct CYASSL_CTX* ctx_ssl() 
   {
-    return _ctx_ssl;
+    if (ssl())
+    {
+      if (_ctx_ssl == NULL)
+      {
+        if (init_ssl() == false)
+        {
+          abort();
+        }
+      }
+      assert(_ctx_ssl);
+
+      return _ctx_ssl;
+    }
+
+    return NULL;
   }
 
   ~gearman_universal_st();

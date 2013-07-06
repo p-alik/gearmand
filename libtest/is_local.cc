@@ -60,6 +60,23 @@ static bool _is_ssl= false;
 void is_ssl(bool arg)
 {
   _is_ssl= arg;
+
+  if (_is_ssl)
+  {
+    setenv("GEARMAND_CA_CERTIFICATE", YATL_CA_CERT_PEM, false);
+    setenv("GEARMAND_SERVER_PEM", YATL_CERT_PEM, false);
+    setenv("GEARMAND_SERVER_KEY", YATL_CERT_KEY_PEM, false);
+    setenv("GEARMAND_CLIENT_PEM", YATL_CERT_PEM, false);
+    setenv("GEARMAND_CLIENT_KEY", YATL_CERT_KEY_PEM, false);
+  }
+  else
+  {
+    unsetenv("GEARMAND_CA_CERTIFICATE");
+    unsetenv("GEARMAND_SERVER_PEM");
+    unsetenv("GEARMAND_SERVER_KEY");
+    unsetenv("GEARMAND_CLIENT_PEM");
+    unsetenv("GEARMAND_CLIENT_KEY");
+  }
 }
 
 bool is_ssl()

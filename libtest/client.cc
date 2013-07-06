@@ -54,10 +54,6 @@
 # include <cyassl/ssl.h>
 #endif
 
-#define CA_CERT_PEM "/home/brian/cyassl/certs/ca-cert.pem"
-#define CERT_PEM "/home/brian/cyassl/certs/server-cert.pem"
-#define CERT_KEY_PEM "/home/brian/cyassl/certs/server-key.pem"
-
 namespace libtest {
 
 SimpleClient::SimpleClient(const std::string& hostname_, in_port_t port_) :
@@ -72,6 +68,11 @@ SimpleClient::SimpleClient(const std::string& hostname_, in_port_t port_) :
   _ctx_ssl(NULL),
   _ssl(NULL)
 {
+  if (is_ssl())
+  {
+    _is_ssl= true;
+  }
+
   init_ssl();
 }
 
@@ -87,19 +88,19 @@ void SimpleClient::init_ssl()
       FATAL("CyaSSL_CTX_new error" == NULL);
     }
 
-    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, CA_CERT_PEM, 0) != SSL_SUCCESS)
+    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, YATL_CA_CERT_PEM, 0) != SSL_SUCCESS)
     {
-      FATAL("CyaSSL_CTX_load_verify_locations(%s) cannot obtain certificate", CA_CERT_PEM);
+      FATAL("CyaSSL_CTX_load_verify_locations(%s) cannot obtain certificate", YATL_CA_CERT_PEM);
     }
 
-    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, YATL_CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      FATAL("CyaSSL_CTX_use_certificate_file(%s) cannot obtain certificate", CERT_PEM);
+      FATAL("CyaSSL_CTX_use_certificate_file(%s) cannot obtain certificate", YATL_CERT_PEM);
     }
 
-    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, YATL_CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      FATAL("CyaSSL_CTX_use_PrivateKey_file(%s) cannot obtain certificate", CERT_KEY_PEM);
+      FATAL("CyaSSL_CTX_use_PrivateKey_file(%s) cannot obtain certificate", YATL_CERT_KEY_PEM);
     }
 #endif // defined(HAVE_CYASSL) && HAVE_CYASSL
   }
