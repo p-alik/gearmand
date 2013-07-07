@@ -125,7 +125,7 @@ static void *_client_do(gearman_client_st *client_shell, gearman_command_t comma
   gearman_task_st do_task;
   {
     client->universal.options.no_new_data= true;
-    gearman_task_st *do_task_ptr= add_task(*(client->shell()), &do_task, NULL, command,
+    gearman_task_st *do_task_ptr= add_task(*client, &do_task, NULL, command,
                                            function,
                                            local_unique,
                                            workload,
@@ -237,7 +237,7 @@ static gearman_return_t _client_do_background(gearman_client_st* client_shell,
   gearman_task_st do_task;
   {
     client->universal.options.no_new_data= true;
-    gearman_task_st* do_task_ptr= add_task(*client_shell, &do_task, 
+    gearman_task_st* do_task_ptr= add_task(*client, &do_task, 
                                            client, 
                                            command,
                                            function,
@@ -826,7 +826,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
   gearman_status_t status;
   gearman_init(status);
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     gearman_status_set_return(status, GEARMAN_INVALID_ARGUMENT);
     return status;
@@ -1049,13 +1049,13 @@ gearman_task_st *gearman_client_add_task(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  return add_task_ptr(*client, task,
+  return add_task_ptr(*(client->impl()), task,
                       context, GEARMAN_COMMAND_SUBMIT_JOB,
                       function,
                       unique,
@@ -1079,13 +1079,13 @@ gearman_task_st *gearman_client_add_task_high(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  return add_task_ptr(*client, task, context,
+  return add_task_ptr(*(client->impl()), task, context,
                       GEARMAN_COMMAND_SUBMIT_JOB_HIGH,
                       function,
                       unique,
@@ -1109,13 +1109,13 @@ gearman_task_st *gearman_client_add_task_low(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  return add_task_ptr(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
+  return add_task_ptr(*(client->impl()), task, context, GEARMAN_COMMAND_SUBMIT_JOB_LOW,
                       function,
                       unique,
                       workload, workload_size,
@@ -1138,13 +1138,13 @@ gearman_task_st *gearman_client_add_task_background(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  return add_task_ptr(*client, task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
+  return add_task_ptr(*(client->impl()), task, context, GEARMAN_COMMAND_SUBMIT_JOB_BG,
                       function,
                       unique,
                       workload, workload_size,
@@ -1168,13 +1168,13 @@ gearman_client_add_task_high_background(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  return add_task_ptr(*client, task, context,
+  return add_task_ptr(*(client->impl()), task, context,
                       GEARMAN_COMMAND_SUBMIT_JOB_HIGH_BG,
                       function,
                       unique,
@@ -1198,13 +1198,13 @@ gearman_task_st* gearman_client_add_task_low_background(gearman_client_st *clien
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
 
-  return add_task_ptr(*client, task, context,
+  return add_task_ptr(*(client->impl()), task, context,
                       GEARMAN_COMMAND_SUBMIT_JOB_LOW_BG,
                       function,
                       unique,
@@ -1230,7 +1230,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
@@ -1278,7 +1278,7 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
     ret_ptr= &unused;
   }
 
-  if (client == NULL)
+  if (client == NULL or client->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
