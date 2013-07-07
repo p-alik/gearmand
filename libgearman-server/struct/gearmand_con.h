@@ -45,9 +45,20 @@ struct gearmand_con_st
   gearmand_con_st *next;
   gearmand_con_st *prev;
   gearman_server_con_st *server_con;
-  gearmand_connection_add_fn *add_fn;
   struct event event;
   char host[NI_MAXHOST];
   char port[NI_MAXSERV];
+  struct gearmand_port_st* _port_st;
+
+  struct gearmand_port_st* port_st()
+  {
+    return _port_st;
+  }
+
+  gearmand_error_t add_fn(gearman_server_con_st*);
+
+  gearmand_error_t remove_fn(gearman_server_con_st*);
+
+  void close_socket();
 };
 

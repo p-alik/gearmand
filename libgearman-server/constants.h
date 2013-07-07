@@ -137,6 +137,7 @@ typedef gearmand_error_t (gearman_queue_replay_fn)(gearman_server_st *server,
                                                    void *add_context);
 
 typedef gearmand_error_t (gearmand_connection_add_fn)(gearman_server_con_st *con);
+typedef gearmand_error_t (gearmand_connection_remove_fn)(gearman_server_con_st *con);
 
 typedef void (gearman_log_server_fn)(const char *line, gearmand_verbose_t verbose,
                                      struct gearmand_thread_st *context);

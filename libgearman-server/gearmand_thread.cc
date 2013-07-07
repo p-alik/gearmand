@@ -339,7 +339,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
     {
       gearmand_con_st* dcon= thread->dcon_add_list;
       thread->dcon_add_list= dcon->next;
-      gearmand_sockfd_close(dcon->fd);
+      dcon->close_socket();
       delete dcon;
     }
 

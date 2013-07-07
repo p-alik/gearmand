@@ -633,6 +633,11 @@ private:
   std::vector<char> content;
 };
 
+static gearmand_error_t _http_con_remove(gearman_server_con_st*)
+{
+  return GEARMAND_SUCCESS;
+}
+
 static gearmand_error_t _http_con_add(gearman_server_con_st *connection)
 {
   gearmand_info("HTTP connection made");
@@ -666,7 +671,7 @@ HTTP::~HTTP()
 gearmand_error_t HTTP::start(gearmand_st *gearmand)
 {
   gearmand_info("Initializing HTTP");
-  return gearmand_port_add(gearmand, _port.c_str(), _http_con_add);
+  return gearmand_port_add(gearmand, _port.c_str(), _http_con_add, _http_con_remove);
 }
 
 } // namespace protocol

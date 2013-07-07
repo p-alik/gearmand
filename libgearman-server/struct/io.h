@@ -97,6 +97,8 @@ struct gearmand_io_st
 
   const char* host() const;
   const char* port() const;
+
+  void close_socket();
 };
 
 namespace gearmand { namespace protocol {class Context; } }

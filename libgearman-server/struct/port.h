@@ -43,13 +43,18 @@ struct gearmand_port_st
 {
   char port[NI_MAXSERV];
   uint32_t listen_count;
-  gearmand_connection_add_fn *add_fn;
+
+private:
+  gearmand_connection_add_fn *_add_fn;
+  gearmand_connection_remove_fn *_remove_fn;
+
+public:
   int *listen_fd;
   struct event *listen_event;
 
   gearmand_port_st() :
     listen_count(0),
-    add_fn(NULL),
+    _add_fn(NULL),
     listen_fd(NULL),
     listen_event(NULL)
   {
@@ -67,6 +72,26 @@ struct gearmand_port_st
     {
       free(listen_event);
     }
+  }
+
+  gearmand_error_t add_fn(gearman_server_con_st* con)
+  {
+    return (*_add_fn)(con);
+  }
+
+  gearmand_error_t remove_fn(gearman_server_con_st* con)
+  {
+    return (*_remove_fn)(con);
+  }
+
+  void add_fn(gearmand_connection_add_fn* add_fn_)
+  {
+    _add_fn= add_fn_;
+  }
+
+  void remove_fn(gearmand_connection_remove_fn* remove_fn_)
+  {
+    _remove_fn= remove_fn_;
   }
 };
 
