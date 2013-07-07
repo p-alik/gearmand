@@ -139,7 +139,8 @@ gearman_server_st *gearmand_server(gearmand_st *gearmand);
 GEARMAN_API
 gearmand_error_t gearmand_port_add(gearmand_st *gearmand,
                                    const char *port,
-                                   gearmand_connection_add_fn *function);
+                                   gearmand_connection_add_fn*,
+                                   gearmand_connection_remove_fn*);
 
 /**
  * Run the server instance.

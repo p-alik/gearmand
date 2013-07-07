@@ -74,6 +74,7 @@ static void _connection_close(gearmand_io_st *connection)
     if (connection->root and connection->root->_ssl)
     {
       CyaSSL_shutdown(connection->root->_ssl);
+      CyaSSL_free(connection->root->_ssl);
       connection->root->_ssl= NULL;
     }
 #endif

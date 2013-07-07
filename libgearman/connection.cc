@@ -294,51 +294,50 @@ void gearman_connection_st::close_socket()
   if (_ssl)
   {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
+    CyaSSL_shutdown(_ssl);
     CyaSSL_free(_ssl);
     _ssl= NULL;
 #endif
   }
 
-  if (fd == INVALID_SOCKET)
+  if (fd != INVALID_SOCKET)
   {
-    return;
-  }
-
-  /* in case of death shutdown to avoid blocking at close_socket() */
-  if (shutdown(fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
-  { }
-  else
-  {
-    if (closesocket(fd) == SOCKET_ERROR)
+    /* in case of death shutdown to avoid blocking at close_socket() */
+    if (shutdown(fd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
     { }
+    else
+    {
+      if (closesocket(fd) == SOCKET_ERROR)
+      { }
+    }
+
+    state= GEARMAN_CON_UNIVERSAL_CONNECT;
+    fd= INVALID_SOCKET;
+    events= 0;
+    revents= 0;
+
+    send_state= GEARMAN_CON_SEND_STATE_NONE;
+    send_buffer_ptr= send_buffer;
+    send_buffer_size= 0;
+    send_data_size= 0;
+    send_data_offset= 0;
+
+    recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+    free_recv_packet();
+
+    recv_buffer_ptr= recv_buffer;
+    recv_buffer_size= 0;
+
+    options.server_options_sent= false;
+
+    // created_id_next is incremented for every outbound packet (except status).
+    // created_id is incremented for every response packet received, and also when
+    // no packets are received due to an error. There are lots of such error paths
+    // and it seems simpler to just reset these both to zero when a connection is
+    // 'closed'.
+    created_id= 0;
+    created_id_next= 0;
   }
-
-  state= GEARMAN_CON_UNIVERSAL_CONNECT;
-  fd= INVALID_SOCKET;
-  events= 0;
-  revents= 0;
-
-  send_state= GEARMAN_CON_SEND_STATE_NONE;
-  send_buffer_ptr= send_buffer;
-  send_buffer_size= 0;
-  send_data_size= 0;
-  send_data_offset= 0;
-
-  recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
-  free_recv_packet();
-
-  recv_buffer_ptr= recv_buffer;
-  recv_buffer_size= 0;
-
-  options.server_options_sent= false;
-
-  // created_id_next is incremented for every outbound packet (except status).
-  // created_id is incremented for every response packet received, and also when
-  // no packets are received due to an error. There are lots of such error paths
-  // and it seems simpler to just reset these both to zero when a connection is
-  // 'closed'.
-  created_id= 0;
-  created_id_next= 0;
 }
 
 void gearman_connection_st::free_recv_packet()

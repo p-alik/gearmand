@@ -316,13 +316,15 @@ bool gearmand_exceptions(gearmand_st *gearmand)
 }
 
 gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
-                                   gearmand_connection_add_fn *function)
+                                   gearmand_connection_add_fn *function,
+                                   gearmand_connection_remove_fn* remove_)
 {
   assert(gearmand);
   gearmand->_port_list.resize(gearmand->_port_list.size() +1);
 
   strncpy(gearmand->_port_list.back().port, port, NI_MAXSERV);
-  gearmand->_port_list.back().add_fn= function;
+  gearmand->_port_list.back().add_fn(function);
+  gearmand->_port_list.back().remove_fn(remove_);
 
   return GEARMAND_SUCCESS;
 }
@@ -885,7 +887,7 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Accepted connection from %s:%s", host, port_str);
 
-  gearmand_error_t ret= gearmand_con_create(Gearmand(), fd, host, port_str, port->add_fn);
+  gearmand_error_t ret= gearmand_con_create(Gearmand(), fd, host, port_str, port);
   if (ret == GEARMAND_MEMORY_ALLOCATION_FAILURE)
   {
     gearmand_sockfd_close(fd);

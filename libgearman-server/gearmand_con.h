@@ -74,9 +74,9 @@ extern "C" {
  * @return Pointer to an allocated gearmand structure.
  */
 GEARMAN_API
-gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int fd,
-                                     const char *host, const char *port,
-                                     gearmand_connection_add_fn *add_fn);
+gearmand_error_t gearmand_con_create(gearmand_st *gearmand, int&,
+                                     const char *host, const char*,
+                                     struct gearmand_port_st*);
 
 bool gearman_server_job_cancel(gearman_server_st& server,
                                const char *job_handle,

@@ -314,6 +314,11 @@ private:
 
 static Geartext gear_context;
 
+static gearmand_error_t _gear_con_remove(gearman_server_con_st*)
+{
+  return GEARMAND_SUCCESS;
+}
+
 static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
 {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
@@ -436,7 +441,7 @@ gearmand_error_t Gear::start(gearmand_st *gearmand)
   }
 #endif
 
-  rc= gearmand_port_add(gearmand, _port.c_str(), _gear_con_add);
+  rc= gearmand_port_add(gearmand, _port.c_str(), _gear_con_add, _gear_con_remove);
 
   return rc;
 }
