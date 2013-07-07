@@ -106,7 +106,6 @@ static void *_client_do(gearman_client_st *client_shell, gearman_command_t comma
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
-
   Client* client= client_shell->impl();
 
   client->universal.reset_error();
@@ -143,7 +142,7 @@ static void *_client_do(gearman_client_st *client_shell, gearman_command_t comma
 
   do_task.impl()->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client->shell(), &do_task);
+  gearman_return_t ret= gearman_client_run_block_tasks(client, &do_task);
 
   // gearman_client_run_tasks failed
   assert(client->task_list); // Programmer error, we should always have the task that we used for do
@@ -256,7 +255,7 @@ static gearman_return_t _client_do_background(gearman_client_st* client_shell,
   }
   do_task.impl()->type= GEARMAN_TASK_KIND_DO;
 
-  gearman_return_t ret= gearman_client_run_block_tasks(client_shell, &do_task);
+  gearman_return_t ret= gearman_client_run_block_tasks(client, &do_task);
 
   if (job_handle)
   {
@@ -819,25 +818,26 @@ gearman_return_t gearman_client_do_low_background(gearman_client_st *client_shel
                                job_handle);
 }
 
-gearman_status_t gearman_client_unique_status(gearman_client_st *client,
+gearman_status_t gearman_client_unique_status(gearman_client_st *client_shell,
                                               const char *unique, size_t unique_length)
 {
   (void)unique_length;
   gearman_status_t status;
   gearman_init(status);
 
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     gearman_status_set_return(status, GEARMAN_INVALID_ARGUMENT);
     return status;
   }
+  Client* client= client_shell->impl();
 
-  client->impl()->universal.reset_error();
+  client->universal.reset_error();
 
   gearman_return_t ret;
   gearman_task_st do_task;
   {
-    gearman_task_st *do_task_ptr= gearman_client_add_task_status_by_unique(client,
+    gearman_task_st *do_task_ptr= gearman_client_add_task_status_by_unique(client_shell,
                                                                            &do_task,
                                                                            unique, &ret);
     if (gearman_failed(ret))
@@ -920,7 +920,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client_shell,
 
   gearman_task_clear_fn(&do_task);
 
-  ret= gearman_client_run_block_tasks(client_shell, &do_task);
+  ret= gearman_client_run_block_tasks(client, &do_task);
 
   // @note we don't know if our task was run or not, we just know something
   // happened.
@@ -1743,23 +1743,19 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client_shell)
   return GEARMAN_INVALID_ARGUMENT;
 }
 
-gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client_shell, gearman_task_st* exit_task)
+gearman_return_t gearman_client_run_block_tasks(Client* client, gearman_task_st* exit_task)
 {
-  if (client_shell and client_shell->impl())
   {
-    Client *client= client_shell->impl();
-
     if (client->task_list == NULL) // We are immediatly successful if all tasks are completed
     {
       return GEARMAN_SUCCESS;
     }
 
-
     gearman_return_t rc;
     {
       PUSH_BLOCKING(client->universal);
 
-      rc= _client_run_tasks(client_shell, exit_task);
+      rc= _client_run_tasks(client->shell(), exit_task);
     }
 
     if (gearman_failed(rc))
