@@ -889,7 +889,7 @@ gearman_status_t gearman_client_unique_status(gearman_client_st *client,
   return status;
 }
 
-gearman_return_t gearman_client_job_status(gearman_client_st *client,
+gearman_return_t gearman_client_job_status(gearman_client_st *client_shell,
                                            const gearman_job_handle_t job_handle,
                                            bool *is_known, bool *is_running,
                                            uint32_t *numerator,
@@ -897,16 +897,18 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 {
   gearman_return_t ret;
 
-  if (client == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  client->impl()->universal.reset_error();
+  Client* client= client_shell->impl();
+
+  client->universal.reset_error();
 
   gearman_task_st do_task;
   {
-    gearman_task_st *do_task_ptr= gearman_client_add_task_status(client, &do_task, client,
+    gearman_task_st *do_task_ptr= gearman_client_add_task_status(client_shell, &do_task, client,
                                                                  job_handle, &ret);
     if (gearman_failed(ret))
     {
@@ -918,7 +920,7 @@ gearman_return_t gearman_client_job_status(gearman_client_st *client,
 
   gearman_task_clear_fn(&do_task);
 
-  ret= gearman_client_run_block_tasks(client, &do_task);
+  ret= gearman_client_run_block_tasks(client_shell, &do_task);
 
   // @note we don't know if our task was run or not, we just know something
   // happened.
