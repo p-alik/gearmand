@@ -77,34 +77,35 @@ struct gearman_job_reducer_st {
   bool init()
   {
     client= gearman_client_create(NULL);
-    if (not client)
+    if (client)
     {
-      return false;
-    }
 
-    if (universal._namespace)
-    {
-      gearman_client_set_namespace(client, 
-                                   gearman_string_value(universal._namespace),
-                                   gearman_string_length(universal._namespace));
-    }
-
-    for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
-    {
-      if (gearman_failed(client->impl()->add_server(con->_host, con->_service)))
+      if (universal._namespace)
       {
-        return false;
+        gearman_client_set_namespace(client, 
+                                     gearman_string_value(universal._namespace),
+                                     gearman_string_length(universal._namespace));
       }
+
+      for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
+      {
+        if (gearman_failed(client->impl()->add_server(con->_host, con->_service)))
+        {
+          return false;
+        }
+      }
+
+      return true;
     }
 
-    return true;
+    return false;
   }
 
   bool add(gearman_argument_t &arguments)
   {
     gearman_string_t function= gearman_string(reducer_function);
     gearman_unique_t unique= gearman_unique_make(0, 0);
-    gearman_task_st *task= add_task(*client,
+    gearman_task_st *task= add_task(*(client->impl()),
                                     NULL,
                                     GEARMAN_COMMAND_SUBMIT_JOB,
                                     function,

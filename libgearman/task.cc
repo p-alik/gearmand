@@ -54,7 +54,7 @@
  * Public Definitions
  */
 
-gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman_task_st *task_shell)
+gearman_task_st *gearman_task_internal_create(Client* client, gearman_task_st *task_shell)
 {
   Task* task= new (std::nothrow) Task(client, task_shell);
   if (task)
@@ -62,7 +62,7 @@ gearman_task_st *gearman_task_internal_create(gearman_client_st& client, gearman
     return task->shell();
   }
 
-  gearman_perror(client.impl()->universal, "gearman_task_st new");
+  gearman_perror(client->universal, "gearman_task_st new");
   gearman_task_free(task_shell);
 
   return NULL;

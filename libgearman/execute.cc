@@ -70,17 +70,19 @@ static inline gearman_command_t pick_command_by_priority_background(const gearma
 
 
 
-gearman_task_st *gearman_execute(gearman_client_st *client,
+gearman_task_st *gearman_execute(gearman_client_st *client_shell,
                                  const char *function_name, size_t function_length,
                                  const char *unique_str, size_t unique_length,
                                  gearman_task_attr_t *task_attr,
                                  gearman_argument_t *arguments,
                                  void *context)
 {
-  if (client == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     return NULL;
   }
+
+  Client* client= client_shell->impl();
 
   gearman_argument_t null_arg= gearman_argument_make(0, 0, 0, 0);
   if (arguments == NULL)
@@ -90,7 +92,7 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
   if (function_name == NULL or function_length == 0)
   {
-    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
   gearman_string_t function= { function_name, function_length };
@@ -149,18 +151,18 @@ gearman_task_st *gearman_execute(gearman_client_st *client,
 
   if (task == NULL)
   {
-    gearman_universal_error_code(client->impl()->universal);
+    gearman_universal_error_code(client->universal);
 
     return NULL;
   }
 
   task->impl()->type= GEARMAN_TASK_KIND_EXECUTE;
-  gearman_client_run_tasks(client);
+  gearman_client_run_tasks(client->shell());
 
   return task;
 }
 
-gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
+gearman_task_st *gearman_execute_by_partition(gearman_client_st *client_shell,
                                               const char *partition_function, const size_t partition_function_length,
                                               const char *function_name, const size_t function_name_length,
                                               const char *unique_str, const size_t unique_length,
@@ -168,25 +170,27 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
                                               gearman_argument_t *arguments,
                                               void *context)
 {
-  if (client == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     errno= EINVAL;
     return NULL;
   }
 
+  Client* client= client_shell->impl();
+
   if ((partition_function == NULL) or (partition_function_length == 0))
   {
-    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "partition_function was NULL");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "partition_function was NULL");
     return NULL;
   }
 
   if ((function_name == NULL) or (function_name_length == 0))
   {
-    gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
+    gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "function_name was NULL");
     return NULL;
   }
   
-  universal_reset_error(client->impl()->universal);
+  universal_reset_error(client->universal);
 
   gearman_task_st *task= NULL;
   gearman_string_t partition= { partition_function, partition_function_length };
@@ -211,7 +215,7 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
       break;
 
     case GEARMAN_TASK_ATTR_EPOCH:
-      gearman_error(client->impl()->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
+      gearman_error(client->universal, GEARMAN_INVALID_ARGUMENT, "EPOCH is not currently supported for gearman_client_execute_reduce()");
       return NULL;
 #if 0
       task= add_task(client,
@@ -262,9 +266,9 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client,
 
   do {
     gearman_return_t rc;
-    if (gearman_failed(rc= gearman_client_run_tasks(client)))
+    if (gearman_failed(rc= gearman_client_run_tasks(client->shell())))
     {
-      gearman_gerror(client->impl()->universal, rc);
+      gearman_gerror(client->universal, rc);
       gearman_task_free(task);
       return NULL;
     }
