@@ -1215,7 +1215,7 @@ gearman_task_st* gearman_client_add_task_low_background(gearman_client_st *clien
 
 }
 
-gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
+gearman_task_st *gearman_client_add_task_status(gearman_client_st *client_shell,
                                                 gearman_task_st *task_shell,
                                                 void *context,
                                                 const gearman_job_handle_t job_handle,
@@ -1230,15 +1230,16 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
     ret_ptr= &unused;
   }
 
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
+  Client* client= client_shell->impl();
 
-  if ((task_shell= gearman_task_internal_create(*client, task_shell)) == NULL)
+  if ((task_shell= gearman_task_internal_create(client, task_shell)) == NULL)
   {
-    *ret_ptr= gearman_client_error_code(client);
+    *ret_ptr= gearman_client_error_code(client_shell);
     return NULL;
   }
 
@@ -1249,14 +1250,14 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
 
   args[0]= job_handle;
   args_size[0]= strlen(job_handle);
-  gearman_return_t rc= gearman_packet_create_args(client->impl()->universal, task->send,
+  gearman_return_t rc= gearman_packet_create_args(client->universal, task->send,
                                                   GEARMAN_MAGIC_REQUEST,
                                                   GEARMAN_COMMAND_GET_STATUS,
                                                   args, args_size, 1);
   if (gearman_success(rc))
   {
-    client->impl()->new_tasks++;
-    client->impl()->running_tasks++;
+    client->new_tasks++;
+    client->running_tasks++;
     task->options.send_in_use= true;
   }
   *ret_ptr= rc;
@@ -1264,7 +1265,7 @@ gearman_task_st *gearman_client_add_task_status(gearman_client_st *client,
   return task_shell;
 }
 
-gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *client,
+gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *client_shell,
                                                           gearman_task_st *task_shell,
                                                           const char *unique_handle,
                                                           gearman_return_t *ret_ptr)
@@ -1278,11 +1279,12 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
     ret_ptr= &unused;
   }
 
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
+  Client* client= client_shell->impl();
 
   if (unique_handle == NULL)
   {
@@ -1297,9 +1299,9 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
     return NULL;
   }
 
-  if ((task_shell= gearman_task_internal_create(*client, task_shell)) == NULL)
+  if ((task_shell= gearman_task_internal_create(client, task_shell)) == NULL)
   {
-    *ret_ptr= gearman_client_error_code(client);
+    *ret_ptr= gearman_client_error_code(client_shell);
     return NULL;
   }
 
@@ -1311,14 +1313,14 @@ gearman_task_st *gearman_client_add_task_status_by_unique(gearman_client_st *cli
 
   args[0]= task->unique;
   args_size[0]= task->unique_length;
-  gearman_return_t rc= gearman_packet_create_args(client->impl()->universal, task->send,
+  gearman_return_t rc= gearman_packet_create_args(client->universal, task->send,
                                                   GEARMAN_MAGIC_REQUEST,
                                                   GEARMAN_COMMAND_GET_STATUS_UNIQUE,
                                                   args, args_size, 1);
   if (gearman_success(rc))
   {
-    client->impl()->new_tasks++;
-    client->impl()->running_tasks++;
+    client->new_tasks++;
+    client->running_tasks++;
     task->options.send_in_use= true;
   }
   *ret_ptr= rc;

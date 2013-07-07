@@ -89,7 +89,7 @@ struct Task
     return _shell;
   }
 
-  Task(gearman_client_st& client_, gearman_task_st* shell_) :
+  Task(Client* client_, gearman_task_st* shell_) :
     type(GEARMAN_TASK_KIND_ADD_TASK),
     state(GEARMAN_TASK_STATE_NEW),
     magic_(TASK_MAGIC),
@@ -97,13 +97,13 @@ struct Task
     numerator(0),
     denominator(0),
     client_count(0),
-    client(client_.impl()),
+    client(client_),
     next(NULL),
     prev(NULL),
     context(NULL),
     con(NULL),
     recv(NULL),
-    func(client_.impl()->actions),
+    func(client_->actions),
     result_rc(GEARMAN_UNKNOWN_STATE),
     _result_ptr(NULL),
     unique_length(0),
@@ -125,14 +125,14 @@ struct Task
 
     // Add the task to the client
     {
-      if (client_.impl()->task_list)
+      if (client_->task_list)
       {
-        client_.impl()->task_list->impl()->prev= _shell;
+        client_->task_list->impl()->prev= _shell;
       }
-      next= client_.impl()->task_list;
+      next= client_->task_list;
       prev= NULL;
-      client_.impl()->task_list= _shell;
-      client_.impl()->task_count++;
+      client_->task_list= _shell;
+      client_->task_count++;
     }
 
     _shell->impl(this);

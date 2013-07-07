@@ -195,7 +195,7 @@ gearman_task_st *add_task(Client& client,
     return NULL;
   }
 
-  task_shell= gearman_task_internal_create(*(client.shell()), task_shell);
+  task_shell= gearman_task_internal_create(&client, task_shell);
   if (task_shell == NULL or task_shell->impl() == NULL)
   {
     assert(client.universal.error());
@@ -377,7 +377,7 @@ gearman_task_st *add_reducer_task(Client* client,
     return NULL;
   }
 
-  gearman_task_st *task_shell= gearman_task_internal_create(*(client->shell()), NULL);
+  gearman_task_st *task_shell= gearman_task_internal_create(client, NULL);
   if (task_shell == NULL)
   {
     assert(client->universal.error_code());
