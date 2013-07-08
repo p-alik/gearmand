@@ -130,6 +130,11 @@ struct gearman_universal_st
   {
     if (_error.last_error[0] == 0)
     {
+      if (_error.rc != GEARMAN_SUCCESS)
+      {
+        return gearman_strerror(_error.rc);
+      }
+
       return NULL;
     }
 

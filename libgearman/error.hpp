@@ -38,12 +38,14 @@
 
 #pragma once
 
+#include <cerrno>
+
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 #define AT __FILE__ ":" TOSTRING(__LINE__) ":"
 #define GEARMAN_AT __func__, AT
 
-#define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), __func__, AT, (__message))
+#define gearman_perror(__universal, __message) gearman_universal_set_perror((__universal), errno,  __func__, AT, (__message))
 #define gearman_error(__universal, __error_t, __message) gearman_universal_set_error((__universal), (__error_t), __func__, AT, (__message))
 #define gearman_gerror(__universal, __gearman_return_t) gearman_universal_set_gerror((__universal), (__gearman_return_t), __func__, AT)
 
@@ -54,8 +56,9 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st&,
                                              const char *format, ...);
 
 gearman_return_t gearman_universal_set_perror(gearman_universal_st&,
+                                              const int _system_errno,
                                               const char *function, const char *position, 
-                                              const char *message);
+                                              const char *format, ...);
 
 gearman_return_t gearman_universal_set_gerror(gearman_universal_st&,
                                               gearman_return_t rc,

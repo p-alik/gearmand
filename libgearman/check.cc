@@ -99,7 +99,7 @@ gearman_return_t CancelCheck::success(gearman_connection_st* con)
         maybe_server_error= GEARMAN_SERVER_ERROR;
       }
 
-      return gearman_universal_set_error(_universal, maybe_server_error, GEARMAN_AT, "%d: %.*s:%.*s", con->_packet.argc,
+      return gearman_universal_set_error(_universal, maybe_server_error, GEARMAN_AT, "%.*s:%.*s",
                                          con->_packet.arg_size[0], con->_packet.arg[0],
                                          con->_packet.arg_size[1], con->_packet.arg[1]
                                         );
