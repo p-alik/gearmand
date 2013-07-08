@@ -148,8 +148,8 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
       ret= GEARMAND_LOST_CONNECTION;
       gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
                         "Peer connection has called close() %s:%s",
-                        connection->context == NULL ? "-" : connection->context->host,
-                        connection->context == NULL ? "-" : connection->context->port);
+                        connection->host(),
+                        connection->port());
       _connection_close(connection);
       return 0;
     }
@@ -179,8 +179,8 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
           ret= GEARMAND_LOST_CONNECTION;
           gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, 
                             "Peer connection has called close() %s:%s",
-                            connection->context == NULL ? "-" : connection->context->host,
-                            connection->context == NULL ? "-" : connection->context->port);
+                            connection->host(),
+                            connection->port());
           _connection_close(connection);
           return 0;
         }
@@ -301,8 +301,8 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
                   CyaSSL_ERR_error_string(err, errorString);
                   _connection_close(connection);
                   return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s:%s SSL failure(%s)",
-                                             connection->context == NULL ? "-" : connection->context->host,
-                                             connection->context == NULL ? "-" : connection->context->port,
+                                             connection->host(),
+                                             connection->port(),
                                              errorString);
                 }
             }
@@ -319,8 +319,8 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           ++loop_counter;
           gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() sent zero bytes of %u to peer %s:%s",
                              uint32_t(connection->send_buffer_size),
-                             connection->context == NULL ? "-" : connection->context->host,
-                             connection->context == NULL ? "-" : connection->context->port);
+                             connection->host(),
+                             connection->port());
 
           if (loop_counter > 5)
           {
@@ -368,8 +368,8 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 
         gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() %u bytes to peer %s:%s",
                            uint32_t(write_size),
-                           connection->context == NULL ? "-" : connection->context->host,
-                           connection->context == NULL ? "-" : connection->context->port);
+                           connection->host(),
+                           connection->port());
 
         connection->send_buffer_size-= static_cast<size_t>(write_size);
         if (connection->send_state == gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA)
@@ -776,8 +776,8 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
         return ret;
       }
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "%s:%s read %lu bytes",
-                         connection->context == NULL ? "-" : connection->context->host,
-                         connection->context == NULL ? "-" : connection->context->port,
+                         connection->host(),
+                         connection->port(),
                          (unsigned long)recv_size);
 
       connection->recv_buffer_size+= recv_size;
