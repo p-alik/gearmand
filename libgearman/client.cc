@@ -150,9 +150,8 @@ static void *_client_do(gearman_client_st *client_shell, gearman_command_t comma
   char *returnable= NULL;
   if (gearman_failed(ret))
   {
-    if (ret == GEARMAN_COULD_NOT_CONNECT)
-    { }
-    else
+    // We only record the error if it is different then the one we saved.
+    if (client->universal.error_code() != ret)
     {
       gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
     }

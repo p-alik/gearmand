@@ -464,7 +464,6 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
         gearman_packet_free(&message);
         free_private_packet();
         reset_recv_packet();
-        gearman_error(universal, ret, "receiving()");
         return ret;
       }
 
@@ -646,8 +645,25 @@ gearman_return_t gearman_connection_st::lookup()
   int ret;
   if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {
+    int local_errno= errno;
     reset_addrinfo();
-    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "%s:%d getaddrinfo:%s", host(), service(), gai_strerror(ret));
+    switch (ret)
+    {
+      case EAI_AGAIN:
+        return gearman_universal_set_error(universal, GEARMAN_TIMEOUT, GEARMAN_AT, "Nameserver timed out while looking up %s:%s", host(), service());
+
+      case EAI_MEMORY:
+        return gearman_universal_set_error(universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, GEARMAN_AT,
+                                           "A memory allocation failed while calling getaddrinfo() for %s:%s", host(), service());
+
+      case EAI_SYSTEM:
+        return gearman_universal_set_perror(universal, local_errno, GEARMAN_AT, "System error happened during a call to getaddrinfo() for %s:%s", host(), service());
+
+      default:
+        break;
+    }
+
+    return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "%s:%s getaddrinfo:%s", host(), service(), gai_strerror(ret));
   }
 
   addrinfo_next= _addrinfo;
@@ -706,7 +722,7 @@ gearman_return_t gearman_connection_st::flush()
       if (addrinfo_next == NULL)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%s", _host, _service);
+        return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "Connection to %s:%s failed", _host, _service);
       }
 
       // rewrite tye if HAVE_SOCK_CLOEXEC
@@ -732,7 +748,9 @@ gearman_return_t gearman_connection_st::flush()
         if (connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen) == 0)
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTED;
+#if 0
           addrinfo_next= NULL;
+#endif
 
           break;
         }
@@ -880,6 +898,11 @@ gearman_return_t gearman_connection_st::flush()
               continue;
             }
           case EPIPE:
+            {
+              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
+              close_socket();
+              return ret;
+            }
           case ECONNRESET:
           case EHOSTDOWN:
             {
