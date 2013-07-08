@@ -46,7 +46,7 @@
 #include <cerrno>
 #include <cstring>
 
-void *client_do(gearman_client_st *client, gearman_command_t command,
+void *client_do(gearman_client_st *client_shell, gearman_command_t command,
                 const char *function_name,
                 const char *unique,
                 const void *workload_str, size_t workload_size,
@@ -71,14 +71,15 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
     ret_ptr= &unused;
   }
 
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     *ret_ptr= GEARMAN_INVALID_ARGUMENT;
     return NULL;
   }
+  Client* client= client_shell->impl();
 
   {
-    gearman_task_st *do_task_ptr= add_task(*(client->impl()), &do_task, NULL, command,
+    gearman_task_st *do_task_ptr= add_task(*(client), &do_task, NULL, command,
                                            function,
                                            local_unique,
                                            workload,
@@ -86,7 +87,7 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
                                            gearman_actions_do_default());
     if (do_task_ptr == NULL)
     {
-      *ret_ptr= client->impl()->universal.error_code();
+      *ret_ptr= client->universal.error_code();
       return NULL;
     }
     assert(do_task_ptr);
@@ -100,7 +101,7 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
   // gearman_client_run_block_tasks failed
   if (gearman_failed(ret))
   {
-    gearman_error(client->impl()->universal, ret, "occured during gearman_client_run_tasks()");
+    gearman_error(client->universal, ret, "occured during gearman_client_run_tasks()");
 
     *ret_ptr= ret;
     *result_size= 0;
@@ -122,36 +123,37 @@ void *client_do(gearman_client_st *client, gearman_command_t command,
     }
     else // gearman_client_run_block_tasks() was successful, but the task was not
     {
-      gearman_error(client->impl()->universal, do_task.impl()->result_rc, "occured during gearman_client_run_tasks()");
+      gearman_error(client->universal, do_task.impl()->result_rc, "occured during gearman_client_run_tasks()");
 
       *ret_ptr= do_task.impl()->result_rc;
       *result_size= 0;
     }
   }
 
-  assert(client->impl()->task_list);
+  assert(client->task_list);
   gearman_task_free(&do_task);
-  client->impl()->new_tasks= 0;
-  client->impl()->running_tasks= 0;
+  client->new_tasks= 0;
+  client->running_tasks= 0;
 
   return const_cast<void *>(returnable);
 }
 
-gearman_return_t client_do_background(gearman_client_st *client,
+gearman_return_t client_do_background(gearman_client_st *client_shell,
                                       gearman_command_t command,
                                       gearman_string_t &function,
                                       gearman_unique_t &unique,
                                       gearman_string_t &workload,
                                       gearman_job_handle_t job_handle)
 {
-  if (client == NULL or client->impl() == NULL)
+  if (client_shell == NULL or client_shell->impl() == NULL)
   {
     return GEARMAN_INVALID_ARGUMENT;
   }
+  Client* client= client_shell->impl();
 
   gearman_task_st do_task;
   {
-    gearman_task_st *do_task_ptr= add_task(*(client->impl()), &do_task, 
+    gearman_task_st *do_task_ptr= add_task(*(client), &do_task, 
                                            client, 
                                            command,
                                            function,
@@ -161,7 +163,7 @@ gearman_return_t client_do_background(gearman_client_st *client,
                                            gearman_actions_do_default());
     if (do_task_ptr == NULL)
     {
-      return client->impl()->universal.error_code();
+      return client->universal.error_code();
     }
     assert(&do_task == do_task_ptr);
   }
@@ -176,8 +178,8 @@ gearman_return_t client_do_background(gearman_client_st *client,
     {
       strncpy(job_handle, do_task.impl()->job_handle, GEARMAN_JOB_HANDLE_SIZE);
     }
-    client->impl()->new_tasks= 0;
-    client->impl()->running_tasks= 0;
+    client->new_tasks= 0;
+    client->running_tasks= 0;
   }
   gearman_task_free(&do_task);
 

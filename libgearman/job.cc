@@ -169,7 +169,7 @@ static gearman_return_t _job_send(gearman_job_st *job);
  * Public Definitions
  */
 
-gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *job)
+gearman_job_st *gearman_job_create(Worker* worker, gearman_job_st *job)
 {
   if (worker)
   {
@@ -177,7 +177,7 @@ gearman_job_st *gearman_job_create(gearman_worker_st *worker, gearman_job_st *jo
     { } // Leave it alone
     else
     {
-      job= new (std::nothrow) gearman_job_st(*(worker->impl()));
+      job= new (std::nothrow) gearman_job_st(*(worker));
       if (job == NULL)
       {
         gearman_perror(job->_worker.universal, "new");

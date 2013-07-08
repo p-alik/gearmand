@@ -37,6 +37,6 @@
 
 #pragma once
 
-gearman_return_t gearman_client_run_block_tasks(gearman_client_st *client, gearman_task_st* exit_task);
+gearman_return_t gearman_client_run_block_tasks(Client* client, gearman_task_st* exit_task);
 
 size_t gearman_client_count_tasks(gearman_client_st *client);

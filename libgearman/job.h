@@ -48,7 +48,7 @@
  * @return On success, a pointer to the (possibly allocated) structure. On
  *  failure this will be NULL.
  */
-gearman_job_st *gearman_job_create(gearman_worker_st *worker,
+gearman_job_st *gearman_job_create(Worker* worker,
                                    gearman_job_st *job);
 
 
