@@ -71,6 +71,7 @@ Args::Args(int p_argc, char *p_argv[]) :
   _daemon(false),
   _usage(false),
   _is_error(false),
+  _use_ssl(false),
   _arg_error(NULL),
   _priority(GEARMAN_JOB_PRIORITY_NORMAL),
   _timeout(-1),
@@ -91,7 +92,7 @@ void Args::init(int argc)
 
   opterr= 0;
 
-  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:vwi:d")) != -1)
+  while ((c = getopt(argc, argv, "bc:f:h:HILnNp:Pst:u:vwi:dS")) != -1)
   {
     switch(c)
     {
@@ -166,6 +167,10 @@ void Args::init(int argc)
 
     case 'v':
       _verbose= true;
+      break;
+
+    case 'S':
+      _use_ssl= true;
       break;
 
     default:

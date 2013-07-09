@@ -161,6 +161,11 @@ public:
     return _suppress_input;
   }
 
+  bool use_ssl() const
+  {
+    return _use_ssl;
+  }
+
   const char *argument(size_t arg)
   {
     return argv[arg];
@@ -220,6 +225,7 @@ private:
   bool _daemon;
   bool _usage;
   bool _is_error;
+  bool _use_ssl;
   char *_arg_error;
   gearman_job_priority_t _priority;
   int _timeout;
