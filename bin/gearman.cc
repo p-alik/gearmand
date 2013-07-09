@@ -263,6 +263,11 @@ void _client(Args &args)
     return;
   }
 
+  if (args.use_ssl())
+  {
+    gearman_client_add_options(&client, GEARMAN_CLIENT_SSL);
+  }
+
   gearman_client_set_created_fn(&client, _client_created);
   gearman_client_set_data_fn(&client, _client_data);
   gearman_client_set_warning_fn(&client, _client_warning);
@@ -518,6 +523,11 @@ void _worker(Args &args)
   {
     error::message("gearman_worker_add_server", &worker);
     _exit(EXIT_FAILURE);
+  }
+
+  if (args.use_ssl())
+  {
+    gearman_worker_add_options(&worker, GEARMAN_WORKER_SSL);
   }
 
   gearman_worker_set_workload_free_fn(&worker, _worker_free, NULL);
@@ -784,6 +794,7 @@ static void usage(Args& args, char *name)
   fprintf(stream, "\t-p <port>     - Job server port\n");
   fprintf(stream, "\t-t <timeout>  - Timeout in milliseconds\n");
   fprintf(stream, "\t-i <pidfile>  - Create a pidfile for the process\n");
+  fprintf(stream, "\t-S            - Enable SSL connections\n");
 
   fprintf(stream, "\nClient options:\n");
   fprintf(stream, "\t-b            - Run jobs in the background(%s)\n", args.background() ? "true" : "false");
