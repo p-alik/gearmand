@@ -143,7 +143,7 @@ libgearman_libgearman_la_LIBADD+= @DL_LIB@
 libgearman_libgearman_la_LIBADD+= @LIBUUID_LIB@
 libgearman_libgearman_la_LIBADD+= libhashkit/libhashkit.la
 
-if TARGET_LINUX
+if HOST_LINUX
 libgearman_libgearman_la_LIBADD+= @LIBM@
 endif
 

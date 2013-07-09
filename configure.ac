@@ -13,7 +13,7 @@ AC_INIT([gearmand],VERSION_NUMBER,[https://bugs.launchpad.net/gearmand],[gearman
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
-AC_CANONICAL_TARGET
+AC_CANONICAL_HOST
 AC_ARG_PROGRAM
 AC_USE_SYSTEM_EXTENSIONS
 
