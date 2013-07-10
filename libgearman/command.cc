@@ -112,8 +112,11 @@ const char *gearman_strcommand(gearman_command_t command)
 
 const gearman_command_info_st *gearman_command_info(gearman_command_t command)
 {
-  assert(command >= GEARMAN_COMMAND_TEXT);
-  assert(command < GEARMAN_COMMAND_MAX);
+  if (uint32_t(command) >= uint32_t(GEARMAN_COMMAND_MAX))
+  {
+    return NULL;
+  }
+
   const struct gearman_command_info_st* command_info= &gearmand_command_info_list[command];
   assert(command_info->code == command);
   return command_info;
