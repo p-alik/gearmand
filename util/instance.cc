@@ -61,22 +61,28 @@ Instance::Instance(const std::string& hostname_arg, const std::string& service_a
   _host(hostname_arg),
   _service(service_arg),
   _sockfd(INVALID_SOCKET),
+  _use_ssl(false),
   state(NOT_WRITING),
   _addrinfo(0),
   _addrinfo_next(0),
   _finish_fn(NULL),
-  _operations()
+  _operations(),
+  _ctx_ssl(NULL),
+  _ssl(NULL)
   {
   }
 
 Instance::Instance(const std::string& hostname_arg, const in_port_t port_arg) :
   _host(hostname_arg),
   _sockfd(INVALID_SOCKET),
+  _use_ssl(false),
   state(NOT_WRITING),
   _addrinfo(0),
   _addrinfo_next(0),
   _finish_fn(NULL),
-  _operations()
+  _operations(),
+  _ctx_ssl(NULL),
+  _ssl(NULL)
   {
     char tmp[BUFSIZ];
     snprintf(tmp, sizeof(tmp), "%u", static_cast<unsigned int>(port_arg));
@@ -94,10 +100,69 @@ Instance::~Instance()
   _operations.clear();
 
   delete _finish_fn;
+
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  if (_ssl)
+  {
+    CyaSSL_shutdown(_ssl);
+    CyaSSL_free(_ssl);
+  }
+  if (_ctx_ssl)
+  {
+    CyaSSL_CTX_free(_ctx_ssl);
+  }
+  CyaSSL_Cleanup();
+#endif
+}
+
+bool Instance::init_ssl()
+{
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  CyaSSL_Init();
+
+  if ((_ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+  {
+    _last_error= "CyaSSL_CTX_new error";
+    return false;
+  }
+
+  if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, ssl_ca_file(), 0) != SSL_SUCCESS)
+  {
+    std::stringstream message;
+    message << "Error loading CA file " << ssl_ca_file();
+    _last_error= message.str();
+    return false;
+  }
+
+  if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, ssl_certificate(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+  {
+    std::stringstream message;
+    message << "Error loading certificate file " << ssl_certificate();
+    _last_error= message.str();
+    return false;
+  }
+
+  if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, ssl_key(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+  {
+    std::stringstream message;
+    message << "Error loading private key file " << ssl_key();
+    _last_error= message.str();
+    return false;
+  }
+#endif // defined(HAVE_CYASSL) && HAVE_CYASSL
+  return true;
 }
 
 bool Instance::run()
 {
+  if (_use_ssl)
+  {
+    if (not init_ssl())
+    {
+      return false;
+    }
+  }
+
   while (not _operations.empty())
   {
     Operation::vector::value_type operation= _operations.back();
@@ -187,17 +252,51 @@ bool Instance::run()
         size_t packet_length= operation->size();
         const char *packet= operation->ptr();
 
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+        if (_ctx_ssl)
+        {
+          _ssl= CyaSSL_new(_ctx_ssl);
+          if (_ssl == NULL)
+          {
+            _last_error= "CyaSSL_new() failed";
+            return false;
+          }
+
+          int ssl_error;
+          if ((ssl_error= CyaSSL_set_fd(_ssl, _sockfd)) != SSL_SUCCESS)
+          {
+            _last_error= "CyaSSL_set_fd() failed";
+            return false;
+          }
+        }
+#endif
+
         while(packet_length)
         {
-          ssize_t write_size= send(_sockfd, packet, packet_length, 0);
-
-          if (write_size < 0)
+          ssize_t write_size;
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+          if (_ssl)
           {
-            switch(errno)
+            write_size= CyaSSL_write(_ssl, (const void*)packet, int(packet_length));
+            if (write_size < 0)
             {
-            default:
-              std::cerr << "Failed dureng send(" << strerror(errno) << ")" << std::endl;
-              break;
+              char errorString[80];
+              CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString);
+              _last_error= errorString;
+              return false;
+            }
+          }
+          else
+#endif
+          {
+            write_size= send(_sockfd, packet, packet_length, 0);
+
+            if (write_size < 0)
+            {
+              std::stringstream msg;
+              msg << "Failed during send(" << strerror(errno) << ")";
+              _last_error= msg.str();
+              return false;
             }
           }
 
@@ -216,25 +315,36 @@ bool Instance::run()
         do
         {
           char buffer[BUFSIZ];
-          read_length= ::recv(_sockfd, buffer, sizeof(buffer), 0);
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+          if (_ssl)
+          {
+            read_length= CyaSSL_read(_ssl, (void *)buffer, sizeof(buffer));
+            if (read_length < 0)
+            {
+              char errorString[80];
+              CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString);
+              _last_error= errorString;
+              return false;
+            }
+          }
+          else
+#endif
+          {
+            read_length= ::recv(_sockfd, buffer, sizeof(buffer), 0);
+          }
 
           if (read_length < 0)
           {
-            switch(errno)
-            {
-            default:
-              _last_error.clear();
-              _last_error+= "Error occured while reading data from ";
-              _last_error+= _host;
-              return false;
-            }
+            _last_error.clear();
+            _last_error+= "Error occured while reading data from ";
+            _last_error+= _host;
+            return false;
           }
           else if (read_length == 0)
           {
             _last_error.clear();
             _last_error+= "Socket was shutdown while reading from ";
             _last_error+= _host;
-
             return false;
           }
 

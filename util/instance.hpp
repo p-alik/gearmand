@@ -42,10 +42,18 @@
 #include <cerrno>
 #include <cassert>
 #include <cstddef>
+#include <cstdlib>
 #include <sys/socket.h>
 #include <string>
 
 #include "util/operation.hpp"
+
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+# include <cyassl/ssl.h>
+#endif
+
+#include "configmake.h"
+
 
 struct addrinfo;
 
@@ -96,6 +104,16 @@ public:
     _operations.push_back(next);
   }
 
+  void use_ssl(bool value)
+  {
+    _use_ssl= value;
+  }
+
+  const std::string &last_error() const
+  {
+    return _last_error;
+  }
+
 private:
   void close_socket();
 
@@ -103,14 +121,49 @@ private:
 
   bool more_to_read() const;
 
+  bool init_ssl();
+
   std::string _host;
   std::string _service;
   int _sockfd;
+  bool _use_ssl;
   connection_state_t state;
   struct addrinfo *_addrinfo;
   struct addrinfo *_addrinfo_next;
   Finish *_finish_fn;
   Operation::vector _operations;
+  struct CYASSL_CTX* _ctx_ssl;
+  struct CYASSL* _ssl;
+
+  const char* ssl_ca_file() const
+  {
+    if (getenv("GEARMAND_CA_CERTIFICATE"))
+    {
+      return getenv("GEARMAND_CA_CERTIFICATE");
+    }
+
+    return GEARMAND_CA_CERTIFICATE;
+  }
+
+  const char* ssl_certificate() const
+  {
+    if (getenv("GEARMAN_CLIENT_PEM"))
+    {
+      return getenv("GEARMAN_CLIENT_PEM");
+    }
+
+    return GEARMAN_CLIENT_PEM;
+  }
+
+  const char* ssl_key() const
+  {
+    if (getenv("GEARMAN_CLIENT_KEY"))
+    {
+      return getenv("GEARMAN_CLIENT_KEY");
+    }
+
+    return GEARMAN_CLIENT_KEY;
+  }
 };
 
 } /* namespace util */
