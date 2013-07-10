@@ -1806,15 +1806,20 @@ bool gearman_client_set_server_option(gearman_client_st *client_shell, const cha
 {
   if (client_shell and client_shell->impl())
   {
+    Client* client= client_shell->impl();
     gearman_string_t option= { option_arg, option_arg_size };
-    if (gearman_request_option(client_shell->impl()->universal, option))
-    {
-      if (strcmp("exceptions", option_arg) == 0)
-      {
-        client_shell->impl()->options.exceptions= true;
-      }
 
-      return true;
+    if (gearman_success(gearman_server_option(client->universal, option)))
+    {
+      if (gearman_request_option(client->universal, option))
+      {
+        if (strncmp("exceptions", option_arg, sizeof("exceptions")) == 0)
+        {
+          client->options.exceptions= true;
+        }
+
+        return true;
+      }
     }
   }
 

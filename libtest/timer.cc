@@ -41,7 +41,7 @@
 #include <ctime>
 #include <iomanip>
 
-#ifdef __MACH__
+#ifdef __APPLE__
 # include <mach/clock.h>
 # include <mach/mach.h>
 #else
@@ -110,7 +110,7 @@ void Timer::difference(struct timespec& arg) const
 
 void Timer::_time(struct timespec& ts)
 {
-#ifdef __MACH__ // OSX lacks clock_gettime()
+#ifdef __APPLE__ // OSX lacks clock_gettime()
   clock_serv_t _clock_serv;
   mach_timespec_t _mach_timespec;
   host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &_clock_serv);

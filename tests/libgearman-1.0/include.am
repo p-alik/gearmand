@@ -106,7 +106,7 @@ massif-worker: t/worker gearmand/gearmand
 helgrind-worker: t/worker gearmand/gearmand
 	@$(HELGRIND_COMMAND) t/worker
 
-gdb-worker: t/libgearman-1.0/worker gearmand/gearmand
+gdb-worker: t/worker gearmand/gearmand
 	@$(GDB_COMMAND) t/worker
 
 ptrdiff-worker: t/worker gearmand/gearmand

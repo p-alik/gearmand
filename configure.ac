@@ -205,7 +205,6 @@ AC_CHECK_FUNCS([strtol])
 AC_CHECK_FUNCS([strtoul])
 AC_CHECK_FUNCS([uname])
 AC_CHECK_FUNCS([atexit])
-AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([strstr])
 AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
@@ -216,9 +215,15 @@ AX_DLOPEN
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],
-             [AC_SUBST([RT_LIB],[-lrt])
-             AC_DEFINE([HAVE_LIBRT],[1],[Have clock_gettime])
-             ])
+             [AX_SAVE_FLAGS
+              LIBS="$LIB -lrt"
+              AC_CHECK_FUNCS([clock_gettime])
+              AX_RESTORE_FLAGS
+
+              AC_SUBST([RT_LIB],[-lrt])
+              AC_DEFINE([HAVE_LIBRT],[1],[Have -lrt])
+             ],
+             [AC_CHECK_FUNCS([clock_gettime])])
 
 # Check for -lm
 LT_LIB_M

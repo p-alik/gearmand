@@ -52,7 +52,7 @@ using namespace libtest;
 test_return_t gearman_client_set_server_option_exception(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(gearman_client_set_server_option(client, test_literal_param("exceptions")));
+  ASSERT_TRUE(gearman_client_set_server_option(client, test_literal_param("exceptions")));
   test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param("echo")));
   return TEST_SUCCESS;
 }
@@ -60,7 +60,7 @@ test_return_t gearman_client_set_server_option_exception(void *object)
 test_return_t gearman_client_set_server_option_bad(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(gearman_client_set_server_option(client, test_literal_param("bad")));
-  test_compare(GEARMAN_INVALID_SERVER_OPTION, gearman_client_echo(client, test_literal_param("echo")));
+  ASSERT_FALSE(gearman_client_set_server_option(client, test_literal_param("bad")));
+  test_compare(GEARMAN_SUCCESS, gearman_client_echo(client, test_literal_param("echo")));
   return TEST_SUCCESS;
 }
