@@ -67,7 +67,7 @@ struct Worker
   void *context;
   gearman_connection_st *con;
   gearman_job_st *job;
-  gearman_job_st *job_list;
+  Job *job_list;
   struct _worker_function_st *function;
   struct _worker_function_st *function_list;
   struct _worker_function_st *work_function;

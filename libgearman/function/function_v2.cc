@@ -45,14 +45,15 @@
 /*
   FunctionV2 function
 */
-gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context_arg)
+gearman_function_error_t FunctionV2::callback(gearman_job_st* job_shell, void *context_arg)
 {
+  Job* job= job_shell->impl();
   if (gearman_job_is_map(job))
   {
     gearman_job_build_reducer(job, NULL);
   }
 
-  gearman_return_t error= _function(job, context_arg);
+  gearman_return_t error= _function(job_shell, context_arg);
   switch (error)
   {
   case GEARMAN_SHUTDOWN:

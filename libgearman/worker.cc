@@ -771,10 +771,10 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
               return NULL;
             }
 
-            if (not worker->job)
+            if (worker->job == NULL)
             {
               worker->job= gearman_job_create(worker, job);
-              if (not worker->job)
+              if (worker->job == NULL)
               {
                 *ret_ptr= GEARMAN_MEMORY_ALLOCATION_FAILURE;
                 return NULL;
@@ -785,7 +785,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
             {
               case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
                 assert(worker->job);
-                (void)worker->con->receiving(worker->job->assigned, *ret_ptr, true);
+                (void)worker->con->receiving(worker->job->impl()->assigned, *ret_ptr, true);
 
                 if (gearman_failed(*ret_ptr))
                 {
@@ -807,12 +807,12 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
                   return NULL;
                 }
 
-                if (worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN or
-                    worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL or
-                    worker->job->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
+                if (worker->job->impl()->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN or
+                    worker->job->impl()->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL or
+                    worker->job->impl()->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
                 {
-                  worker->job->options.assigned_in_use= true;
-                  worker->job->con= worker->con;
+                  worker->job->impl()->options.assigned_in_use= true;
+                  worker->job->impl()->con= worker->con;
                   worker->state= GEARMAN_WORKER_STATE_GRAB_JOB_SEND;
                   job= worker->job;
                   worker->job= NULL;
@@ -820,26 +820,26 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
                   return job;
                 }
 
-                if (worker->job->assigned.command == GEARMAN_COMMAND_NO_JOB or
-                    worker->job->assigned.command == GEARMAN_COMMAND_OPTION_RES)
+                if (worker->job->impl()->assigned.command == GEARMAN_COMMAND_NO_JOB or
+                    worker->job->impl()->assigned.command == GEARMAN_COMMAND_OPTION_RES)
                 {
-                  gearman_packet_free(&(worker->job->assigned));
+                  gearman_packet_free(&(worker->job->impl()->assigned));
                   break;
                 }
 
-                if (worker->job->assigned.command != GEARMAN_COMMAND_NOOP)
+                if (worker->job->impl()->assigned.command != GEARMAN_COMMAND_NOOP)
                 {
                   gearman_universal_set_error(worker->universal, GEARMAN_UNEXPECTED_PACKET, GEARMAN_AT,
                                               "unexpected packet:%s",
-                                              gearman_command_info(worker->job->assigned.command)->name);
-                  gearman_packet_free(&(worker->job->assigned));
+                                              gearman_command_info(worker->job->impl()->assigned.command)->name);
+                  gearman_packet_free(&(worker->job->impl()->assigned));
                   gearman_job_free(worker->job);
                   worker->job= NULL;
                   *ret_ptr= GEARMAN_UNEXPECTED_PACKET;
                   return NULL;
                 }
 
-                gearman_packet_free(&(worker->job->assigned));
+                gearman_packet_free(&(worker->job->impl()->assigned));
             }
           }
 
@@ -935,7 +935,7 @@ void gearman_job_free_all(gearman_worker_st *worker_shell)
 
     while (worker->job_list)
     {
-      gearman_job_free(worker->job_list);
+      gearman_job_free(worker->job_list->shell());
     }
   }
 }
@@ -1069,19 +1069,19 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
                                                           static_cast<void *>(worker->work_function->context)))
           {
             case GEARMAN_FUNCTION_INVALID_ARGUMENT:
-              worker->work_job->_error_code= gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "worker returned an invalid response, gearman_return_t");
+              worker->work_job->impl()->_error_code= gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "worker returned an invalid response, gearman_return_t");
             case GEARMAN_FUNCTION_FATAL:
-              if (gearman_job_send_fail_fin(worker->work_job) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
+              if (gearman_job_send_fail_fin(worker->work_job->impl()) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
               {
-                worker->work_job->_error_code= GEARMAN_LOST_CONNECTION;
+                worker->work_job->impl()->_error_code= GEARMAN_LOST_CONNECTION;
                 break;
               }
               worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
-              return worker->work_job->_error_code;
+              return worker->work_job->impl()->_error_code;
 
             case GEARMAN_FUNCTION_ERROR: // retry 
               gearman_reset(worker->universal);
-              worker->work_job->_error_code= GEARMAN_LOST_CONNECTION;
+              worker->work_job->impl()->_error_code= GEARMAN_LOST_CONNECTION;
               break;
 
             case GEARMAN_FUNCTION_SHUTDOWN:
@@ -1091,7 +1091,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
               break;
           }
 
-          if (worker->work_job->_error_code == GEARMAN_LOST_CONNECTION)
+          if (worker->work_job->impl()->_error_code == GEARMAN_LOST_CONNECTION)
           {
             break;
           }
@@ -1099,12 +1099,12 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
 
       case GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE:
         {
-          worker->work_job->_error_code= gearman_job_send_complete_fin(worker->work_job,
+          worker->work_job->impl()->_error_code= gearman_job_send_complete_fin(worker->work_job->impl(),
                                                                               worker->work_result, worker->work_result_size);
-          if (worker->work_job->_error_code == GEARMAN_IO_WAIT)
+          if (worker->work_job->impl()->_error_code == GEARMAN_IO_WAIT)
           {
             worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_COMPLETE;
-            return gearman_error(worker->universal, worker->work_job->_error_code,
+            return gearman_error(worker->universal, worker->work_job->impl()->_error_code,
                                  "A failure occurred after worker had successful complete, unless gearman_job_send_complete() was called directly by worker, client has not been informed of success.");
           }
 
@@ -1115,31 +1115,31 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
           }
 
           // If we lost the connection, we retry the work, otherwise we error
-          if (worker->work_job->_error_code == GEARMAN_LOST_CONNECTION)
+          if (worker->work_job->impl()->_error_code == GEARMAN_LOST_CONNECTION)
           {
             break;
           }
-          else if (worker->work_job->_error_code == GEARMAN_SHUTDOWN)
+          else if (worker->work_job->impl()->_error_code == GEARMAN_SHUTDOWN)
           { }
-          else if (gearman_failed(worker->work_job->_error_code))
+          else if (gearman_failed(worker->work_job->impl()->_error_code))
           {
             worker->work_state= GEARMAN_WORKER_WORK_UNIVERSAL_FAIL;
 
-            return worker->work_job->_error_code;
+            return worker->work_job->impl()->_error_code;
           }
         }
         break;
 
       case GEARMAN_WORKER_WORK_UNIVERSAL_FAIL:
         {
-          if (gearman_failed(worker->work_job->_error_code= gearman_job_send_fail_fin(worker->work_job)))
+          if (gearman_failed(worker->work_job->impl()->_error_code= gearman_job_send_fail_fin(worker->work_job->impl())))
           {
-            if (worker->work_job->_error_code == GEARMAN_LOST_CONNECTION)
+            if (worker->work_job->impl()->_error_code == GEARMAN_LOST_CONNECTION)
             {
               break;
             }
 
-            return worker->work_job->_error_code;
+            return worker->work_job->impl()->_error_code;
           }
         }
         break;
@@ -1380,11 +1380,11 @@ gearman_id_t gearman_worker_id(gearman_worker_st *self)
   return gearman_universal_id(self->impl()->universal);
 }
 
-gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job)
+gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job_shell)
 {
-  if (job)
+  if (job_shell and job_shell->impl())
   {
-    return gearman_worker_clone(NULL, job->_worker.shell());
+    return gearman_worker_clone(NULL, job_shell->impl()->_worker.shell());
   }
 
   return NULL;
