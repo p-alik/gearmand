@@ -145,6 +145,7 @@ int main(int args, char *argv[])
     ("status", "Status for the server.")
     ("workers", "Workers for the server.")
     ("shutdown", "Shutdown server.")
+    ("ssl,S", "Enable SSL connections.")
             ;
 
   boost::program_options::variables_map vm;
@@ -162,6 +163,11 @@ int main(int args, char *argv[])
 
   util::Instance instance(host, port);
   instance.set_finish(new Finish);
+
+  if (vm.count("ssl"))
+  {
+    instance.use_ssl(true);
+  }
 
   if (vm.count("help"))
   {
@@ -250,7 +256,15 @@ int main(int args, char *argv[])
     instance.push(new util::Operation(util_literal_param("getpid\r\n")));
   }
 
-  instance.run();
+  if (not instance.run())
+  {
+    /* shutdown will produce a read error since nothing is read */
+    if (not vm.count("shutdown"))
+    {
+      std::cerr << "Error: " << instance.last_error() << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
 
   return EXIT_SUCCESS;
 }
