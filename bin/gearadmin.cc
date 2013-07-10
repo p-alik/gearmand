@@ -258,8 +258,12 @@ int main(int args, char *argv[])
 
   if (not instance.run())
   {
-    std::cerr << "Error: " << instance.last_error() << std::endl;
-    return EXIT_FAILURE;
+    /* shutdown will produce a read error since nothing is read */
+    if (not vm.count("shutdown"))
+    {
+      std::cerr << "Error: " << instance.last_error() << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   return EXIT_SUCCESS;
