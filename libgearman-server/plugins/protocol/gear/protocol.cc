@@ -254,8 +254,8 @@ public:
                          "GEAR length: %" PRIu64 " gearmand_command_t: %s option: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
-                         int(packet->data_size),
-                         packet->data);
+                         int(packet->arg_size[0]),
+                         packet->arg[0]);
     }
     else
     {
@@ -277,11 +277,20 @@ public:
     if (packet->command == GEARMAN_COMMAND_ECHO_RES)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*",
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s echo: %.*s",
                          uint64_t(packet->data_size),
                          gearman_strcommand(packet->command),
                          int(packet->data_size),
                          packet->data);
+    }
+    else if (packet->command == GEARMAN_COMMAND_OPTION_RES)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR length: %" PRIu64 " gearmand_command_t: %s option: %.*s",
+                         uint64_t(packet->data_size),
+                         gearman_strcommand(packet->command),
+                         int(packet->arg_size[0]),
+                         packet->arg[0]);
     }
     else
     {

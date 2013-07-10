@@ -72,10 +72,12 @@
  * Queue an error packet.
  */
 static gearmand_error_t _server_error_packet(gearman_server_con_st *server_con,
-                                             gearman_return_t error_code, const char *error_string)
+                                             gearman_return_t client_return_code, const char *error_string)
 {
-  const char* error_code_string= gearman_strerror(error_code);
+  const char* error_code_string= gearman_strerror(client_return_code);
   error_code_string+= 8;
+
+  gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "%s:%s", gearman_strerror(client_return_code), error_string);
 
   return gearman_server_io_packet_add(server_con, false, GEARMAN_MAGIC_RESPONSE,
                                       GEARMAN_COMMAND_ERROR, error_code_string,
@@ -818,7 +820,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                          server_job->function->function_name_size, server_job->function->function_name, server_job->function->function_name_size);
       if (server_job == NULL)
       {
-        return _server_error_packet(server_con, GEARMAN_NO_JOBS, "Job given in work result not found");
+        return _server_error_packet(server_con, GEARMAN_NO_JOBS, "An exception was received for a job that does not exist");
       }
 
       /* Queue the exception packet for all clients. */

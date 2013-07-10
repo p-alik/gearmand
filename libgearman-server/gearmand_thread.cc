@@ -60,8 +60,8 @@ namespace
 #if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
 bool fill_timespec(struct timespec& ts)
 {
-#if defined(HAVE_LIBRT) && HAVE_LIBRT
-  if (HAVE_LIBRT) // This won't be called on OSX, etc,...
+#if defined(HAVE_CLOCK_GETTIME) && HAVE_CLOCK_GETTIME
+  if (HAVE_CLOCK_GETTIME) // This won't be called on OSX, etc,...
   {
     if (clock_gettime(CLOCK_REALTIME, &ts) == -1) 
     {

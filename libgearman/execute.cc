@@ -259,20 +259,18 @@ gearman_task_st *gearman_execute_by_partition(gearman_client_st *client_shell,
                            NULL);
   }
 
-  if (task == NULL)
+  if (task)
   {
-    return NULL;
+    do {
+      gearman_return_t rc;
+      if (gearman_failed(rc= gearman_client_run_tasks(client->shell())))
+      {
+        gearman_gerror(client->universal, rc);
+        gearman_task_free(task);
+        return NULL;
+      }
+    } while (gearman_continue(gearman_task_return(task)));
   }
-
-  do {
-    gearman_return_t rc;
-    if (gearman_failed(rc= gearman_client_run_tasks(client->shell())))
-    {
-      gearman_gerror(client->universal, rc);
-      gearman_task_free(task);
-      return NULL;
-    }
-  } while (gearman_continue(gearman_task_return(task)));
 
   return task;
 }

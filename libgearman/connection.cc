@@ -49,6 +49,8 @@
 #include "libgearman/interface/push.hpp"
 #include "libgearman/log.hpp"
 
+#include "libgearman/protocol/option.h"
+
 #include <cerrno>
 #include <cstdio>
 #include <cstdlib>
@@ -425,11 +427,8 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
          head= head->next)
     {
       gearman_packet_st message;
-      const void *args[]= { (const void*)head->value() };
-      size_t args_size[]= { head->size() };
-      gearman_return_t ret= gearman_packet_create_args(universal, message, GEARMAN_MAGIC_REQUEST,
-                                                       GEARMAN_COMMAND_OPTION_REQ, args, args_size, 1);
-
+      gearman_string_t option= { (const char*)head->value(), head->size() };
+      gearman_return_t ret=  libgearman::protocol::option(universal, message, option);
       if (gearman_failed(ret))
       {
         assert(universal.error_code());
@@ -439,7 +438,7 @@ gearman_return_t gearman_connection_st::send_packet(const gearman_packet_st& pac
       }
 
       PUSH_BLOCKING(universal);
-      OptionCheck check(universal);
+      OptionCheck check(universal, option);
       ret= _send_packet(message, true);
       if (gearman_failed(ret))
       {

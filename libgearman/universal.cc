@@ -54,6 +54,7 @@
 #include "libgearman/uuid.hpp"
 
 #include "libgearman/protocol/echo.h"
+#include "libgearman/protocol/option.h"
 
 #include "libgearman/ssl.h"
 
@@ -579,6 +580,32 @@ static gearman_return_t connection_loop(gearman_universal_st& universal,
     con->reset_recv_packet();
     con->free_private_packet();
   }
+
+  return ret;
+}
+
+gearman_return_t gearman_server_option(gearman_universal_st& universal, gearman_string_t& option)
+{
+  if (universal.has_connections() == false)
+  {
+    return gearman_universal_set_error(universal, GEARMAN_NO_SERVERS, GEARMAN_AT, "no servers provided");
+  }
+
+  gearman_packet_st message;
+  gearman_return_t ret=  libgearman::protocol::option(universal, message, option);
+  if (gearman_success(ret))
+  {
+    PUSH_BLOCKING(universal);
+
+    OptionCheck check(universal, option);
+    ret= connection_loop(universal, message, check);
+  }
+  else
+  {
+    return universal.error_code();
+  }
+
+  gearman_packet_free(&message);
 
   return ret;
 }

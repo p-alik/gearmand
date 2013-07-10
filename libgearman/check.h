@@ -59,15 +59,17 @@ private:
 
 class OptionCheck : public Check {
 public:
-  OptionCheck(gearman_universal_st& universal_):
-    _universal(universal_)
-    {
-    }
+  OptionCheck(gearman_universal_st& universal_, gearman_string_t& option_):
+    _universal(universal_),
+    _option(option_)
+  {
+  }
 
   gearman_return_t success(gearman_connection_st* con);
 
 private:
-  gearman_universal_st& _universal;
+    gearman_universal_st& _universal;
+    gearman_string_t& _option;
 };
 
 class CancelCheck : public Check {

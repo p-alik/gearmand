@@ -945,6 +945,7 @@ static test_return_t abandoned_worker_test(void *)
 
   /* Now take job with one worker. */
   gearman_universal_st universal;
+  universal.timeout= 3000;
 
   gearman_connection_st *connection1;
   test_truth(connection1= gearman_connection_create(universal, NULL, default_port()));

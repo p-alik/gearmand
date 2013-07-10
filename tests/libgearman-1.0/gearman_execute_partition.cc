@@ -130,12 +130,12 @@ test_return_t gearman_execute_partition_basic(void *object)
   ASSERT_TRUE(client);
 
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_client_echo(client, test_literal_param("this is mine")));
+            gearman_client_echo(client, test_literal_param("this is mine")));
 
   // This just hear to make it easier to trace when
   // gearman_execute_partition() is called (look in the log to see the
   // failed option setting.
-  gearman_client_set_server_option(client, test_literal_param("should fail"));
+  ASSERT_FALSE(gearman_client_set_server_option(client, test_literal_param("should fail")));
 
   // This is the real work
   gearman_argument_t workload= gearman_argument_make(0, 0, test_literal_param("this dog does not hunt"));
