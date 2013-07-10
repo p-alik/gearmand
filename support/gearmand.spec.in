@@ -134,6 +134,7 @@ fi
 %{_includedir}/libgearman-1.0/interface/status.h
 %{_includedir}/libgearman-1.0/interface/task.h
 %{_includedir}/libgearman-1.0/interface/client.h
+%{_includedir}/libgearman-1.0/interface/job.h
 %{_includedir}/libgearman-1.0/interface/worker.h
 %{_includedir}/libgearman-1.0/job.h
 %{_includedir}/libgearman-1.0/job_handle.h
