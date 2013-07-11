@@ -1744,36 +1744,32 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client_shell)
 
 gearman_return_t gearman_client_run_block_tasks(Client* client, gearman_task_st* exit_task)
 {
+  if (client->task_list == NULL) // We are immediatly successful if all tasks are completed
   {
-    if (client->task_list == NULL) // We are immediatly successful if all tasks are completed
-    {
-      return GEARMAN_SUCCESS;
-    }
-
-    gearman_return_t rc;
-    {
-      PUSH_BLOCKING(client->universal);
-
-      rc= _client_run_tasks(client->shell(), exit_task);
-    }
-
-    if (gearman_failed(rc))
-    {
-      if (rc == GEARMAN_COULD_NOT_CONNECT)
-      {
-        gearman_reset(client->universal);
-      }
-
-      if (client->universal.error_code() != rc and rc != GEARMAN_COULD_NOT_CONNECT)
-      {
-        assert(client->universal.error_code() == rc);
-      }
-    }
-
-    return rc;
+    return GEARMAN_SUCCESS;
   }
 
-  return GEARMAN_INVALID_ARGUMENT;
+  gearman_return_t rc;
+  {
+    PUSH_BLOCKING(client->universal);
+
+    rc= _client_run_tasks(client->shell(), exit_task);
+  }
+
+  if (gearman_failed(rc))
+  {
+    if (rc == GEARMAN_COULD_NOT_CONNECT)
+    {
+      gearman_reset(client->universal);
+    }
+
+    if (client->universal.error_code() != rc and rc != GEARMAN_COULD_NOT_CONNECT)
+    {
+      assert(client->universal.error_code() == rc);
+    }
+  }
+
+  return rc;
 }
 
 /*

@@ -1252,77 +1252,73 @@ static gearman_return_t _worker_function_create(Worker *worker,
                                                 uint32_t timeout,
                                                 void *context)
 {
+  const void *args[2];
+  size_t args_size[2];
+
+  if (function_length == 0 or function_name == NULL or function_length > GEARMAN_FUNCTION_MAX_SIZE)
   {
-    const void *args[2];
-    size_t args_size[2];
-
-    if (function_length == 0 or function_name == NULL or function_length > GEARMAN_FUNCTION_MAX_SIZE)
+    if (function_length > GEARMAN_FUNCTION_MAX_SIZE)
     {
-      if (function_length > GEARMAN_FUNCTION_MAX_SIZE)
-      {
-        gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
-      } 
-      else
-      {
-        gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
-      }
-
-      return GEARMAN_INVALID_ARGUMENT;
-    }
-
-    _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
-    if (function == NULL)
-    {
-      gearman_perror(worker->universal, "_worker_function_st::new()");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    }
-
-    gearman_return_t ret;
-    if (timeout > 0)
-    {
-      char timeout_buffer[11];
-      snprintf(timeout_buffer, sizeof(timeout_buffer), "%u", timeout);
-      args[0]= function->name();
-      args_size[0]= function->length() + 1;
-      args[1]= timeout_buffer;
-      args_size[1]= strlen(timeout_buffer);
-      ret= gearman_packet_create_args(worker->universal, function->packet(),
-                                      GEARMAN_MAGIC_REQUEST,
-                                      GEARMAN_COMMAND_CAN_DO_TIMEOUT,
-                                      args, args_size, 2);
-    }
+      gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
+    } 
     else
     {
-      args[0]= function->name();
-      args_size[0]= function->length();
-      ret= gearman_packet_create_args(worker->universal, function->packet(),
-                                      GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
-                                      args, args_size, 1);
+      gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
     }
 
-    if (gearman_failed(ret))
-    {
-      delete function;
-
-      return ret;
-    }
-
-    if (worker->function_list)
-    {
-      worker->function_list->prev= function;
-    }
-
-    function->next= worker->function_list;
-    function->prev= NULL;
-    worker->function_list= function;
-    worker->function_count++;
-
-    worker->options.change= true;
-
-    return GEARMAN_SUCCESS;
+    return GEARMAN_INVALID_ARGUMENT;
   }
 
-  return GEARMAN_INVALID_ARGUMENT;
+  _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
+  if (function == NULL)
+  {
+    gearman_perror(worker->universal, "_worker_function_st::new()");
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  gearman_return_t ret;
+  if (timeout > 0)
+  {
+    char timeout_buffer[11];
+    snprintf(timeout_buffer, sizeof(timeout_buffer), "%u", timeout);
+    args[0]= function->name();
+    args_size[0]= function->length() + 1;
+    args[1]= timeout_buffer;
+    args_size[1]= strlen(timeout_buffer);
+    ret= gearman_packet_create_args(worker->universal, function->packet(),
+                                    GEARMAN_MAGIC_REQUEST,
+                                    GEARMAN_COMMAND_CAN_DO_TIMEOUT,
+                                    args, args_size, 2);
+  }
+  else
+  {
+    args[0]= function->name();
+    args_size[0]= function->length();
+    ret= gearman_packet_create_args(worker->universal, function->packet(),
+                                    GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
+                                    args, args_size, 1);
+  }
+
+  if (gearman_failed(ret))
+  {
+    delete function;
+
+    return ret;
+  }
+
+  if (worker->function_list)
+  {
+    worker->function_list->prev= function;
+  }
+
+  function->next= worker->function_list;
+  function->prev= NULL;
+  worker->function_list= function;
+  worker->function_count++;
+
+  worker->options.change= true;
+
+  return GEARMAN_SUCCESS;
 }
 
 static void _worker_function_free(Worker* worker,
