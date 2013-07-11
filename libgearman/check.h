@@ -65,6 +65,11 @@ public:
   {
   }
 
+  const gearman_string_t& option() const
+  {
+    return _option;
+  }
+
   gearman_return_t success(gearman_connection_st* con);
 
 private:

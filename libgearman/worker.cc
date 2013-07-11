@@ -39,6 +39,7 @@
 #include "gear_config.h"
 
 #include <libgearman/common.h>
+#include "libgearman/uuid.hpp"
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>
 
@@ -258,6 +259,8 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker_
       options|= int(GEARMAN_WORKER_TIMEOUT_RETURN);
     if (worker->ssl())
       options|= int(GEARMAN_WORKER_SSL);
+    if (worker->has_identifier())
+      options|= int(GEARMAN_WORKER_IDENTIFIER);
 
     return gearman_worker_options_t(options);
   }
@@ -276,6 +279,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
       GEARMAN_WORKER_GRAB_ALL,
       GEARMAN_WORKER_TIMEOUT_RETURN,
       GEARMAN_WORKER_SSL,
+      GEARMAN_WORKER_IDENTIFIER,
       GEARMAN_WORKER_MAX
     };
 
@@ -333,6 +337,14 @@ void gearman_worker_add_options(gearman_worker_st *worker_shell,
     {
       worker->ssl(true);
     }
+
+    if (options & GEARMAN_WORKER_IDENTIFIER)
+    {
+      char uuid_buffer[GEARMAN_MAX_IDENTIFIER];
+      size_t length= GEARMAN_MAX_IDENTIFIER;
+      safe_uuid_generate(uuid_buffer, length);
+      worker->universal.identifier(uuid_buffer, length);
+    }
   }
 }
 
@@ -369,9 +381,9 @@ void gearman_worker_remove_options(gearman_worker_st *worker_shell,
       worker->options.grab_all= false;
     }
 
-    if (options & GEARMAN_WORKER_SSL)
+    if (options & GEARMAN_WORKER_IDENTIFIER)
     {
-      worker->ssl(false);
+      worker->universal.identifier(NULL, 0);
     }
   }
 }
@@ -1240,77 +1252,73 @@ static gearman_return_t _worker_function_create(Worker *worker,
                                                 uint32_t timeout,
                                                 void *context)
 {
+  const void *args[2];
+  size_t args_size[2];
+
+  if (function_length == 0 or function_name == NULL or function_length > GEARMAN_FUNCTION_MAX_SIZE)
   {
-    const void *args[2];
-    size_t args_size[2];
-
-    if (function_length == 0 or function_name == NULL or function_length > GEARMAN_FUNCTION_MAX_SIZE)
+    if (function_length > GEARMAN_FUNCTION_MAX_SIZE)
     {
-      if (function_length > GEARMAN_FUNCTION_MAX_SIZE)
-      {
-        gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
-      } 
-      else
-      {
-        gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
-      }
-
-      return GEARMAN_INVALID_ARGUMENT;
-    }
-
-    _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
-    if (function == NULL)
-    {
-      gearman_perror(worker->universal, "_worker_function_st::new()");
-      return GEARMAN_MEMORY_ALLOCATION_FAILURE;
-    }
-
-    gearman_return_t ret;
-    if (timeout > 0)
-    {
-      char timeout_buffer[11];
-      snprintf(timeout_buffer, sizeof(timeout_buffer), "%u", timeout);
-      args[0]= function->name();
-      args_size[0]= function->length() + 1;
-      args[1]= timeout_buffer;
-      args_size[1]= strlen(timeout_buffer);
-      ret= gearman_packet_create_args(worker->universal, function->packet(),
-                                      GEARMAN_MAGIC_REQUEST,
-                                      GEARMAN_COMMAND_CAN_DO_TIMEOUT,
-                                      args, args_size, 2);
-    }
+      gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
+    } 
     else
     {
-      args[0]= function->name();
-      args_size[0]= function->length();
-      ret= gearman_packet_create_args(worker->universal, function->packet(),
-                                      GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
-                                      args, args_size, 1);
+      gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "invalid function");
     }
 
-    if (gearman_failed(ret))
-    {
-      delete function;
-
-      return ret;
-    }
-
-    if (worker->function_list)
-    {
-      worker->function_list->prev= function;
-    }
-
-    function->next= worker->function_list;
-    function->prev= NULL;
-    worker->function_list= function;
-    worker->function_count++;
-
-    worker->options.change= true;
-
-    return GEARMAN_SUCCESS;
+    return GEARMAN_INVALID_ARGUMENT;
   }
 
-  return GEARMAN_INVALID_ARGUMENT;
+  _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
+  if (function == NULL)
+  {
+    gearman_perror(worker->universal, "_worker_function_st::new()");
+    return GEARMAN_MEMORY_ALLOCATION_FAILURE;
+  }
+
+  gearman_return_t ret;
+  if (timeout > 0)
+  {
+    char timeout_buffer[11];
+    snprintf(timeout_buffer, sizeof(timeout_buffer), "%u", timeout);
+    args[0]= function->name();
+    args_size[0]= function->length() + 1;
+    args[1]= timeout_buffer;
+    args_size[1]= strlen(timeout_buffer);
+    ret= gearman_packet_create_args(worker->universal, function->packet(),
+                                    GEARMAN_MAGIC_REQUEST,
+                                    GEARMAN_COMMAND_CAN_DO_TIMEOUT,
+                                    args, args_size, 2);
+  }
+  else
+  {
+    args[0]= function->name();
+    args_size[0]= function->length();
+    ret= gearman_packet_create_args(worker->universal, function->packet(),
+                                    GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
+                                    args, args_size, 1);
+  }
+
+  if (gearman_failed(ret))
+  {
+    delete function;
+
+    return ret;
+  }
+
+  if (worker->function_list)
+  {
+    worker->function_list->prev= function;
+  }
+
+  function->next= worker->function_list;
+  function->prev= NULL;
+  worker->function_list= function;
+  worker->function_count++;
+
+  worker->options.change= true;
+
+  return GEARMAN_SUCCESS;
 }
 
 static void _worker_function_free(Worker* worker,
@@ -1354,8 +1362,16 @@ bool gearman_worker_set_server_option(gearman_worker_st *worker_shell, const cha
 {
   if (worker_shell and worker_shell->impl())
   {
+    Worker* worker= worker_shell->impl();
     gearman_string_t option= { option_arg, option_arg_size };
-    return gearman_request_option(worker_shell->impl()->universal, option);
+
+    if (gearman_success(gearman_server_option(worker->universal, option)))
+    {
+      if (gearman_request_option(worker->universal, option))
+      {
+        return true;
+      }
+    }
   }
 
   return false;

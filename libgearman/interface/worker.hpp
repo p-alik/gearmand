@@ -127,6 +127,11 @@ struct Worker
     universal.options._ssl= ssl_;
   }
 
+  bool has_identifier() const
+  {
+    return universal.has_identifier();
+  }
+
   const char* error() const
   {
     return universal.error();

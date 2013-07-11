@@ -131,9 +131,11 @@ gearmand_error_t gearmand_io_set_events(gearman_server_con_st *connection, short
  */
 gearmand_error_t gearmand_io_set_revents(gearman_server_con_st *connection, short revents);
 
-void gearmand_sockfd_close(int& sockfd);
+void gearmand_sockfd_close(int&);
 
-void gearmand_pipe_close(int& sockfd);
+void gearmand_pipe_close(int&);
+
+gearmand_error_t gearmand_sockfd_nonblock(const int&);
 
 /** @} */
 

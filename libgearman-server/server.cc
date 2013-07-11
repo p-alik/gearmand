@@ -545,7 +545,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       long timeout= strtol(strtol_buffer, &endptr, 10);
       if (timeout == LONG_MIN or timeout == LONG_MAX or errno != 0)
       {
-        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol");
+        return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol: %s", strtol_buffer);
       }
 
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout %dl",
@@ -1042,7 +1042,10 @@ _server_queue_work_data(gearman_server_job_st *server_job,
     }
     else if (command == GEARMAN_COMMAND_WORK_EXCEPTION)
     {
-      gearmand_debug("Sending GEARMAN_COMMAND_WORK_EXCEPTION");
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "%s:%s GEARMAN_COMMAND_WORK_EXCEPTION: %.*s",
+                         server_client->con->host(), server_client->con->port(),
+                         int(packet->data_size), packet->data);
     }
 
     uint8_t *data;

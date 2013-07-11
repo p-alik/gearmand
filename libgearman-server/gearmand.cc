@@ -861,15 +861,7 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
     Gearmand()->ret= gearmand_perror(local_error, "accept");
     return;
   }
-  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "accept() %d", fd);
-
-  {
-    int flags= 1;
-    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
-    {
-      gearmand_perror(errno, "setsockopt(SO_KEEPALIVE)");
-    }
-  }
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "accept() fd:%d", fd);
 
   /* 
     Since this is numeric, it should never fail. Even if it did we don't want to really error from it.
@@ -886,6 +878,14 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
   }
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Accepted connection from %s:%s", host, port_str);
+
+  {
+    int flags= 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &flags, sizeof(flags)) == -1)
+    {
+      gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "%s:%s setsockopt(SO_KEEPALIVE)", host, port_str);
+    }
+  }
 
   gearmand_error_t ret= gearmand_con_create(Gearmand(), fd, host, port_str, port);
   if (ret == GEARMAND_MEMORY_ALLOCATION_FAILURE)
@@ -915,15 +915,10 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
     return gearmand_fatal_perror(errno, "pipe(gearmand->wakeup_fd)");
   }
 
-  int returned_flags;
-  if ((returned_flags= fcntl(gearmand->wakeup_fd[0], F_GETFL, 0)) == -1)
+  gearmand_error_t local_ret;
+  if ((local_ret= gearmand_sockfd_nonblock(gearmand->wakeup_fd[0])))
   {
-    return gearmand_fatal_perror(errno, "fcntl:F_GETFL");
-  }
-
-  if (fcntl(gearmand->wakeup_fd[0], F_SETFL, returned_flags | O_NONBLOCK) == -1)
-  {
-    return gearmand_fatal_perror(errno, "fcntl(F_SETFL)");
+    return local_ret;
   }
 #endif
 

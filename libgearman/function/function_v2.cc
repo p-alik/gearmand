@@ -59,6 +59,7 @@ gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context
     job->_error_code= GEARMAN_SUCCESS;
     return GEARMAN_FUNCTION_SHUTDOWN;
 
+  case GEARMAN_WORK_EXCEPTION:
   case GEARMAN_FATAL:
     job->_error_code= GEARMAN_FATAL;
     return GEARMAN_FUNCTION_FATAL;
@@ -91,7 +92,6 @@ gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context
   case GEARMAN_WORK_DATA:
   case GEARMAN_WORK_WARNING:
   case GEARMAN_WORK_STATUS:
-  case GEARMAN_WORK_EXCEPTION:
   case GEARMAN_NOT_CONNECTED:
   case GEARMAN_COULD_NOT_CONNECT:
   case GEARMAN_SEND_IN_PROGRESS:
@@ -123,5 +123,6 @@ gearman_function_error_t FunctionV2::callback(gearman_job_st* job, void *context
     break;
   }
 
+  gearman_gerror(job->universal(), GEARMAN_INVALID_ARGUMENT);
   return GEARMAN_FUNCTION_INVALID_ARGUMENT;
 }

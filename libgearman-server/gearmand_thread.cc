@@ -505,16 +505,10 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
     return gearmand_perror(errno, "pipe");
   }
 
-  int ret= fcntl(thread->wakeup_fd[0], F_GETFL, 0);
-  if (ret == -1)
+  gearmand_error_t local_ret;
+  if ((local_ret= gearmand_sockfd_nonblock(thread->gearmand().wakeup_fd[0])))
   {
-    return gearmand_perror(errno, "fcntl(F_GETFL)");
-  }
-
-  ret= fcntl(thread->wakeup_fd[0], F_SETFL, ret | O_NONBLOCK);
-  if (ret == -1)
-  {
-    return gearmand_perror(errno, "fcntl(F_SETFL)");
+    return local_ret;
   }
 #endif
 
