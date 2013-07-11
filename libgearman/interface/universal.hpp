@@ -265,6 +265,10 @@ public:
   ~gearman_universal_st();
 
   void identifier(const char *identifier_, const size_t identifier_size_);
+  bool has_identifier() const
+  {
+    return _identifier;
+  }
 };
 
 static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)

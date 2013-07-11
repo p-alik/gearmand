@@ -133,7 +133,8 @@ typedef enum
   GEARMAN_WORKER_TIMEOUT_RETURN=   (1 << 8),
   GEARMAN_WORKER_GRAB_ALL=         (1 << 9),
   GEARMAN_WORKER_SSL=              (1 << 10),
-  GEARMAN_WORKER_MAX=   (1 << 11)
+  GEARMAN_WORKER_IDENTIFIER=       (1 << 11),
+  GEARMAN_WORKER_MAX=   (1 << 12)
 } gearman_worker_options_t;
 
 /* Types. */

@@ -68,6 +68,16 @@ struct gearman_job_reducer_st {
     gearman_string_append(reducer_function, gearman_string_param(reducer_function_name));
   }
 
+  const char* name() const
+  {
+    if (reducer_function)
+    {
+      return reducer_function->c_str();
+    }
+
+    return "__UNKNOWN";
+  }
+
   ~gearman_job_reducer_st() 
   {
     gearman_client_free(client);
@@ -79,7 +89,8 @@ struct gearman_job_reducer_st {
     client= gearman_client_create(NULL);
     if (client)
     {
-
+      gearman_universal_clone(client->impl()->universal, universal, false);
+#if 0
       if (universal._namespace)
       {
         gearman_client_set_namespace(client, 
@@ -94,6 +105,7 @@ struct gearman_job_reducer_st {
           return false;
         }
       }
+#endif
 
       return true;
     }
@@ -415,7 +427,7 @@ gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
         gearman_return_t rc= job->reducer->complete();
         if (gearman_failed(rc))
         {
-          return gearman_error(job->universal(), rc, "The reducer's complete() returned an error");
+          return gearman_universal_set_error(job->universal(), rc, GEARMAN_AT, "%s couldn't call complete()", job->reducer->name());
         }
 
         const gearman_vector_st *reduced_value= job->reducer->result.string();
@@ -472,6 +484,11 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job,
 {
   if (job)
   {
+    if (exception == NULL or exception_size == 0)
+    {
+      return gearman_error(job->universal(), GEARMAN_INVALID_ARGUMENT, "No exception was provided");
+    }
+
     if (job->finished() == false)
     {
       if (job->options.work_in_use == false)

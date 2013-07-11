@@ -47,6 +47,7 @@
 #include <libgearman-server/common.h>
 #include <libgearman/strcommand.h>
 #include <libgearman-server/packet.h>
+#include "libgearman/strcommand.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -103,9 +104,9 @@ public:
     return false;
   }
 
-  void notify(gearman_server_con_st *)
+  void notify(gearman_server_con_st* connection)
   {
-    gearmand_info("Gear connection disconnected");
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Gear connection disconnected: %s:%s", connection->host(), connection->port());
   }
 
   size_t unpack(gearmand_packet_st *packet,
@@ -257,6 +258,24 @@ public:
                          int(packet->arg_size[0]),
                          packet->arg[0]);
     }
+    else if (packet->command == GEARMAN_COMMAND_WORK_EXCEPTION)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR gearmand_command_t: %s handle: %.*s exception: %.*s",
+                         gearman_strcommand(packet->command),
+                         int(packet->arg_size[0]),
+                         packet->arg[0],
+                         int(packet->data_size),
+                         packet->data);
+    }
+    else if (packet->command == GEARMAN_COMMAND_SET_CLIENT_ID)
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR gearmand_command_t: %s identifier: %.*s",
+                         gearman_strcommand(packet->command),
+                         int(packet->arg_size[0]),
+                         packet->arg[0]);
+    }
     else
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
@@ -353,9 +372,13 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
                                    cyassl_error_buffer, cyassl_error);
       }
     }
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "GearSSL connection made: %d", connection->con.fd);
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "GearSSL connection made: %s:%s", connection->host(), connection->port());
   }
+  else
 #endif
+  {
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Gear connection made: %s:%s", connection->host(), connection->port());
+  }
 
   connection->set_protocol(&gear_context);
 

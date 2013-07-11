@@ -45,6 +45,7 @@
 #include "libgearman-server/common.h"
 
 #include <libgearman/command.h>
+#include "libgearman/strcommand.h"
 
 #ifdef __cplusplus
 # include <cassert>
@@ -308,10 +309,8 @@ static gearmand_error_t _thread_packet_read(gearman_server_con_st *con)
     }
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                       "Received %s %s:%u",
-                       gearmand_strcommand(&con->packet->packet),
-                       con->_host == NULL ? "-" : con->_host,
-                       con->_port == NULL ? "-" : con->_port);
+                       "Received %s",
+                       gearmand_strcommand(&con->packet->packet));
 
     /* We read a complete packet. */
     if (Server->flags.threaded)
@@ -355,10 +354,8 @@ static gearmand_error_t _thread_packet_flush(gearman_server_con_st *con)
     }
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, 
-                       "Sent %s to %s:%d",
-                       gearman_command_info(con->io_packet_list->packet.command)->name,
-                       con->_host == NULL ? "-" : con->_host,
-                       con->_port == NULL ? "-" : con->_port);
+                       "Sent %s",
+                       gearman_strcommand(con->io_packet_list->packet.command));
 
     gearman_server_io_packet_remove(con);
   }

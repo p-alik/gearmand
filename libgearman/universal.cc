@@ -105,6 +105,8 @@ void gearman_universal_clone(gearman_universal_st &destination, const gearman_un
 
   (void)gearman_universal_set_option(destination, GEARMAN_UNIVERSAL_NON_BLOCKING, source.options.non_blocking);
 
+  destination.ssl(source.ssl());
+
   destination.timeout= source.timeout;
 
   destination._namespace= gearman_string_clone(source._namespace);
@@ -372,6 +374,11 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     if (read_length == 0)
     {
       return gearman_gerror(universal, GEARMAN_SHUTDOWN);
+    }
+
+    if (read_length == -1)
+    {
+      gearman_perror(universal, "read() from shutdown pipe");
     }
 
 #if 0
