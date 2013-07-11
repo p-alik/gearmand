@@ -47,7 +47,8 @@
 
 #include <string.h>
 #include <errno.h>
-#include <assert.h>
+#include <cassert>
+#include <algorithm> 
 
 static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thread, gearmand_con_st *dcon,
                                                   gearmand_error_t& ret);
@@ -313,16 +314,18 @@ const char *gearman_server_con_id(gearman_server_con_st *con)
   return con->id;
 }
 
-void gearman_server_con_set_id(gearman_server_con_st *con, char *id,
-                               size_t size)
+void gearman_server_con_set_id(gearman_server_con_st *con,
+                               const char *id,
+                               const size_t size)
 {
-  if (size >= GEARMAND_SERVER_CON_ID_SIZE)
-  {
-    size= GEARMAND_SERVER_CON_ID_SIZE - 1;
-  }
+  size_t min_size= std::min(size, size_t(GEARMAND_SERVER_CON_ID_SIZE -1));
 
-  memcpy(con->id, id, size);
-  con->id[size]= 0;
+  memcpy(con->id, id, min_size);
+  con->id[min_size]= 0;
+
+  gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                     "identifier set to %.*s", 
+                     min_size, con->id);
 }
 
 void gearman_server_con_free_worker(gearman_server_con_st *con,

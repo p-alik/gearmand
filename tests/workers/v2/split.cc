@@ -62,16 +62,16 @@ gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
   {
     if (int(workload[x]) == 0 or int(workload[x]) == int(' '))
     {
-      if ((workload +x -chunk_begin) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
+      if ((workload +x -chunk_begin) == 11 and memcmp(chunk_begin, test_literal_param("mapper_fail") == 0))
       {
-        return GEARMAN_FAIL;
+        return gearman_job_send_exception(job, test_literal_param("Error occured on purpose"));
       }
 
       // NULL Chunk
       gearman_return_t rc= gearman_job_send_data(job, chunk_begin, workload +x -chunk_begin);
       if (gearman_failed(rc))
       {
-        return GEARMAN_FAIL;
+        return gearman_job_send_exception(job, test_literal_param("gearman_job_send_data() failed"));
       }
 
       chunk_begin= workload +x +1;
@@ -82,16 +82,15 @@ gearman_return_t split_worker(gearman_job_st *job, void* /* context */)
   {
     if ((size_t(workload +workload_size) -size_t(chunk_begin) ) == 11 and not memcmp(chunk_begin, test_literal_param("mapper_fail")))
     {
-      return GEARMAN_FAIL;
+      return gearman_job_send_exception(job, test_literal_param("Error occured on purpose"));
     }
 
     gearman_return_t rc= gearman_job_send_data(job, chunk_begin, size_t(workload +workload_size) -size_t(chunk_begin));
     if (gearman_failed(rc))
     {
-      return GEARMAN_FAIL;
+      return gearman_job_send_exception(job, test_literal_param("gearman_job_send_data() failed"));
     }
   }
 
   return GEARMAN_SUCCESS;
 }
-

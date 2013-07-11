@@ -43,6 +43,15 @@
 
 #include <stdexcept>
 
+namespace {
+
+inline void all_worker_PRINTER(const char *line, gearman_verbose_t verbose, void*)
+{
+  fprintf(stderr, "%s:%d WORKER %s(%s)\n", __FILE__, __LINE__, gearman_verbose_name(verbose), line);
+}
+
+}
+
 namespace org { namespace gearmand { namespace libgearman {
 
 class Worker {
@@ -55,6 +64,7 @@ public:
     {
       throw std::runtime_error("gearman_worker_create() failed");
     }
+    enable_logging();
 
     enable_ssl();
   }
@@ -67,6 +77,8 @@ public:
     {
       throw std::runtime_error("gearman_worker_create() failed");
     }
+    enable_logging();
+
     gearman_worker_add_server(_worker, "localhost", arg);
 
     enable_ssl();
@@ -85,6 +97,15 @@ public:
   ~Worker()
   {
     gearman_worker_free(_worker);
+  }
+
+  void enable_logging()
+  { 
+    if (getenv("YATL_WORKER_LOGGING"))
+    {
+      gearman_log_fn *func= all_worker_PRINTER;
+      gearman_worker_set_log_fn(_worker, func, NULL, GEARMAN_VERBOSE_ERROR);
+    }
   }
 
   void enable_ssl()

@@ -47,7 +47,7 @@
 
 namespace {
 
-inline void all_PRINTER(const char *line, gearman_verbose_t verbose, void*)
+inline void all_client_PRINTER(const char *line, gearman_verbose_t verbose, void*)
 {
   fprintf(stderr, "%s:%d %s(%s)\n", __FILE__, __LINE__, gearman_verbose_name(verbose), line);
 }
@@ -67,7 +67,6 @@ public:
       throw std::runtime_error("gearman_client_create() failed");
     }
     enable_logging();
-
     enable_ssl();
   }
 
@@ -95,6 +94,7 @@ public:
 
     gearman_client_add_server(_client, "localhost", arg);
 
+    enable_logging();
     enable_ssl();
   }
 
@@ -117,7 +117,7 @@ public:
   { 
     if (getenv("YATL_CLIENT_LOGGING"))
     {
-      gearman_log_fn *func= all_PRINTER;
+      gearman_log_fn *func= all_client_PRINTER;
       gearman_client_set_log_fn(_client, func, NULL, GEARMAN_VERBOSE_ERROR);
     }
   }

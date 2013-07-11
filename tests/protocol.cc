@@ -70,6 +70,7 @@ static test_return_t GEARMAN_COMMAND_ECHO_REQ_TEST(void *)
 
   gearman_universal_st universal;
   gearman_set_log_fn(universal, error_logger, NULL, GEARMAN_VERBOSE_ERROR);
+  universal.ssl(libtest::is_ssl());
 
   gearman_packet_st message;
 
@@ -111,6 +112,7 @@ static test_return_t GEARMAN_COMMAND_WORK_EXCEPTION_TEST(void *)
 
   gearman_universal_st universal;
   gearman_set_log_fn(universal, error_logger, NULL, GEARMAN_VERBOSE_ERROR);
+  universal.ssl(libtest::is_ssl());
 
   gearman_packet_st message;
 
@@ -152,6 +154,7 @@ static test_return_t GEARMAN_COMMAND_ECHO_REQ_overrun_TEST(void *)
 
   gearman_universal_st universal;
   gearman_set_log_fn(universal, error_logger, NULL, GEARMAN_VERBOSE_ERROR);
+  universal.ssl(libtest::is_ssl());
 
   gearman_packet_st message;
 

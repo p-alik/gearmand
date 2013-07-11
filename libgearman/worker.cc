@@ -39,6 +39,7 @@
 #include "gear_config.h"
 
 #include <libgearman/common.h>
+#include "libgearman/uuid.hpp"
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>
 
@@ -258,6 +259,8 @@ gearman_worker_options_t gearman_worker_options(const gearman_worker_st *worker_
       options|= int(GEARMAN_WORKER_TIMEOUT_RETURN);
     if (worker->ssl())
       options|= int(GEARMAN_WORKER_SSL);
+    if (worker->has_identifier())
+      options|= int(GEARMAN_WORKER_IDENTIFIER);
 
     return gearman_worker_options_t(options);
   }
@@ -276,6 +279,7 @@ void gearman_worker_set_options(gearman_worker_st *worker,
       GEARMAN_WORKER_GRAB_ALL,
       GEARMAN_WORKER_TIMEOUT_RETURN,
       GEARMAN_WORKER_SSL,
+      GEARMAN_WORKER_IDENTIFIER,
       GEARMAN_WORKER_MAX
     };
 
@@ -333,6 +337,14 @@ void gearman_worker_add_options(gearman_worker_st *worker_shell,
     {
       worker->ssl(true);
     }
+
+    if (options & GEARMAN_WORKER_IDENTIFIER)
+    {
+      char uuid_buffer[GEARMAN_MAX_IDENTIFIER];
+      size_t length= GEARMAN_MAX_IDENTIFIER;
+      safe_uuid_generate(uuid_buffer, length);
+      worker->universal.identifier(uuid_buffer, length);
+    }
   }
 }
 
@@ -369,9 +381,9 @@ void gearman_worker_remove_options(gearman_worker_st *worker_shell,
       worker->options.grab_all= false;
     }
 
-    if (options & GEARMAN_WORKER_SSL)
+    if (options & GEARMAN_WORKER_IDENTIFIER)
     {
-      worker->ssl(false);
+      worker->universal.identifier(NULL, 0);
     }
   }
 }
@@ -1354,8 +1366,16 @@ bool gearman_worker_set_server_option(gearman_worker_st *worker_shell, const cha
 {
   if (worker_shell and worker_shell->impl())
   {
+    Worker* worker= worker_shell->impl();
     gearman_string_t option= { option_arg, option_arg_size };
-    return gearman_request_option(worker_shell->impl()->universal, option);
+
+    if (gearman_success(gearman_server_option(worker->universal, option)))
+    {
+      if (gearman_request_option(worker->universal, option))
+      {
+        return true;
+      }
+    }
   }
 
   return false;

@@ -111,8 +111,8 @@ const char *gearman_server_con_id(gearman_server_con_st *con);
  * Set client id.
  */
 GEARMAN_API
-void gearman_server_con_set_id(gearman_server_con_st *con, char *id,
-                               size_t size);
+void gearman_server_con_set_id(gearman_server_con_st *con, const char *id,
+                               const size_t size);
 
 /**
  * Free server worker struction with name for a server connection.
