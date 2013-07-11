@@ -61,4 +61,9 @@ struct gearmand_thread_st
   pthread_mutex_t lock;
 
   gearmand_thread_st(gearmand_st&);
+
+  gearmand_st& gearmand()
+  {
+    return _gearmand;
+  }
 };

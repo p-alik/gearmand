@@ -506,7 +506,7 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
   }
 
   gearmand_error_t local_ret;
-  if ((local_ret= gearmand_sockfd_nonblock(gearmand->wakeup_fd[0])))
+  if ((local_ret= gearmand_sockfd_nonblock(thread->gearmand().wakeup_fd[0])))
   {
     return local_ret;
   }
