@@ -37,7 +37,7 @@
 
 #pragma once
 
-class gearmand_st;
+struct gearmand_st;
 
 struct gearmand_thread_st
 {

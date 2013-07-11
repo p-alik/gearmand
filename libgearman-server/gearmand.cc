@@ -915,6 +915,7 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
     return gearmand_fatal_perror(errno, "pipe(gearmand->wakeup_fd)");
   }
 
+  gearmand_error_t local_ret;
   if ((local_ret= gearmand_sockfd_nonblock(gearmand->wakeup_fd[0])))
   {
     return local_ret;
