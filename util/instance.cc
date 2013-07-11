@@ -253,7 +253,7 @@ bool Instance::run()
         const char *packet= operation->ptr();
 
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
-        if (_ctx_ssl)
+        if (_ctx_ssl and not _ssl)
         {
           _ssl= CyaSSL_new(_ctx_ssl);
           if (_ssl == NULL)
