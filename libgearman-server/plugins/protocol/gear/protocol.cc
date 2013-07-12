@@ -234,10 +234,9 @@ public:
     if (packet->command == GEARMAN_COMMAND_ECHO_REQ and packet->data_size)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR %s echo: %.*s",
+                         "GEAR %s length: %" PRIu64,
                          gearman_strcommand(packet->command),
-                         int(packet->data_size),
-                         packet->data);
+                         uint64_t(packet->data_size));
     }
     else if (packet->command == GEARMAN_COMMAND_TEXT and packet->data_size)
     {
@@ -294,10 +293,9 @@ public:
     if (packet->command == GEARMAN_COMMAND_ECHO_RES and packet->data_size)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR %s echo: %.*s",
+                         "GEAR %s length: %" PRIu64,
                          gearman_strcommand(packet->command),
-                         int(packet->data_size),
-                         packet->data);
+                         uint64_t(packet->data_size));
     }
     else if (packet->command == GEARMAN_COMMAND_OPTION_RES and packet->arg_size[0])
     {
