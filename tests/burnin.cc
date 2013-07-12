@@ -66,20 +66,14 @@ static gearman_return_t worker_fn(gearman_job_st* job, void*)
 {
   if (random() % 10)
   {
-    gearman_return_t ret;
     if (random() % 3)
     {
-      ret= gearman_job_send_exception(job, test_literal_param(HARD_CODED_EXCEPTION));
-    }
-    else
-    {
-      ret= gearman_job_send_exception(job, 0, 0);
-    }
-
-    if (gearman_failed(ret))
-    {
-      Error << "gearman_job_send_exception(" << gearman_strerror(ret) << ")";
-      return GEARMAN_WORK_ERROR;
+      gearman_return_t ret;
+      if (gearman_failed(ret= gearman_job_send_exception(job, test_literal_param(HARD_CODED_EXCEPTION))))
+      {
+        Error << "gearman_job_send_exception(" << gearman_strerror(ret) << ")";
+        return GEARMAN_WORK_ERROR;
+      }
     }
 
     // We will pass back wrong responses from time to time.

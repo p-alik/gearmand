@@ -45,14 +45,16 @@
 /*
   Partition function
 */
-gearman_function_error_t Partition::callback(gearman_job_st* job, void *context_arg)
+gearman_function_error_t Partition::callback(gearman_job_st* job_shell, void *context_arg)
 {
+  Job* job= job_shell->impl();
+
   if (gearman_job_is_map(job))
   {
     gearman_job_build_reducer(job, aggregator_fn);
   }
 
-  gearman_return_t error= _partition_fn(job, context_arg);
+  gearman_return_t error= _partition_fn(job_shell, context_arg);
   switch (error)
   {
   case GEARMAN_FATAL:

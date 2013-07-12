@@ -39,6 +39,8 @@
 
 #pragma once
 
+class Job;
+
 /** Initialize a job structure. Always check the return value even if passing
  * in a pre-allocated structure. Some other initialization may have failed. It
  * is not required to memset() a structure before providing it.
@@ -51,19 +53,18 @@
 gearman_job_st *gearman_job_create(Worker* worker,
                                    gearman_job_st *job);
 
-
-gearman_return_t gearman_job_send_complete_fin(gearman_job_st *job,
+gearman_return_t gearman_job_send_complete_fin(Job* job,
                                                const void *result, size_t result_size);
 
-gearman_string_t gearman_job_function_name_string(const gearman_job_st *);
+gearman_string_t gearman_job_function_name_string(const Job*);
 
-gearman_string_t gearman_job_reducer_string(const gearman_job_st *job);
+gearman_string_t gearman_job_reducer_string(const Job*);
 
-const char *gearman_job_reducer(const gearman_job_st *job);
+const char *gearman_job_reducer(const Job*);
 
-bool gearman_job_is_map(const gearman_job_st *job);
+bool gearman_job_is_map(const Job* job);
 
-bool gearman_job_build_reducer(gearman_job_st *job, gearman_aggregator_fn *aggregator_fn);
+bool gearman_job_build_reducer(Job* job, gearman_aggregator_fn *aggregator_fn);
 
-gearman_return_t gearman_job_send_fail_fin(gearman_job_st *job);
+gearman_return_t gearman_job_send_fail_fin(Job*);
 

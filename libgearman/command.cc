@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -44,8 +44,6 @@
 #include "libgearman/strcommand.h"
 
 #include "libgearman/assert.hpp"
-
-using namespace org::gearman;
 
 /**
  * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
@@ -126,6 +124,6 @@ const gearman_command_info_st *gearman_command_info(gearman_command_t command)
 
 const struct gearman_command_info_st * gearman_command_lookup (register const char *str, register unsigned int len)
 {
-  const struct gearman_command_string_st* com_str=  command_string2command_code (str, len);
+  const struct gearman_command_string_st* com_str= String2gearman_command_t::in_word_set(str, len);
   return gearman_command_info(com_str->code);
 }

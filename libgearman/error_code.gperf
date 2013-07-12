@@ -1,9 +1,10 @@
 %compare-lengths
 %compare-strncmp
-%define lookup-function-name error_string2return_code
+%define class-name String2gearman_return_t
 %ignore-case
-%language=ANSI-C
+%language=C++
 %readonly-tables
+%includes
 
 %{ 
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
@@ -45,14 +46,7 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdlib>
-#include <cstring>
-
 #include "libgearman-1.0/return.h"
-
-namespace org {
-namespace gearman {
 
 %}
 
@@ -115,6 +109,3 @@ GEARMAN_WORK_STATUS, GEARMAN_WORK_STATUS
 GEARMAN_WORK_WARNING, GEARMAN_WORK_WARNING
 GEARMAN_INVALID_SERVER_OPTION, GEARMAN_INVALID_SERVER_OPTION
 %%
-
-} // namespace gearman
-} // namespace org
