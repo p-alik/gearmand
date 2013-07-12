@@ -277,11 +277,14 @@ gearman_server_proc_packet_remove(gearman_server_con_st *con)
 const char *gearmand_strcommand(gearmand_packet_st *packet)
 {
   assert(packet);
-  const gearman_command_info_st* info= gearman_command_info(packet->command);
-
-  if (info)
+  if (packet)
   {
-    return info->name;
+    const gearman_command_info_st* info= gearman_command_info(packet->command);
+
+    if (info)
+    {
+      return info->name;
+    }
   }
 
   return "__INVALID_PACKET_COMMAND";
