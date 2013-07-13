@@ -66,7 +66,7 @@ struct Worker
   size_t work_result_size;
   void *context;
   gearman_connection_st *con;
-  gearman_job_st *_job;
+  Job *_job;
   Job *job_list;
   struct _worker_function_st *function;
   struct _worker_function_st *function_list;
@@ -75,7 +75,7 @@ struct Worker
   struct gearman_universal_st universal;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
-  gearman_job_st *_work_job;
+  Job *_work_job;
 
   Worker(gearman_worker_st* shell_) :
     state(GEARMAN_WORKER_STATE_START),
@@ -119,7 +119,7 @@ struct Worker
 
   gearman_job_st* job()
   {
-    return _job;
+    return _job->shell();
   }
 
   gearman_job_st* take_job()
