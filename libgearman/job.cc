@@ -195,7 +195,7 @@ gearman_job_st *gearman_job_create(Worker* worker, gearman_job_st *job_shell)
     }
     else
     {
-      job= new (std::nothrow) Job(*(worker));
+      job= new (std::nothrow) Job(job_shell, *(worker));
 
       if (job == NULL)
       {
@@ -246,22 +246,6 @@ Job::Job(gearman_job_st* shell_, Worker& worker_):
     _shell= &_owned_shell;
     gearman_set_allocated(_shell, true);
   }
-
-  _shell->impl(this);
-  gearman_set_initialized(_shell, true);
-}
-
-Job::Job(Worker& worker_):
-  _worker(worker_),
-  next(NULL),
-  prev(NULL),
-  con(NULL),
-  reducer(NULL),
-  _error_code(GEARMAN_UNKNOWN_STATE),
-  _shell(&_owned_shell)
-{
-  assert(_shell);
-  gearman_set_allocated(_shell, true);
 
   _shell->impl(this);
   gearman_set_initialized(_shell, true);
@@ -764,6 +748,12 @@ void *gearman_job_take_workload(gearman_job_st *job_shell, size_t *data_size)
 
 void gearman_job_free(gearman_job_st *job_shell)
 {
+#ifndef NDEBUG
+  if (job_shell)
+  {
+    assert(job_shell->impl());
+  }
+#endif
   if (job_shell and job_shell->impl())
   {
     Job* job= job_shell->impl();
@@ -797,10 +787,11 @@ void gearman_job_free(gearman_job_st *job_shell)
     delete job->reducer;
     job->reducer= NULL;
 
-    if (job->options.allocated)
-    {
-      delete job;
-    }
+    delete job;
+  }
+  else if (job_shell)
+  {
+    assert(job_shell->impl());
   }
 }
 

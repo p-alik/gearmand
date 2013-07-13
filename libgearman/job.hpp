@@ -42,7 +42,6 @@
 struct Job
 {
   Job(gearman_job_st* shell_, Worker& worker_);
-  Job(Worker& worker_);
 
   gearman_job_st* shell()
   {
@@ -50,13 +49,11 @@ struct Job
   }
 
   struct Options {
-    bool allocated;
     bool assigned_in_use;
     bool work_in_use;
     bool finished;
 
     Options():
-      allocated(false),
       assigned_in_use(false),
       work_in_use(false),
       finished(false)

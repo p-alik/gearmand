@@ -121,7 +121,7 @@ test-client: t/client gearmand/gearmand
 gdb-client: t/client gearmand/gearmand
 	@$(GDB_COMMAND) t/client
 
-valgrind-client: t/client_test gearmand/gearmand
+valgrind-client: t/client gearmand/gearmand
 	@$(VALGRIND_COMMAND) t/client
 
 t_1077917_SOURCES= tests/libgearman-1.0/1077917.c
