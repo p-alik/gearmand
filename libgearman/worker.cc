@@ -1428,3 +1428,50 @@ const char *gearman_worker_namespace(gearman_worker_st* worker)
 
   return NULL;
 }
+
+gearman_job_st* Worker::take_job()
+{
+  gearman_job_st* tmp= _job->shell();
+  _job= NULL;
+  return tmp;
+}
+
+gearman_job_st* Worker::job()
+{
+  return _job->shell();
+}
+
+void Worker::job(gearman_job_st* job_)
+{
+  if (job_)
+  {
+    assert(job_->impl());
+    assert(_job == NULL);
+    _job= job_->impl();
+  }
+  else if (_job)
+  {
+    gearman_job_free(_job->shell());
+    _job= NULL;
+  }
+}
+
+gearman_job_st* Worker::work_job()
+{
+  assert(_work_job);
+  return _work_job->shell();
+}
+
+void Worker::work_job(gearman_job_st* work_job_)
+{
+  if (work_job_)
+  {
+    assert(_work_job == NULL);
+    _work_job= work_job_->impl();
+  }
+  else if (_work_job)
+  {
+    gearman_job_free(_work_job->shell());
+    _work_job= NULL;
+  }
+}

@@ -117,55 +117,20 @@ struct Worker
     return _shell;
   }
 
-  gearman_job_st* job()
-  {
-    return _job->shell();
-  }
+  gearman_job_st* job();
 
-  gearman_job_st* take_job()
-  {
-    gearman_job_st* tmp= _job;
-    _job= NULL;
-    return tmp;
-  }
+  gearman_job_st* take_job();
 
-  void job(gearman_job_st* job_)
-  {
-    if (job_)
-    {
-      assert(_job == NULL);
-      _job= job_;
-    }
-    else if (_job)
-    {
-      gearman_job_free(_job);
-      _job= NULL;
-    }
-  }
+  void job(gearman_job_st* job_);
 
-  gearman_job_st* work_job()
-  {
-    return _work_job;
-  }
+  gearman_job_st* work_job();
 
   bool has_work_job() const
   {
     return bool(_work_job);
   }
 
-  void work_job(gearman_job_st* work_job_)
-  {
-    if (work_job_)
-    {
-      assert(_work_job == NULL);
-      _work_job= work_job_;
-    }
-    else if (_work_job)
-    {
-      gearman_job_free(_work_job);
-      _work_job= NULL;
-    }
-  }
+  void work_job(gearman_job_st* work_job_);
 
   bool ssl() const
   {
