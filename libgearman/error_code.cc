@@ -40,11 +40,9 @@
 #include "libgearman/error_code.h"
 #include "libgearman/error_code.hpp"
 
-using namespace org::gearman;
-
 gearman_return_t string2return_code(const char* str, size_t len)
 {
-  const struct error_code_st* code= error_string2return_code(str, (uint32_t)(len));
+  const struct error_code_st* code= String2gearman_return_t::in_word_set(str, (uint32_t)(len));
 
   if (code)
   {

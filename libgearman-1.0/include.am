@@ -9,6 +9,7 @@ nobase_include_HEADERS+= libgearman-1.0/interface/client.h
 nobase_include_HEADERS+= libgearman-1.0/interface/status.h
 nobase_include_HEADERS+= libgearman-1.0/interface/task.h
 nobase_include_HEADERS+= libgearman-1.0/interface/worker.h
+nobase_include_HEADERS+= libgearman-1.0/interface/job.h
 nobase_include_HEADERS+= libgearman-1.0/status.h
 nobase_include_HEADERS+= \
 			 libgearman-1.0/actions.h \

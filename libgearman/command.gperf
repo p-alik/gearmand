@@ -1,11 +1,12 @@
 %compare-lengths
 %compare-strncmp
-%define lookup-function-name command_string2command_code
 %define word-array-name gearman_command_string_st
+%define class-name String2gearman_command_t
 %global-table
 %ignore-case
-%language=ANSI-C
+%language=C++
 %readonly-tables
+%includes
 
 %{ 
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
@@ -53,9 +54,6 @@
 
 #include "libgearman/assert.hpp"
 #include "libgearman/command.h"
-
-namespace org {
-namespace gearman {
 
 %}
 
@@ -109,6 +107,3 @@ JOB_ASSIGN_ALL, GEARMAN_COMMAND_JOB_ASSIGN_ALL
 GET_STATUS_UNIQUE, GEARMAN_COMMAND_GET_STATUS_UNIQUE
 STATUS_RES_UNIQUE, GEARMAN_COMMAND_STATUS_RES_UNIQUE
 %%
-
-} // namespace gearman
-} // namespace org

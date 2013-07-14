@@ -723,6 +723,7 @@ void gearman_server_con_delete_timeout(gearman_server_con_st *con)
   if (con->timeout_event)
   {
     timeout_del(con->timeout_event);
+    free(con->timeout_event);
     con->timeout_event= NULL;
   }
 }

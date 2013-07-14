@@ -43,6 +43,8 @@
 
 #pragma once
 
+#include <libgearman-1.0/interface/job.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

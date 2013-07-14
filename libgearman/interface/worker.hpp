@@ -66,8 +66,8 @@ struct Worker
   size_t work_result_size;
   void *context;
   gearman_connection_st *con;
-  gearman_job_st *job;
-  gearman_job_st *job_list;
+  Job *_job;
+  Job *job_list;
   struct _worker_function_st *function;
   struct _worker_function_st *function_list;
   struct _worker_function_st *work_function;
@@ -75,7 +75,7 @@ struct Worker
   struct gearman_universal_st universal;
   gearman_packet_st grab_job;
   gearman_packet_st pre_sleep;
-  gearman_job_st *work_job;
+  Job *_work_job;
 
   Worker(gearman_worker_st* shell_) :
     state(GEARMAN_WORKER_STATE_START),
@@ -85,13 +85,13 @@ struct Worker
     work_result_size(0),
     context(NULL),
     con(NULL),
-    job(NULL),
+    _job(NULL),
     job_list(NULL),
     function(NULL),
     function_list(NULL),
     work_function(NULL),
     work_result(NULL),
-    work_job(NULL),
+    _work_job(NULL),
     _shell(shell_)
   {
     if (shell_)
@@ -116,6 +116,21 @@ struct Worker
   {
     return _shell;
   }
+
+  gearman_job_st* job();
+
+  gearman_job_st* take_job();
+
+  void job(gearman_job_st* job_);
+
+  gearman_job_st* work_job();
+
+  bool has_work_job() const
+  {
+    return bool(_work_job);
+  }
+
+  void work_job(gearman_job_st* work_job_);
 
   bool ssl() const
   {

@@ -89,6 +89,29 @@ static void correct_from_errno(gearman_universal_st& universal)
 }
 
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
+static bool no_error_message(gearman_return_t rc)
+{
+  switch (rc)
+  {
+    case GEARMAN_SUCCESS:
+    case GEARMAN_IO_WAIT:
+    case GEARMAN_INVALID_SERVER_OPTION:
+    case GEARMAN_WORK_EXCEPTION:
+    case GEARMAN_WORK_FAIL:
+    case GEARMAN_SHUTDOWN_GRACEFUL:
+    case GEARMAN_SHUTDOWN:
+      return true;
+
+    default:
+      break;
+  }
+
+  return false;
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 gearman_return_t gearman_universal_set_error(gearman_universal_st& universal, 
                                              gearman_return_t rc,
@@ -96,22 +119,7 @@ gearman_return_t gearman_universal_set_error(gearman_universal_st& universal,
                                              const char *position,
                                              const char *format, ...)
 {
-  if (rc == GEARMAN_SUCCESS or rc == GEARMAN_IO_WAIT)
-  {
-    return universal._error.rc= rc;
-  }
-
-  if (rc == GEARMAN_INVALID_SERVER_OPTION)
-  {
-    return universal._error.rc= rc;
-  }
-
-  if (rc == GEARMAN_WORK_EXCEPTION)
-  {
-    return universal._error.rc= rc;
-  }
-
-  if (rc == GEARMAN_WORK_FAIL)
+  if (no_error_message(rc))
   {
     return universal._error.rc= rc;
   }
@@ -163,7 +171,7 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
                                               const char *func,
                                               const char *position)
 {
-  if (rc == GEARMAN_SUCCESS or rc == GEARMAN_IO_WAIT)
+  if (no_error_message(rc))
   {
     return universal._error.rc= rc;
   }

@@ -797,7 +797,7 @@ void Application::create_argv(const char *args[])
     }
     else
     {
-      vchar::append(built_argv, "--xml-file=valgrind-cmd-%p.xml");
+      vchar::append(built_argv, "--xml-file=var/tmp/valgrind-cmd-%p.xml");
     }
 
     std::string log_file= create_tmpfile("valgrind");

@@ -110,11 +110,13 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     return _server_error_packet(server_con, GEARMAN_INVALID_MAGIC, "Request magic expected");
   }
 
+  if (uint32_t(packet->command) >= uint32_t(GEARMAN_COMMAND_MAX))
+  {
+    return _server_error_packet(server_con, GEARMAN_INVALID_COMMAND, "Invalid command expected");
+  }
+
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                     "%15s:%5s packet command  %s",
-                     server_con->con.context == NULL || server_con->con.context->host == NULL ? "-" : server_con->con.context->host,
-                     server_con->con.context == NULL || server_con->con.context->port == NULL ? "-" : server_con->con.context->port, 
-                     gearmand_strcommand(packet));
+                     "PACKET COMMAND: %s", gearmand_strcommand(packet));
 
   switch (packet->command)
   {

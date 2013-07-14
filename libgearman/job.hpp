@@ -39,17 +39,25 @@
 
 #include "libgearman/interface/worker.hpp"
 
-struct gearman_job_st
+struct Job
 {
-  gearman_job_st(Worker& worker_):
-    _worker(worker_)
-  { }
+  Job(gearman_job_st* shell_, Worker& worker_);
 
-  struct {
-    bool allocated;
+  gearman_job_st* shell()
+  {
+    return _shell;
+  }
+
+  struct Options {
     bool assigned_in_use;
     bool work_in_use;
     bool finished;
+
+    Options():
+      assigned_in_use(false),
+      work_in_use(false),
+      finished(false)
+    { }
   } options;
 
   bool finished() const
@@ -63,8 +71,8 @@ struct gearman_job_st
   }
 
   Worker& _worker;
-  gearman_job_st *next;
-  gearman_job_st *prev;
+  Job *next;
+  Job *prev;
   gearman_connection_st *con;
   gearman_packet_st assigned;
   gearman_packet_st work;
@@ -85,4 +93,8 @@ struct gearman_job_st
   {
     return universal().error_code();
   }
+
+private:
+  gearman_job_st* _shell;
+  gearman_job_st _owned_shell;
 };
