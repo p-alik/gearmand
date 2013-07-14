@@ -171,6 +171,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker_shell,
 void gearman_worker_free(gearman_worker_st *worker_shell)
 {
 #ifndef NDEBUG
+  if (worker_shell)
   {
     assert(worker_shell->impl());
   }
@@ -1438,7 +1439,12 @@ gearman_job_st* Worker::take_job()
 
 gearman_job_st* Worker::job()
 {
-  return _job->shell();
+  if (_job)
+  {
+    return _job->shell();
+  }
+
+  return NULL;
 }
 
 void Worker::job(gearman_job_st* job_)
