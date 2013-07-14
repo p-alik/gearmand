@@ -121,6 +121,7 @@ gearman_function_error_t Partition::callback(gearman_job_st* job_shell, void *co
   case GEARMAN_INVALID_ARGUMENT:
   case GEARMAN_IN_PROGRESS:
   case GEARMAN_INVALID_SERVER_OPTION:
+  case GEARMAN_JOB_NOT_FOUND:
   case GEARMAN_MAX_RETURN:
     break;
   }
