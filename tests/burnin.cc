@@ -217,11 +217,11 @@ static test_return_t burnin_TEST(void*)
       for (uint32_t x= 0; x < context->num_tasks; x++)
       {
         ASSERT_EQ(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
-        if (tasks[x].impl()->result_rc == GEARMAN_UNKNOWN_STATE)
+        if (tasks[x].impl()->error_code() == GEARMAN_UNKNOWN_STATE)
         {
           gearman_client_wait(client);
         }
-        else if (tasks[x].impl()->result_rc == GEARMAN_WORK_FAIL)
+        else if (tasks[x].impl()->error_code() == GEARMAN_WORK_FAIL)
         {
           if (gearman_task_has_exception(&tasks[x]))
           {
@@ -236,13 +236,13 @@ static test_return_t burnin_TEST(void*)
 #endif
           }
         }
-        else if (tasks[x].impl()->result_rc != GEARMAN_SUCCESS)
+        else if (tasks[x].impl()->error_code() != GEARMAN_SUCCESS)
         {
-          ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
+          ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->error_code());
         }
         else
         {
-          ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->result_rc);
+          ASSERT_EQ(GEARMAN_SUCCESS, tasks[x].impl()->error_code());
         }
       }
     } while (client->impl()->new_tasks);

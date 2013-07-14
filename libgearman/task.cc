@@ -403,13 +403,13 @@ const char *gearman_task_error(const gearman_task_st *task_shell)
 {
   if (task_shell and task_shell->impl())
   {
-    if (task_shell->impl()->result_rc == GEARMAN_UNKNOWN_STATE or 
-        task_shell->impl()->result_rc == GEARMAN_SUCCESS)
+    if (task_shell->impl()->error_code() == GEARMAN_UNKNOWN_STATE or 
+        task_shell->impl()->error_code() == GEARMAN_SUCCESS)
     {
       return NULL;
     }
 
-    return gearman_strerror(task_shell->impl()->result_rc);
+    return gearman_strerror(task_shell->impl()->error_code());
   }
 
   return NULL;
@@ -419,7 +419,7 @@ gearman_return_t gearman_task_return(const gearman_task_st *task_shell)
 {
   if (task_shell and task_shell->impl())
   {
-    return task_shell->impl()->result_rc;
+    return task_shell->impl()->error_code();
   }
 
   return GEARMAN_INVALID_ARGUMENT;

@@ -20,6 +20,7 @@ noinst_HEADERS+= libgearman/magic.h
 noinst_HEADERS+= libgearman/client.h
 noinst_HEADERS+= libgearman/check.h
 noinst_HEADERS+= libgearman/interface/client.hpp
+noinst_HEADERS+= libgearman/interface/error.hpp
 noinst_HEADERS+= libgearman/interface/packet.hpp
 noinst_HEADERS+= libgearman/interface/push.hpp
 noinst_HEADERS+= libgearman/interface/task.hpp
