@@ -95,6 +95,7 @@ enum gearman_return_t
   GEARMAN_INVALID_ARGUMENT,
   GEARMAN_IN_PROGRESS, // See gearman_client_job_status()
   GEARMAN_INVALID_SERVER_OPTION, // Bad server option sent to server
+  GEARMAN_JOB_NOT_FOUND, // Bad server option sent to server
   GEARMAN_MAX_RETURN, /* Always add new error code before */
   GEARMAN_FAIL= GEARMAN_WORK_FAIL,
   GEARMAN_FATAL= GEARMAN_WORK_FAIL,

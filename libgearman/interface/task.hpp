@@ -159,6 +159,30 @@ struct Task
     state= state_;
   }
 
+  bool is_finished() const
+  {
+    switch (state)
+    {
+      case GEARMAN_TASK_STATE_NEW:
+      case GEARMAN_TASK_STATE_SUBMIT:
+      case GEARMAN_TASK_STATE_WORKLOAD:
+      case GEARMAN_TASK_STATE_WORK:
+      case GEARMAN_TASK_STATE_CREATED:
+      case GEARMAN_TASK_STATE_DATA:
+      case GEARMAN_TASK_STATE_WARNING:
+      case GEARMAN_TASK_STATE_STATUS:
+        return false;
+
+      case GEARMAN_TASK_STATE_COMPLETE:
+      case GEARMAN_TASK_STATE_EXCEPTION:
+      case GEARMAN_TASK_STATE_FAIL:
+      case GEARMAN_TASK_STATE_FINISHED:
+        return true;
+    }
+
+    return false;
+  }
+
 private:
   gearman_task_st* _shell;
   gearman_task_st _owned_shell;

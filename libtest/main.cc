@@ -343,22 +343,21 @@ int main(int argc, char *argv[], char* environ_[])
       shutdown_t status= signal.get_shutdown();
       if (status == SHUTDOWN_FORCED)
       {
-        Out << "Tests were aborted.";
+        // Tests were aborted
         exit_code= EXIT_FAILURE;
       }
       else if (frame->failed())
       {
-        Out << "Some test failed.";
+        // Some test failed
         exit_code= EXIT_FAILURE;
       }
       else if (frame->skipped() and frame->failed() and frame->success())
       {
-        Out << "Some tests were skipped.";
+        // Some tests were skipped
       }
       else if (frame->success() and (frame->failed() == 0))
       {
-        Out;
-        Out << "All tests completed successfully.";
+        // Success
       }
 
 #if 0
@@ -392,8 +391,6 @@ int main(int argc, char *argv[], char* environ_[])
         libtest::Formatter::tap(*frame, tap_file);
       }
 #endif
-
-      Outn(); // Generate a blank to break up the messages if make check/test has been run
     } while (exit_code == EXIT_SUCCESS and --opt_repeat);
   }
   catch (const libtest::__skipped& e)

@@ -476,3 +476,13 @@ gearman_string_t gearman_task_exception(const gearman_task_st* task_shell)
   static gearman_string_t ret= {0, 0};
   return ret;
 }
+
+bool gearman_task_is_finished(const gearman_task_st *task_shell)
+{
+  if (task_shell and task_shell->impl())
+  {
+    task_shell->impl()->is_finished();
+  }
+
+  return false;
+}
