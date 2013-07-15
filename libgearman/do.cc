@@ -109,9 +109,9 @@ void *client_do(gearman_client_st *client_shell, gearman_command_t command,
   else // Now we check the task itself
   {
     assert(ret == GEARMAN_SUCCESS); // Programmer mistake
-    if (gearman_success(do_task.impl()->result_rc))
+    if (gearman_success(do_task.impl()->error_code()))
     {
-      *ret_ptr= do_task.impl()->result_rc;
+      *ret_ptr= do_task.impl()->error_code();
       if (gearman_task_result(&do_task))
       {
         gearman_string_t result= gearman_result_take_string(do_task.impl()->result());
@@ -123,9 +123,9 @@ void *client_do(gearman_client_st *client_shell, gearman_command_t command,
     }
     else // gearman_client_run_block_tasks() was successful, but the task was not
     {
-      gearman_error(client->universal, do_task.impl()->result_rc, "occured during gearman_client_run_tasks()");
+      gearman_error(client->universal, do_task.impl()->error_code(), "occured during gearman_client_run_tasks()");
 
-      *ret_ptr= do_task.impl()->result_rc;
+      *ret_ptr= do_task.impl()->error_code();
       *result_size= 0;
     }
   }

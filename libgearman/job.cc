@@ -149,9 +149,9 @@ struct gearman_job_reducer_st {
     {
       do
       {
-        if (gearman_failed(check_task->impl()->result_rc))
+        if (gearman_failed(check_task->impl()->error_code()))
         {
-          return check_task->impl()->result_rc;
+          return check_task->impl()->error_code();
         }
       } while ((check_task= gearman_next(check_task)));
 
@@ -461,7 +461,6 @@ gearman_return_t gearman_job_send_complete_fin(Job* job,
       gearman_return_t rc= job->reducer->complete();
       if (gearman_failed(rc))
       {
-        return gearman_error(job->universal(), rc, "The reducer's complete() returned an error");
         return gearman_universal_set_error(job->universal(), rc, GEARMAN_AT, "%s couldn't call complete()", job->reducer->name());
       }
 
@@ -579,6 +578,7 @@ gearman_return_t gearman_job_send_fail(gearman_job_st *job_shell)
 gearman_return_t gearman_job_send_fail_fin(Job* job)
 {
   assert(job);
+  if (job)
   {
     const void *args[1];
     size_t args_size[1];

@@ -165,7 +165,7 @@ static gearman_return_t _client_do_complete(gearman_task_st *shell)
     gearman_string_append(gearman_task_mutable_result(shell)->mutable_string(), static_cast<const char*>(gearman_task_data(shell)), gearman_task_data_size(shell));
   }
 
-  task->result_rc= GEARMAN_SUCCESS;
+  task->error_code(GEARMAN_SUCCESS);
 
   return GEARMAN_SUCCESS;
 }

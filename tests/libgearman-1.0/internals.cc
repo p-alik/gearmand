@@ -101,7 +101,7 @@ static test_return_t clone_test(void *)
     ASSERT_EQ(destination.con_count,  gear.con_count);
     ASSERT_EQ(destination.packet_count,  gear.packet_count);
     ASSERT_EQ(destination.pfds_size,  gear.pfds_size);
-    ASSERT_EQ(destination._error.last_errno,  gear._error.last_errno);
+    ASSERT_EQ(destination.last_errno(),  gear.last_errno());
     ASSERT_EQ(destination.timeout,  gear.timeout);
     ASSERT_EQ(destination.con_list,  gear.con_list);
     ASSERT_EQ(destination.packet_list,  gear.packet_list);

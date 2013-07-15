@@ -37,27 +37,65 @@
 
 #pragma once
 
-#ifdef __cplusplus
-class Job;
-#endif
+#include <cstdio>
 
-struct gearman_job_st
-{
-  struct {
-    bool is_allocated;
-    bool is_initialized;
-  } options;
-  void *_impl;
-#ifdef __cplusplus
-  class Job* impl() const
+struct error_st {
+  error_st():
+    _rc(GEARMAN_SUCCESS),
+    _last_errno(0)
   {
-    return (Job*)(_impl);
+    _last_error[0]= 0;
   }
 
-  void impl(Job* impl_)
+  error_st(gearman_return_t rc_):
+    _rc(rc_),
+    _last_errno(0)
   {
-    _impl= impl_;
+    _last_error[0]= 0;
   }
-#endif
+
+  void clear()
+  {
+    _rc= GEARMAN_UNKNOWN_STATE;
+    _last_error[0]= 0;
+    _last_errno= 0;
+  }
+
+  void system_error(const int errno_)
+  {
+    _last_errno= errno_;
+  }
+
+  int system_error() const
+  {
+    return _last_errno;
+  }
+
+  gearman_return_t error_code(const gearman_return_t rc_)
+  {
+    return _rc= rc_;
+  }
+
+  gearman_return_t error_code() const
+  {
+    return _rc;
+  }
+
+  const char* error() const
+  {
+    if (_last_error[0] == 0)
+    {
+      return NULL;
+    }
+
+    return _last_error;
+  }
+
+  const char* error(const char * __restrict, ...);
+
+private:
+  gearman_return_t _rc;
+  int _last_errno;
+  char _last_error[GEARMAN_MAX_ERROR_SIZE];
+
 };
-

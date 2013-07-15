@@ -77,7 +77,7 @@ struct Task
   gearman_packet_st *recv;
   gearman_packet_st send;
   struct gearman_actions_t func;
-  gearman_return_t result_rc;
+  struct error_st _error;
   struct gearman_result_st *_result_ptr;
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
   gearman_vector_st exception;
@@ -104,7 +104,7 @@ struct Task
     con(NULL),
     recv(NULL),
     func(client_->actions),
-    result_rc(GEARMAN_UNKNOWN_STATE),
+    _error(GEARMAN_UNKNOWN_STATE),
     _result_ptr(NULL),
     unique_length(0),
     _shell(shell_)
@@ -157,6 +157,16 @@ struct Task
   void set_state(const enum gearman_task_state_t state_)
   {
     state= state_;
+  }
+
+  gearman_return_t error_code(const gearman_return_t rc_)
+  {
+    return _error.error_code(rc_);
+  }
+
+  gearman_return_t error_code() const
+  {
+    return _error.error_code();
   }
 
 private:

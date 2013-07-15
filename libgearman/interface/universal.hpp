@@ -41,6 +41,7 @@
 #include "libgearman/allocator.hpp" 
 #include "libgearman/server_options.hpp"
 #include "libgearman/interface/packet.hpp"
+#include "libgearman/interface/error.hpp"
 #include "libgearman/vector.h" 
 #include "libgearman/assert.hpp" 
 #include "libgearman/ssl.h"
@@ -60,7 +61,7 @@ typedef struct gearman_connection_st gearman_connection_st;
 typedef gearman_return_t (gearman_event_watch_fn)(gearman_connection_st *con,
                                                   short events, void *context);
 
-struct gearman_universal_st
+struct gearman_universal_st : public error_st
 {
   struct Options {
     bool dont_track_packets;
@@ -91,19 +92,7 @@ struct gearman_universal_st
   struct gearman_vector_st *_identifier;
   struct gearman_vector_st *_namespace;
   struct CYASSL_CTX* _ctx_ssl;
-  struct error_st {
-    gearman_return_t rc;
-    int last_errno;
-    char last_error[GEARMAN_MAX_ERROR_SIZE];
-
-    error_st():
-      rc(GEARMAN_SUCCESS),
-      last_errno(0)
-    {
-      last_error[0]= 0;
-    }
-
-  } _error;
+  struct error_st _error;
   int wakeup_fd[2];
 
   bool ssl() const
@@ -128,37 +117,37 @@ struct gearman_universal_st
 
   const char *error() const
   {
-    if (_error.last_error[0] == 0)
+    if (_error.error() == NULL)
     {
-      if (_error.rc != GEARMAN_SUCCESS)
+      if (_error.error_code() != GEARMAN_SUCCESS)
       {
-        return gearman_strerror(_error.rc);
+        return gearman_strerror(_error.error_code());
       }
 
       return NULL;
     }
 
-    return static_cast<const char *>(_error.last_error);
+    return _error.error();
   }
 
   gearman_return_t error_code() const
   {
-    return _error.rc;
+    return _error.error_code();
   }
 
-  void error_code(gearman_return_t rc)
+  gearman_return_t error_code(const gearman_return_t rc)
   {
-    _error.rc= rc;
+    return _error.error_code(rc);
   }
 
   int last_errno() const
   {
-    return _error.last_errno;
+    return _error.system_error();
   }
 
-  void last_errno(int last_errno_)
+  void last_errno(const int last_errno_)
   {
-    _error.last_errno= last_errno_;
+    _error.system_error(last_errno_);
   }
 
   bool has_connections() const
@@ -168,9 +157,7 @@ struct gearman_universal_st
 
   void reset_error()
   {
-    _error.rc= GEARMAN_SUCCESS;
-    _error.last_errno= 0;
-    _error.last_error[0]= 0;
+    _error.clear();
   }
 
   gearman_return_t option(const universal_options_t& option_, bool value);

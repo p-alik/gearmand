@@ -160,7 +160,7 @@ WORKER ONLY
 
 .. c:type:: GEARMAN_NO_JOBS 
 
-   No jobs were found for the worker.
+   No jobs were found for the worker. This error code is only returned if the worker has just made a request for jobs.
 
 ****************
 WORKER TO CLIENT
