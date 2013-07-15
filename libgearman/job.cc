@@ -542,9 +542,8 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job_shell,
       {
         return job->error_code();
       }
-#if 0
+
       job->finished(true);
-#endif
     }
 
     return GEARMAN_SUCCESS;

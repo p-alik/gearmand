@@ -103,6 +103,7 @@ const char *gearman_strerror(gearman_return_t rc)
   case GEARMAN_WORK_STATUS: return "GEARMAN_WORK_STATUS";
   case GEARMAN_WORK_WARNING: return "GEARMAN_WORK_WARNING";
   case GEARMAN_INVALID_SERVER_OPTION: return "GEARMAN_INVALID_SERVER_OPTION";
+  case GEARMAN_JOB_NOT_FOUND: return "GEARMAN_JOB_NOT_FOUND";
 
   case GEARMAN_MAX_RETURN:
   default:

@@ -176,6 +176,12 @@ bool gearman_task_has_exception(const gearman_task_st* task_shell);
 GEARMAN_API
 gearman_string_t gearman_task_exception(const gearman_task_st *);
 
+/**
+ * Get status on whether a task is running or not.
+ */
+GEARMAN_API
+bool gearman_task_is_finished(const gearman_task_st *task);
+
 /** @} */
 
 #ifdef __cplusplus
