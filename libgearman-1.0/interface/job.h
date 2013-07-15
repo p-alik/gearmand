@@ -38,7 +38,7 @@
 #pragma once
 
 #ifdef __cplusplus
-struct Job;
+class Job;
 #endif
 
 struct gearman_job_st
@@ -49,7 +49,7 @@ struct gearman_job_st
   } options;
   void *_impl;
 #ifdef __cplusplus
-  struct Job* impl() const
+  class Job* impl() const
   {
     return (Job*)(_impl);
   }

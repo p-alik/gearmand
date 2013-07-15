@@ -212,7 +212,7 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
 #ifdef STRERROR_R_CHAR_P
     errmsg_ptr= strerror_r(universal._error.system_error(), errmsg, sizeof(errmsg));
 #else
-    strerror_r(universal._error.last_errno, errmsg, sizeof(errmsg));
+    strerror_r(universal._error.system_error(), errmsg, sizeof(errmsg));
     errmsg_ptr= errmsg;
 #endif
 
@@ -248,5 +248,27 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
   }
 
   return GEARMAN_SUCCESS;
+}
+#pragma GCC diagnostic pop
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+const char* error_st::error(const char * __restrict format__, ...)
+{
+  if (format__)
+  {
+    va_list args;
+
+    va_start(args, format__);
+    vsnprintf(_last_error, GEARMAN_MAX_ERROR_SIZE, format__, args);
+    va_end(args);
+
+    _last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
+
+    return _last_error;
+  }
+  _last_error[0]= 0;
+
+  return NULL;
 }
 #pragma GCC diagnostic pop

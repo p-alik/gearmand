@@ -91,24 +91,7 @@ struct error_st {
     return _last_error;
   }
 
-  const char* error(const char *format__, ...) // __printflike(1, 2);
-  {
-    if (format__)
-    {
-      va_list args;
-
-      va_start(args, format__);
-      vsnprintf(_last_error, GEARMAN_MAX_ERROR_SIZE, format__, args);
-      va_end(args);
-
-      _last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
-
-      return _last_error;
-    }
-    _last_error[0]= 0;
-
-    return NULL;
-  }
+  const char* error(const char * __restrict, ...);
 
 private:
   gearman_return_t _rc;

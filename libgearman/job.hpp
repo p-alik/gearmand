@@ -39,8 +39,9 @@
 
 #include "libgearman/interface/worker.hpp"
 
-struct Job
+class Job
 {
+public:
   Job(gearman_job_st* shell_, Worker& worker_);
 
   gearman_job_st* shell()
