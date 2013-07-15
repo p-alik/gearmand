@@ -159,9 +159,9 @@ static void *_client_do(gearman_client_st *client_shell, gearman_command_t comma
     *ret_ptr= ret;
     *result_size= 0;
   }
-  else if (gearman_success(ret) and do_task.impl()->result_rc == GEARMAN_SUCCESS)
+  else if (gearman_success(ret) and do_task.impl()->error_code() == GEARMAN_SUCCESS)
   {
-    *ret_ptr= do_task.impl()->result_rc;
+    *ret_ptr= do_task.impl()->error_code();
     if (gearman_task_result(&do_task))
     {
       if (gearman_has_allocator(client->universal))
@@ -194,9 +194,9 @@ static void *_client_do(gearman_client_st *client_shell, gearman_command_t comma
   }
   else // gearman_client_run_tasks() was successful, but the task was not
   {
-    gearman_error(client->universal, do_task.impl()->result_rc, "occured during gearman_client_run_tasks()");
+    gearman_error(client->universal, do_task.impl()->error_code(), "occured during gearman_client_run_tasks()");
 
-    *ret_ptr= do_task.impl()->result_rc;
+    *ret_ptr= do_task.impl()->error_code();
     *result_size= 0;
   }
 
@@ -1660,7 +1660,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
           /* If exit task is set and matched, exit */
           if (exit_task)
           {
-            if (exit_task->impl()->result_rc != GEARMAN_UNKNOWN_STATE)
+            if (exit_task->impl()->error_code() != GEARMAN_UNKNOWN_STATE)
             {
               client->state= GEARMAN_CLIENT_STATE_IDLE;
               return GEARMAN_SUCCESS;

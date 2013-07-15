@@ -130,7 +130,7 @@ gearman_return_t _client_run_task(Task *task)
 
         if (not task->con)
         {
-          task->result_rc= ret;
+          task->error_code(ret);
 
           if (ret == GEARMAN_COULD_NOT_CONNECT) // If no connection is found, we will let the user try again
           {
@@ -201,7 +201,7 @@ gearman_return_t _client_run_task(Task *task)
           task->send.command == GEARMAN_COMMAND_SUBMIT_JOB_EPOCH ||
           task->send.command == GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND)
       {
-        task->result_rc= GEARMAN_SUCCESS;
+        task->error_code(GEARMAN_SUCCESS);
         break;
       }
     }
@@ -242,7 +242,7 @@ gearman_return_t _client_run_task(Task *task)
 
       if (task->recv->command == GEARMAN_COMMAND_STATUS_RES)
       {
-        task->result_rc= GEARMAN_SUCCESS;
+        task->error_code(GEARMAN_SUCCESS);
         if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
         {
           task->options.is_known= false;
@@ -265,7 +265,7 @@ gearman_return_t _client_run_task(Task *task)
       }
       else if (task->recv->command == GEARMAN_COMMAND_STATUS_RES_UNIQUE)
       {
-        task->result_rc= GEARMAN_SUCCESS;
+        task->error_code(GEARMAN_SUCCESS);
         strncpy(task->unique, task->recv->arg[0], GEARMAN_MAX_UNIQUE_SIZE);
         if (atoi(static_cast<char *>(task->recv->arg[1])) == 0)
         {
@@ -338,7 +338,7 @@ gearman_return_t _client_run_task(Task *task)
     {
       task->options.is_known= false;
       task->options.is_running= false;
-      task->result_rc= GEARMAN_SUCCESS;
+      task->error_code(GEARMAN_SUCCESS);
 
   case GEARMAN_TASK_STATE_COMPLETE:
       if (task->func.complete_fn)
@@ -362,7 +362,7 @@ gearman_return_t _client_run_task(Task *task)
         task->exception.store((const char*)(task->recv->data), task->recv->data_size);
       }
       task->free_result();
-      task->result_rc= GEARMAN_WORK_EXCEPTION;
+      task->error_code(GEARMAN_WORK_EXCEPTION);
 
   case GEARMAN_TASK_STATE_EXCEPTION:
       if (task->func.exception_fn)
@@ -384,7 +384,7 @@ gearman_return_t _client_run_task(Task *task)
       task->options.is_known= false;
       task->options.is_running= false;
       task->free_result();
-      task->result_rc= GEARMAN_WORK_FAIL;
+      task->error_code(GEARMAN_WORK_FAIL);
 
   case GEARMAN_TASK_STATE_FAIL:
       if (task->func.fail_fn)
@@ -411,7 +411,7 @@ gearman_return_t _client_run_task(Task *task)
   task->set_state(GEARMAN_TASK_STATE_FINISHED);
 
   // @todo this should never happen... but background tasks can signal it.
-  assert(task->result_rc != GEARMAN_UNKNOWN_STATE);
+  assert(task->error_code() != GEARMAN_UNKNOWN_STATE);
 
   if (task->client->options.free_tasks and task->type == GEARMAN_TASK_KIND_ADD_TASK)
   {
