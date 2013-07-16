@@ -115,7 +115,7 @@ public:
                 gearmand_error_t& ret_ptr)
   {
     size_t used_size;
-    gearmand_info("Gear unpack");
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Gear unpack");
 
     if (packet->args_size == 0)
     {
@@ -241,8 +241,7 @@ public:
     else if (packet->command == GEARMAN_COMMAND_TEXT and packet->data_size)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %" PRIu64 " gearmand_command_t: %s text: %.*s",
-                         uint64_t(packet->data_size),
+                         "GEAR %s text: %.*s",
                          gearman_strcommand(packet->command),
                          int(packet->data_size),
                          packet->data);
@@ -250,8 +249,7 @@ public:
     else if (packet->command == GEARMAN_COMMAND_OPTION_REQ and packet->arg_size[0])
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR length: %" PRIu64 " gearmand_command_t: %s option: %.*s",
-                         uint64_t(packet->data_size),
+                         "GEAR %s option: %.*s",
                          gearman_strcommand(packet->command),
                          int(packet->arg_size[0]),
                          packet->arg[0]);
@@ -259,7 +257,7 @@ public:
     else if (packet->command == GEARMAN_COMMAND_WORK_EXCEPTION and packet->data_size)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR gearmand_command_t: %s handle: %.*s exception: %.*s",
+                         "GEAR %s handle: %.*s exception: %.*s",
                          gearman_strcommand(packet->command),
                          int(packet->arg_size[0]),
                          packet->arg[0],
@@ -269,7 +267,7 @@ public:
     else if (packet->command == GEARMAN_COMMAND_SET_CLIENT_ID and packet->arg_size[0])
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "GEAR gearmand_command_t: %s identifier: %.*s",
+                         "GEAR %s identifier: %.*s",
                          gearman_strcommand(packet->command),
                          int(packet->arg_size[0]),
                          packet->arg[0]);
@@ -365,12 +363,12 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
                                    cyassl_error_buffer, cyassl_error);
       }
     }
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "GearSSL connection made: %s:%s", connection->host(), connection->port());
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "GearSSL connection made: %s:%s", connection->host(), connection->port());
   }
   else
 #endif
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Gear connection made: %s:%s", connection->host(), connection->port());
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Gear connection made: %s:%s", connection->host(), connection->port());
   }
 
   connection->set_protocol(&gear_context);
