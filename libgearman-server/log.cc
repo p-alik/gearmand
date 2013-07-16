@@ -274,7 +274,7 @@ gearmand_error_t gearmand_log_fatal(const char *position, const char *func, cons
     gearmand_log(position, func, GEARMAND_VERBOSE_FATAL, GEARMAND_SUCCESS, format, args);
     va_end(args);
   }
-  Server->shutdown_graceful= true;
+  gearmand_wakeup(Gearmand(), GEARMAND_WAKEUP_SHUTDOWN_GRACEFUL);
 
   return GEARMAND_ERRNO;
 }
