@@ -164,9 +164,19 @@ struct Task
     return _error.error_code(rc_);
   }
 
+  gearman_return_t error_code(const gearman_return_t rc_,  const char*)
+  {
+    return _error.error_code(rc_);
+  }
+
   gearman_return_t error_code() const
   {
     return _error.error_code();
+  }
+
+  const char* error() const
+  {
+    return _error.error();
   }
 
 private:
