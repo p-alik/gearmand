@@ -344,6 +344,8 @@ static gearmand_error_t _gear_con_remove(gearman_server_con_st* connection)
     CyaSSL_free(connection->_ssl);
     connection->_ssl= NULL;
   }
+#else
+  (void)connection;
 #endif
   return GEARMAND_SUCCESS;
 }
