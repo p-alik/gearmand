@@ -78,10 +78,9 @@ public:
       throw std::runtime_error("gearman_worker_create() failed");
     }
     enable_logging();
+    enable_ssl();
 
     gearman_worker_add_server(_worker, "localhost", arg);
-
-    enable_ssl();
   }
 
   gearman_worker_st* operator&() const

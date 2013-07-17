@@ -29,9 +29,9 @@ using namespace libtest;
 static test_return_t collection_init(void *object)
 {
   Context *test= (Context *)object;
-  test_true(test);
 
-  test_truth(test->initialize(NULL));
+  ASSERT_TRUE(test);
+  ASSERT_TRUE(test->initialize(NULL));
 
   return TEST_SUCCESS;
 }
@@ -39,6 +39,7 @@ static test_return_t collection_init(void *object)
 static test_return_t collection_cleanup(void *object)
 {
   Context *test= (Context *)object;
+  ASSERT_TRUE(test);
   test->reset();
 
   return TEST_SUCCESS;
