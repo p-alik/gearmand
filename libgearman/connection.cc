@@ -656,6 +656,10 @@ gearman_return_t gearman_connection_st::lookup()
                                            "A memory allocation failed while calling getaddrinfo() for %s:%s", host(), service());
 
       case EAI_SYSTEM:
+        if (local_errno == ENOENT)
+        {
+          return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "DNS lookup failed for %s:%s", host(), service());
+        }
         return gearman_universal_set_perror(universal, local_errno, GEARMAN_AT, "System error happened during a call to getaddrinfo() for %s:%s", host(), service());
 
       default:

@@ -234,7 +234,7 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
         last_error[GEARMAN_MAX_ERROR_SIZE -1]= 0;
       }
 
-      universal._error.error("%s pid(%u)", last_error, getpid());
+      universal._error.error("%s(%s) %s -> %s pid(%u)", function, errmsg_ptr, last_error, position, getpid());
     }
     else
     {
