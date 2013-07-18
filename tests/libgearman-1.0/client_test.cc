@@ -814,7 +814,7 @@ static test_return_t hostname_resolution(void *)
 
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_error_code(&client));
 
-#if defined(TARGET_OS_FREEBSD) && TARGET_OS_FREEBSD
+#if defined(__FreeBSD__) && __FreeBSD__
   ASSERT_EQ(GEARMAN_TIMEOUT,
                gearman_client_echo(&client, test_literal_param("foo")));
 #else
