@@ -38,15 +38,16 @@ GEARMAN_LIBRARY_VERSION=8:0:0
 AC_SUBST([GEARMAN_LIBRARY_VERSION])
 
 LT_PREREQ([2.2])
-LT_INIT([disable-static])
+LT_INIT
 LT_LANG([C++])
 
+AC_PROG_CXX
+AC_PROG_CC
 AC_PROG_CC_C99
 AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
 
 AX_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
-AX_ASSERT
 
 # First look for Boost, maybe for a specific minimum version:
 AC_DEFUN([CHECK_BOOST],
