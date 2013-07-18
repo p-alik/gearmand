@@ -91,10 +91,10 @@ test_return_t worker_echo_test(void *object)
   test_truth(test);
 
   gearman_worker_st *worker= test->worker;
-  test_truth(worker);
+  ASSERT_TRUE(worker);
 
   ASSERT_EQ(gearman_worker_echo(worker, test_literal_param("This is my echo test")),
-               GEARMAN_SUCCESS);
+            GEARMAN_SUCCESS);
 
   return TEST_SUCCESS;
 }
