@@ -83,12 +83,17 @@ struct error_st {
 
   const char* error() const
   {
-    if (_last_error[0] == 0)
+    if (_rc != GEARMAN_SUCCESS and _rc != GEARMAN_UNKNOWN_STATE)
     {
-      return NULL;
+      if (_last_error[0] == 0)
+      {
+        return gearman_strerror(_rc);
+      }
+
+      return _last_error;
     }
 
-    return _last_error;
+    return NULL;
   }
 
   const char* error(const char * __restrict, ...);
