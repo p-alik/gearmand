@@ -91,11 +91,8 @@ public:
       throw std::runtime_error("gearman_client_create() failed");
     }
     enable_logging();
-
-    gearman_client_add_server(_client, "localhost", arg);
-
-    enable_logging();
     enable_ssl();
+    gearman_client_add_server(_client, "localhost", arg);
   }
 
   gearman_client_st* operator&() const

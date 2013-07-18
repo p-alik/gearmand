@@ -21,10 +21,10 @@ check_PROGRAMS += t/ephemeral
 noinst_PROGRAMS += t/ephemeral
 
 test-ephemeral: t/ephemeral gearmand/gearmand
-	@tests/ephemeral_test
+	@t/ephemeral
 
 gdb-ephemeral: t/ephemeral gearmand/gearmand
-	@$(GDB_COMMAND) tests/ephemeral
+	@$(GDB_COMMAND) t/ephemeral
 
 helgrind-ephemeral: t/ephemeral gearmand/gearmand
 	@$(HELGRIND_COMMAND) t/ephemeral

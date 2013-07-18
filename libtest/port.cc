@@ -114,13 +114,23 @@ static socket_st all_socket_fd;
 
 static in_port_t global_port= 0;
 
+static void initialize_default_port()
+{
+  global_port= get_free_port();
+}
+
+static pthread_once_t default_port_once= PTHREAD_ONCE_INIT;
+
 namespace libtest {
 
 in_port_t default_port()
 {
-  if (global_port == 0)
   {
-    global_port= get_free_port();
+    int ret;
+    if ((ret= pthread_once(&default_port_once, initialize_default_port)) != 0)
+    {
+      FATAL(strerror(ret));
+    }
   }
 
   return global_port;

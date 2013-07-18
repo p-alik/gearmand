@@ -1,3 +1,7 @@
+1.1.9
+* Added gearman_task_is_finished()
+
+
 1.1.8 Thu Jun  6 18:47:01 EDT 2013
 * Postgres test case now passes.
 * SSL support added.
