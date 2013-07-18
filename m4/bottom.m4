@@ -35,7 +35,7 @@ typedef unsigned long int ulong;
  * a lot easier to map back to the unix way with macros than going the other
  * way without side effect.
  */
-#ifdef TARGET_OS_WINDOWS
+#ifdef _WIN32
 #define random() rand()
 #define srandom(a) srand(a)
 #define get_socket_errno() WSAGetLastError()
@@ -44,7 +44,7 @@ typedef unsigned long int ulong;
 #define SOCKET_ERROR -1
 #define closesocket(a) close(a)
 #define get_socket_errno() errno
-#endif // TARGET_OS_WINDOWS
+#endif // _WIN32
 
 #ifndef HAVE_MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
