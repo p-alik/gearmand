@@ -78,20 +78,12 @@ public:
 
   bool initialize(const char *argv[])
   {
-    if (server_startup(_servers, "gearmand", _port, argv) == false)
-    {
-      return false;
-    }
+    _port= get_free_port();
+    ASSERT_TRUE(server_startup(_servers, "gearmand", _port, argv));
 
-    if ((worker= gearman_worker_create(NULL)) == NULL)
-    {
-      return false;
-    }
+    ASSERT_TRUE(worker= gearman_worker_create(NULL));
 
-    if (gearman_failed(gearman_worker_add_server(worker, NULL, _port)))
-    {
-      return false;
-    }
+    ASSERT_TRUE(gearman_success(gearman_worker_add_server(worker, NULL, _port)));
 
     return true;
   }

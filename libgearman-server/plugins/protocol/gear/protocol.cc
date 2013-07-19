@@ -333,8 +333,18 @@ private:
 
 static Geartext gear_context;
 
-static gearmand_error_t _gear_con_remove(gearman_server_con_st*)
+static gearmand_error_t _gear_con_remove(gearman_server_con_st* connection)
 {
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  if (connection->_ssl)
+  {
+    CyaSSL_shutdown(connection->_ssl);
+    CyaSSL_free(connection->_ssl);
+    connection->_ssl= NULL;
+  }
+#else
+  (void)connection;
+#endif
   return GEARMAND_SUCCESS;
 }
 
