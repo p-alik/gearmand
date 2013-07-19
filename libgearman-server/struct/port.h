@@ -76,11 +76,13 @@ public:
 
   gearmand_error_t add_fn(gearman_server_con_st* con)
   {
+    assert(_add_fn);
     return (*_add_fn)(con);
   }
 
   gearmand_error_t remove_fn(gearman_server_con_st* con)
   {
+    assert(_remove_fn);
     return (*_remove_fn)(con);
   }
 
