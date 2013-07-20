@@ -425,6 +425,46 @@ gearmand_error_t gearmand_log_perror(const char *position, const char *function,
   return __errno_to_gearmand_error_t(local_errno);
 }
 
+gearmand_error_t gearmand_log_perror_warn(const char *position, const char *function, const int local_errno, const char *format, ...)
+{
+  if (not Gearmand() or (Gearmand()->verbose >= GEARMAND_VERBOSE_WARN))
+  {
+    char* message_buffer= NULL;
+    {
+      va_list args;
+      va_start(args, format);
+
+      size_t ask= snprintf(0, 0, format);
+      ask++; // for null
+      message_buffer= (char*)alloca(sizeof(char) * ask);
+      vsnprintf(message_buffer, ask, format, args);
+
+      va_end(args);
+    }
+
+    const char *errmsg_ptr;
+    char errmsg[GEARMAN_MAX_ERROR_SIZE]; 
+    errmsg[0]= 0; 
+
+#ifdef STRERROR_R_CHAR_P
+    errmsg_ptr= strerror_r(local_errno, errmsg, sizeof(errmsg));
+#else
+    strerror_r(local_errno, errmsg, sizeof(errmsg));
+    errmsg_ptr= errmsg;
+#endif
+    if (message_buffer)
+    {
+      gearmand_log_warning(position, function, "%s(%s)", message_buffer, errmsg_ptr);
+    }
+    else
+    {
+      gearmand_log_warning(position, function, "%s", errmsg_ptr);
+    }
+  }
+
+  return __errno_to_gearmand_error_t(local_errno);
+}
+
 gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)
 {
   if (gearmand_failed(rc) and rc != GEARMAND_IO_WAIT)

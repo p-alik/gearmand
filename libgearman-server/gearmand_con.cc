@@ -652,7 +652,10 @@ void gearmand_con_free(gearmand_con_st *dcon)
     {
       /* This gets around a libevent bug when both POLLIN and POLLOUT are set. */
       event_set(&(dcon->event), dcon->fd, EV_READ, _con_ready, dcon);
-      event_base_set(dcon->thread->base, &(dcon->event));
+      if (event_base_set(dcon->thread->base, &(dcon->event)) == -1)
+      {
+        gearmand_perror(errno, "event_base_set");
+      }
 
       if (event_add(&(dcon->event), NULL) == -1)
       {
