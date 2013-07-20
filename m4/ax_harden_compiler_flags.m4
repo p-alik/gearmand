@@ -228,7 +228,7 @@ AC_DEFUN([_HARDEN_CC_COMPILER_FLAGS],
 
           AS_IF([test "x$ax_enable_debug" = xno],
             [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
-              [AS_IF([test "x${target_os}" != "xmingw"],
+              [AS_IF([test "x${host_os}" != "xmingw"],
                 [AS_IF([test "x$ac_c_gcc_recent" = xyes],
                   [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
                   #_APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
@@ -332,7 +332,7 @@ AC_DEFUN([_HARDEN_CXX_COMPILER_FLAGS],
 
           AS_IF([test "x$ax_enable_debug" = xno],
           [AS_IF([test "x$ac_cv_vcs_checkout" = xyes],
-            [AS_IF([test "x${target_os}" != "xmingw"],
+            [AS_IF([test "x${host_os}" != "xmingw"],
               [AS_IF([test "x$ac_c_gcc_recent" = xyes],
                 [_APPEND_COMPILE_FLAGS_ERROR([-D_FORTIFY_SOURCE=2])
                 #_APPEND_COMPILE_FLAGS_ERROR([-Wstack-protector])
