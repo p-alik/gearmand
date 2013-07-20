@@ -88,7 +88,11 @@ static void correct_from_errno(gearman_universal_st& universal)
   }
 }
 
-#pragma GCC diagnostic push
+#ifdef __clang__
+# pragma clang diagnostic push
+#else
+# pragma GCC diagnostic push
+#endif
 #pragma GCC diagnostic ignored "-Wswitch-enum"
 static bool no_error_message(gearman_return_t rc)
 {

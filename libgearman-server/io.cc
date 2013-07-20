@@ -135,7 +135,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
     if (con->_ssl)
     {
-      read_size= CyaSSL_recv(con->_ssl, data, data_size, MSG_DONTWAIT);
+      read_size= CyaSSL_recv(con->_ssl, data, int(data_size), MSG_DONTWAIT);
     }
     else
 #endif
@@ -269,13 +269,13 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
         if (con->_ssl)
         {
-          write_size= CyaSSL_send(con->_ssl, connection->send_buffer_ptr, connection->send_buffer_size, MSG_NOSIGNAL|MSG_DONTWAIT);
+          write_size= CyaSSL_send(con->_ssl, connection->send_buffer_ptr, int(connection->send_buffer_size), MSG_NOSIGNAL|MSG_DONTWAIT);
 
           // I consider this to be a bug in CyaSSL_send() that is uses a zero in this manner
           if (write_size <= 0)
           {
             int err;
-            switch ((err= CyaSSL_get_error(con->_ssl, write_size)))
+            switch ((err= CyaSSL_get_error(con->_ssl, int(write_size))))
             {
               case SSL_ERROR_WANT_CONNECT:
               case SSL_ERROR_WANT_ACCEPT:

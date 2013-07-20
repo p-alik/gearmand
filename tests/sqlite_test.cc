@@ -438,9 +438,7 @@ static test_return_t lp_1087654_TEST(void* object)
 
 
 #pragma GCC diagnostic push
-#ifdef __clang__
-# pragma GCC diagnostic ignored "-Wstack-protector"
-#endif // __clang__
+#pragma GCC diagnostic ignored "-Wstack-protector"
 static test_return_t queue_restart_TEST(Context const* test, const int32_t inserted_jobs, uint32_t timeout)
 {
   SKIP_IF(HAVE_UUID_UUID_H != 1);
