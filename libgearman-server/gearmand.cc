@@ -924,7 +924,10 @@ static gearmand_error_t _wakeup_init(gearmand_st *gearmand)
 
   event_set(&(gearmand->wakeup_event), gearmand->wakeup_fd[0],
             EV_READ | EV_PERSIST, _wakeup_event, gearmand);
-  event_base_set(gearmand->base, &(gearmand->wakeup_event));
+  if (event_base_set(gearmand->base, &(gearmand->wakeup_event)) == -1)
+  {
+    gearmand_perror(errno, "event_base_set");
+  }
 
   return GEARMAND_SUCCESS;
 }

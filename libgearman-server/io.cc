@@ -970,6 +970,10 @@ gearmand_error_t gearmand_sockfd_nonblock(const int& sockfd)
   do
   {
     flags= fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1)
+    {
+      gearmand_log_perror_warn(GEARMAN_DEFAULT_LOG_PARAM, flags, "gearmand_sockfd_nonblock");
+    }
   } while (flags == -1 and (errno == EINTR or errno == EAGAIN));
 
   if (flags == -1)
@@ -982,6 +986,10 @@ gearmand_error_t gearmand_sockfd_nonblock(const int& sockfd)
     do
     {
       retval= fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+      if (retval == -1)
+      {
+        gearmand_log_perror_warn(GEARMAN_DEFAULT_LOG_PARAM, retval, "gearmand_sockfd_nonblock");
+      }
     } while (retval == -1 and (errno == EINTR or errno == EAGAIN));
 
     if (retval == -1)

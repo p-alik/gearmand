@@ -696,7 +696,10 @@ gearmand_error_t gearman_server_con_add_job_timeout(gearman_server_con_st *con, 
             return gearmand_merror("malloc(sizeof(struct event)", struct event, 1);
           }
           timeout_set(con->timeout_event, _server_job_timeout, job);
-          event_base_set(dcon->thread->base, con->timeout_event);
+          if (event_base_set(dcon->thread->base, con->timeout_event) == -1)
+          {
+            gearmand_perror(errno, "event_base_set");
+          }
         }
 
         /* XXX Right now, if a worker has diff timeouts for functions I think

@@ -506,7 +506,7 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
   }
 
   gearmand_error_t local_ret;
-  if ((local_ret= gearmand_sockfd_nonblock(thread->gearmand().wakeup_fd[0])))
+  if ((local_ret= gearmand_sockfd_nonblock(thread->wakeup_fd[0])))
   {
     return local_ret;
   }
@@ -514,7 +514,10 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
 
   event_set(&(thread->wakeup_event), thread->wakeup_fd[0], EV_READ | EV_PERSIST,
             _wakeup_event, thread);
-  event_base_set(thread->base, &(thread->wakeup_event));
+  if (event_base_set(thread->base, &(thread->wakeup_event)) == -1)
+  {
+    gearmand_perror(errno, "event_base_set");
+  }
 
   if (event_add(&(thread->wakeup_event), NULL) < 0)
   {
