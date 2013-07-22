@@ -204,10 +204,6 @@ gearman_job_st *gearman_job_create(Worker* worker, gearman_job_st *job_shell)
       }
     }
 
-    job->options.assigned_in_use= false;
-    job->options.work_in_use= false;
-    job->options.finished= false;
-
     job->reducer= NULL;
     job->_error_code= GEARMAN_UNKNOWN_STATE;
 
@@ -542,9 +538,7 @@ gearman_return_t gearman_job_send_exception(gearman_job_st *job_shell,
       {
         return job->error_code();
       }
-#if 0
       job->finished(true);
-#endif
     }
 
     return GEARMAN_SUCCESS;

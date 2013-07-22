@@ -74,6 +74,10 @@ static gearman_return_t worker_fn(gearman_job_st* job, void*)
         Error << "gearman_job_send_exception(" << gearman_strerror(ret) << ")";
         return GEARMAN_WORK_ERROR;
       }
+      else
+      {
+        return ret;
+      }
     }
 
     // We will pass back wrong responses from time to time.
