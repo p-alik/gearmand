@@ -94,7 +94,7 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
             continue;
           }
 
-          data.vec_append_printf("%d %s %s :", con->con.fd, con->_host, con->id);
+          data.vec_append_printf("%d %s %s :", con->con.fd(), con->_host, con->id);
 
           for (gearman_server_worker_st *worker= con->worker_list; worker != NULL; worker= worker->con_next)
           {

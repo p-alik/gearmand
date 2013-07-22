@@ -358,7 +358,7 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
       return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_MEMORY_ALLOCATION_FAILURE, "CyaSSL_new() failed to return a valid object");
     }
 
-    CyaSSL_set_fd(connection->_ssl, connection->con.fd);
+    CyaSSL_set_fd(connection->_ssl, connection->con.fd());
 
     if (CyaSSL_accept(connection->_ssl) != SSL_SUCCESS)
     {

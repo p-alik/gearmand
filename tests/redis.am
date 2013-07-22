@@ -20,8 +20,8 @@ t_redis_SOURCES+= tests/redis.cc
 #check_PROGRAMS += t/redis
 noinst_PROGRAMS += t/redis
 
-test-redis: tests/redis gearmand/gearmand
-	@tests/redis
+test-redis: t/redis gearmand/gearmand
+	@t/redis
 
-gdb-redis: tests/redis gearmand/gearmand
-	@$(GDB_COMMAND) tests/redis
+gdb-redis: t/redis gearmand/gearmand
+	@$(GDB_COMMAND) t/redis

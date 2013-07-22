@@ -28,7 +28,7 @@ check_PROGRAMS+= t/sqlite
 noinst_PROGRAMS+= t/sqlite
 
 test-sqlite: t/sqlite gearmand/gearmand
-	@tests/sqlite_test
+	@t/sqlite
 
 gdb-sqlite: t/sqlite gearmand/gearmand
 	@$(GDB_COMMAND) t/sqlite

@@ -1137,7 +1137,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
         if (sendErr != SSL_ERROR_WANT_READ)
         {
           char errorString[80];
-          int err = CyaSSL_get_error(_ssl, 0);
+          int err= CyaSSL_get_error(_ssl, 0);
           CyaSSL_ERR_error_string(err, errorString);
           close_socket();
           ret= gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT,

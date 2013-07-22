@@ -29,13 +29,13 @@ check_PROGRAMS += t/drizzle
 noinst_PROGRAMS += t/drizzle
 
 test-drizzle: t/drizzle gearmand/gearmand
-	@tests/drizzle
+	@t/drizzle
 
 gdb-drizzle: t/drizzle gearmand/gearmand
-	@$(GDB_COMMAND) tests/drizzle
+	@$(GDB_COMMAND) t/drizzle
 
 helgrind-drizzle: t/drizzle gearmand/gearmand
-	@$(HELGRIND_COMMAND) tests/drizzle
+	@$(HELGRIND_COMMAND) t/drizzle
 
 valgrind-drizzle: t/drizzle gearmand/gearmand
-	@$(VALGRIND_COMMAND) tests/drizzle
+	@$(VALGRIND_COMMAND) t/drizzle
