@@ -20,7 +20,7 @@ check_PROGRAMS+= t/tokyocabinet
 noinst_PROGRAMS+= t/tokyocabinet
 
 test-tokyocabinet: t/tokyocabinet gearmand/gearmand
-	@tests/tokyocabinet
+	@t/tokyocabinet
 
 valgrind-tokyocabinet: t/tokyocabinet gearmand/gearmand
 	@$(VALGRIND_COMMAND) t/tokyocabinet

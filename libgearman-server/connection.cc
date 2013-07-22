@@ -149,9 +149,7 @@ static gearman_server_con_st * _server_con_create(gearman_server_thread_st *thre
   con->timeout_event= NULL;
 
   con->protocol= NULL;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
   con->_ssl= NULL;
-#endif
 
   int error;
   if ((error= pthread_mutex_lock(&thread->lock)) == 0)
@@ -208,6 +206,17 @@ void gearman_server_con_free(gearman_server_con_st *con)
   gearman_server_thread_st *thread= con->thread;
   con->_host= NULL;
   con->_port= NULL;
+
+  // Correct location?
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
+  if (con->_ssl)
+  {
+    CyaSSL_shutdown(con->_ssl);
+    CyaSSL_free(con->_ssl);
+    con->_ssl= NULL;
+  }
+#endif
+
 
   gearman_server_con_delete_timeout(con);
 

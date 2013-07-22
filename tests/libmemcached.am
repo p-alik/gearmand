@@ -37,4 +37,4 @@ valgrind-libmemcached: t/memcached gearmand/gearmand
 	@$(VALGRIND_COMMAND) t/memcached
 
 gdb-libmemcached: t/memcached gearmand/gearmand
-	@$(GDB_COMMAND) tests/memcached
+	@$(GDB_COMMAND) t/memcached

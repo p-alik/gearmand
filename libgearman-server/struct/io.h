@@ -70,7 +70,37 @@ struct gearmand_io_st
   } recv_state;
   short events;
   short revents;
-  int fd;
+  private:
+  int _fd;
+
+  public:
+  gearmand_error_t set_fd(const int fd_)
+  {
+    options.external_fd= true;
+    _fd= fd_;
+    _state= gearmand_io_st::GEARMAND_CON_UNIVERSAL_CONNECTED;
+    return _io_setsockopt();
+  }
+
+  gearmand_error_t _io_setsockopt();
+
+  int fd() const
+  {
+    return _fd;
+  }
+
+  bool has_fd() const
+  {
+    return _fd != INVALID_SOCKET;
+  }
+
+  void clear()
+  {
+    _fd= INVALID_SOCKET;
+    events= 0;
+    revents= 0;
+  }
+
   uint32_t created_id;
   uint32_t created_id_next;
   size_t send_buffer_size;
@@ -98,7 +128,9 @@ struct gearmand_io_st
   const char* host() const;
   const char* port() const;
 
+#if 0
   void close_socket();
+#endif
 };
 
 namespace gearmand { namespace protocol {class Context; } }
@@ -144,9 +176,7 @@ struct gearman_server_con_st
   char id[GEARMAND_SERVER_CON_ID_SIZE];
   gearmand::protocol::Context* protocol;
   struct event *timeout_event;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CYASSL* _ssl;
-#endif
+  struct CYASSL* _ssl;
 
   gearman_server_con_st()
   {

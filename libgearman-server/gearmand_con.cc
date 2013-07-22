@@ -101,6 +101,7 @@ gearmand_error_t gearmand_con_st::add_fn(gearman_server_con_st* con_st_)
 {
   assert(_port_st);
   assert(con_st_);
+  assert(con_st_ == server_con);
   return _port_st->add_fn(con_st_);
 }
 
