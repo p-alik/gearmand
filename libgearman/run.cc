@@ -407,8 +407,11 @@ gearman_return_t _client_run_task(Task *task)
     break;
   }
 
-  task->client->running_tasks--;
-  task->set_state(GEARMAN_TASK_STATE_FINISHED);
+  if (task->state != GEARMAN_TASK_STATE_FINISHED)
+  {
+    task->client->running_tasks--;
+    task->set_state(GEARMAN_TASK_STATE_FINISHED);
+  }
 
   // @todo this should never happen... but background tasks can signal it.
   assert(task->error_code() != GEARMAN_UNKNOWN_STATE);
