@@ -1029,57 +1029,55 @@ gearmand_error_t Context::replay_add(gearman_server_st *server,
 
 static gearmand_error_t
 _server_queue_work_data(gearman_server_job_st *server_job,
-                        gearmand_packet_st *packet, gearman_command_t command)
+                        gearmand_packet_st *packet, const gearman_command_t command)
 {
-
   for (gearman_server_client_st* server_client= server_job->client_list; server_client;
        server_client= server_client->job_next)
   {
+    gearmand_error_t ret;
+
     if (command == GEARMAN_COMMAND_WORK_EXCEPTION and (server_client->con->is_exceptions == false))
     {
-      gearmand_debug("Dropping GEARMAN_COMMAND_WORK_EXCEPTION");
-      continue;
-    }
-    else if (command == GEARMAN_COMMAND_WORK_EXCEPTION)
-    {
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                         "%s:%s GEARMAN_COMMAND_WORK_EXCEPTION: %.*s",
-                         server_client->con->host(), server_client->con->port(),
-                         int(packet->data_size), packet->data);
-    }
-
-    uint8_t *data;
-    if (packet->data_size > 0)
-    {
-      if (packet->options.free_data and
-          server_client->job_next == NULL)
-      {
-        data= (uint8_t *)(packet->data);
-        packet->options.free_data= false;
-      }
-      else
-      {
-        data= (uint8_t *)realloc(NULL, packet->data_size);
-        if (data == NULL)
-        {
-          return gearmand_perror(errno, "realloc");
-        }
-
-        memcpy(data, packet->data, packet->data_size);
-      }
+      ret= gearman_server_io_packet_add(server_client->con, true,
+                                        GEARMAN_MAGIC_RESPONSE, GEARMAN_COMMAND_WORK_FAIL,
+                                        packet->arg[0], packet->arg_size[0], NULL);
     }
     else
     {
-      data= NULL;
+      uint8_t *data;
+      if (packet->data_size > 0)
+      {
+        if (packet->options.free_data and
+            server_client->job_next == NULL)
+        {
+          data= (uint8_t *)(packet->data);
+          packet->options.free_data= false;
+        }
+        else
+        {
+          data= (uint8_t *)realloc(NULL, packet->data_size);
+          if (data == NULL)
+          {
+            return gearmand_perror(errno, "realloc");
+          }
+
+          memcpy(data, packet->data, packet->data_size);
+        }
+      }
+      else
+      {
+        data= NULL;
+      }
+
+      ret= gearman_server_io_packet_add(server_client->con, true,
+                                        GEARMAN_MAGIC_RESPONSE, command,
+                                        packet->arg[0], packet->arg_size[0],
+                                        data, packet->data_size, NULL);
     }
 
-    gearmand_error_t ret= gearman_server_io_packet_add(server_client->con, true,
-                                                       GEARMAN_MAGIC_RESPONSE, command,
-                                                       packet->arg[0], packet->arg_size[0],
-                                                       data, packet->data_size, NULL);
     if (ret != GEARMAND_SUCCESS)
     {
-      return gearmand_gerror("gearman_server_io_packet_add", ret);
+      gearmand_gerror_warn("packet failed gearman_server_io_packet_add()", ret);
     }
   }
 
