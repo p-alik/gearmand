@@ -61,7 +61,6 @@ using namespace org::gearmand;
 
 #define HARD_CODED_EXCEPTION "my test exception"
 
-
 static gearman_return_t worker_fn(gearman_job_st* job, void*)
 {
   if (random() % 10)
@@ -100,6 +99,7 @@ struct client_test_st {
   {
     gearman_function_t func_arg= gearman_function_create(worker_fn);
     handle= test_worker_start(libtest::default_port(), NULL, DEFAULT_WORKER_NAME, func_arg, NULL, gearman_worker_options_t());
+    ASSERT_TRUE(handle->check());
   }
 
   ~client_test_st()
@@ -117,16 +117,18 @@ struct client_context_st {
   int latch;
   const size_t min_size;
   const size_t max_size;
-  const size_t num_tasks;
-  const size_t _count;
+private:
+  size_t _num_tasks;
+  size_t _count;
+public:
   char *blob;
 
   client_context_st():
     latch(0),
     min_size(1024),
     max_size(1024 *2),
-    num_tasks(20),
-    _count(2000),
+    _num_tasks(1),
+    _count(20),
     blob(NULL)
   {
     blob= (char *)malloc(max_size);
@@ -134,9 +136,20 @@ struct client_context_st {
     memset(blob, 'x', max_size); 
   }
 
+  void next()
+  {
+    _num_tasks= _num_tasks *2;
+    _count= _count *2;
+  }
+
   size_t count()
   {
     return _count;
+  }
+
+  size_t num_tasks() const
+  {
+    return _num_tasks;
   }
 
   ~client_context_st()
@@ -153,6 +166,23 @@ struct client_context_st {
 #endif
 
 static client_test_st *test_client_context= NULL;
+
+static test_return_t echo_TEST(void*)
+{
+  gearman_client_st *client= test_client_context->client();
+  fatal_assert(client);
+
+  gearman_string_t value= { test_literal_param("This is my echo test") };
+
+  if (GEARMAN_SUCCESS !=  gearman_client_echo(client, gearman_string_param(value)))
+  {
+    Error << gearman_client_error(client);
+  }
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(client, gearman_string_param(value)));
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t burnin_TEST(void*)
 {
   gearman_client_st *client= test_client_context->client();
@@ -162,21 +192,21 @@ static test_return_t burnin_TEST(void*)
   fatal_assert(context);
 
   // This sketchy, don't do this in your own code.
-  test_true(context->num_tasks > 0);
+  test_true(context->num_tasks() > 0);
   std::vector<gearman_task_st> tasks;
   try {
-    tasks.resize(context->num_tasks);
+    tasks.resize(context->num_tasks());
   }
   catch (...)
   { }
-  ASSERT_EQ(tasks.size(), context->num_tasks);
+  ASSERT_EQ(tasks.size(), context->num_tasks());
 
   ASSERT_EQ(gearman_client_echo(client, test_literal_param("echo_test")), GEARMAN_SUCCESS);
 
   size_t count= context->count();
   do
   {
-    for (uint32_t x= 0; x < context->num_tasks; x++)
+    for (uint32_t x= 0; x < context->num_tasks(); x++)
     {
       size_t blob_size= 0;
 
@@ -218,7 +248,7 @@ static test_return_t burnin_TEST(void*)
     gearman_return_t ret= gearman_client_run_tasks(client);
 
     do {
-      for (uint32_t x= 0; x < context->num_tasks; x++)
+      for (uint32_t x= 0; x < context->num_tasks(); x++)
       {
         ASSERT_EQ(GEARMAN_TASK_STATE_FINISHED, tasks[x].impl()->state);
         if (tasks[x].impl()->error_code() == GEARMAN_UNKNOWN_STATE)
@@ -254,7 +284,7 @@ static test_return_t burnin_TEST(void*)
 
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
 
-    for (uint32_t x= 0; x < context->num_tasks; x++)
+    for (uint32_t x= 0; x < context->num_tasks(); x++)
     {
       gearman_task_free(&(tasks[x]));
     }
@@ -268,6 +298,7 @@ static test_return_t burnin_TEST(void*)
 static test_return_t burnin_setup(void* obj)
 {
   client_context_st* context= (client_context_st *)obj;
+  context->next();
 
   test_client_context= new client_test_st;
 
@@ -309,7 +340,13 @@ test_st burnin_TESTS[] ={
   {0, 0, 0}
 };
 
+test_st echo_TESTS[] ={
+  {"echo", 0, echo_TEST },
+  {0, 0, 0}
+};
+
 collection_st collection[] ={
+  {"echo", burnin_setup, burnin_cleanup, echo_TESTS },
   {"burnin", burnin_setup, burnin_cleanup, burnin_TESTS },
   {0, 0, 0, 0}
 };

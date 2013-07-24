@@ -327,7 +327,7 @@ bool worker_handle_st::shutdown()
 bool worker_handle_st::check()
 {
   gearman_return_t rc;
-  if (gearman_failed(rc=  gearman_kill(_worker_id, GEARMAN_KILL)))
+  if (gearman_failed(rc=  gearman_kill(_worker_id, GEARMAN_SIGNAL_CHECK)))
   {
     return false;
   }
