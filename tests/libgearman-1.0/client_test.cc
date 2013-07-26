@@ -1320,8 +1320,7 @@ static test_return_t gearman_client_cancel_job_TEST(void* object)
 
   // For the moment we won't test the return value since this will change once
   // we formalize the behavior.
-  gearman_return_t ret= gearman_client_cancel_job(client, job_handle);
-  (void)ret;
+  test_compare(GEARMAN_JOB_NOT_FOUND, gearman_client_cancel_job(client, job_handle));
 
   return TEST_SUCCESS;
 }

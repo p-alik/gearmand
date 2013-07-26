@@ -264,6 +264,14 @@ public:
                          int(packet->data_size),
                          packet->data);
     }
+    else if (packet->command == GEARMAN_COMMAND_WORK_FAIL and packet->arg_size[0])
+    {
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                         "GEAR %s handle: %.*s",
+                         gearman_strcommand(packet->command),
+                         int(packet->arg_size[0]),
+                         packet->arg[0]);
+    }
     else if (packet->command == GEARMAN_COMMAND_SET_CLIENT_ID and packet->arg_size[0])
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,

@@ -40,13 +40,27 @@
 #include "libgearman/error_code.h"
 #include "libgearman/error_code.hpp"
 
+#include "libgearman-1.0/visibility.h"
+#include "libgearman-1.0/strerror.h"
+
+#include <cstdio>
+#include <cassert>
+
 gearman_return_t string2return_code(const char* str, size_t len)
 {
-  const struct error_code_st* code= String2gearman_return_t::in_word_set(str, (uint32_t)(len));
-
-  if (code)
+  if (str and len)
   {
-    return code->code;
+    // Remove NULL termination from count
+    if (str[len -1] == 0)
+    {
+      --len;
+    }
+    const struct error_code_st* code= String2gearman_return_t::in_word_set(str, (uint32_t)(len));
+
+    if (code)
+    {
+      return code->code;
+    }
   }
 
   return GEARMAN_MAX_RETURN;

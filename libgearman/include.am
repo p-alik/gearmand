@@ -170,7 +170,7 @@ EXTRA_DIST+= libgearman/error_code.gperf
 BUILT_SOURCES+= libgearman/error_code.hpp
 libgearman_libgearman_la_SOURCES+= libgearman/error_code.hpp
 libgearman/error_code.hpp: libgearman/error_code.gperf
-	if $(GPERF) $(GPERFFLAGS) --key-positions=9,10,11,17 --struct-type \
+	if $(GPERF) $(GPERFFLAGS) --struct-type \
 	  libgearman/error_code.gperf >$@t; then \
 	  mv $@t $@; \
 	  elif $(GPERF) --version >/dev/null 2>&1; then \
