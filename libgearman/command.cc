@@ -110,6 +110,17 @@ const char *gearman_strcommand(gearman_command_t command)
   return "__UNKNOWN";
 }
 
+const char *gearman_enum_strcommand(gearman_command_t command)
+{
+  if ((command >= GEARMAN_COMMAND_TEXT) and (command <= GEARMAN_COMMAND_STATUS_RES_UNIQUE))
+  {
+    return gearmand_command_info_list[command].name;
+  }
+
+  assert(0); // We should never reach this
+  return "__UNKNOWN";
+}
+
 const gearman_command_info_st *gearman_command_info(gearman_command_t command)
 {
   if (uint32_t(command) >= uint32_t(GEARMAN_COMMAND_MAX))

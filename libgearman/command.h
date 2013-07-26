@@ -53,6 +53,8 @@ struct gearman_command_info_st
 extern "C" {
 #endif
 
+const char *gearman_enum_strcommand(gearman_command_t);
+
 const struct gearman_command_info_st *gearman_command_info(gearman_command_t command);
 
 const struct gearman_command_info_st * gearman_command_lookup (register const char *str, register unsigned int len);
