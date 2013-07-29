@@ -892,13 +892,11 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
           active= 0;
           for (worker->con= worker->universal.con_list; worker->con; worker->con= worker->con->next_connection())
           {
-            if (worker->con->socket_descriptor_is_valid() == false)
+            if (worker->con->socket_descriptor_is_valid())
             {
-              continue;
+              worker->con->set_events(POLLIN);
+              active++;
             }
-
-            worker->con->set_events(POLLIN);
-            active++;
           }
 
           if ((&worker->universal)->options.non_blocking)

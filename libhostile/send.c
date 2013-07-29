@@ -79,17 +79,21 @@ ssize_t send(int sockfd, const void *buf, size_t len, int flags)
 
   (void) pthread_once(&function_lookup_once, set_local);
 
-  if (is_called() == false)
+  if (sockfd != -1)
   {
-    if (__function.frequency)
+    if (is_called() == false)
     {
-      if (--not_until < 0 && random() % __function.frequency)
+      if (__function.frequency)
       {
-        __function._used++;
-        shutdown(sockfd, SHUT_RDWR);
-        close(sockfd);
-        errno= ECONNRESET;
-        return -1;
+        if (--not_until < 0 && random() % __function.frequency)
+        {
+          __function._used++;
+          int tmp_sockfd= dup(sockfd);
+          shutdown(tmp_sockfd, SHUT_RDWR);
+          close(tmp_sockfd);
+          errno= ECONNRESET;
+          return -1;
+        }
       }
     }
   }

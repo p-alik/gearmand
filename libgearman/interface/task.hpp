@@ -61,6 +61,11 @@ struct Task
       is_paused(false),
       is_initialized(true)
     { }
+
+    ~Options()
+    {
+      is_initialized= false;
+    }
   } options;
   enum gearman_task_kind_t type;
   enum gearman_task_state_t state;
