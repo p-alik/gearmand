@@ -242,7 +242,7 @@ static gearmand_error_t _libtokyocabinet_add(gearman_server_st*, void *context,
 
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "libtokyocabinet key: %.*s", (int)key_length, key_str);
 
-    TCXSTR* job_data= tcxstrnew();
+    TCXSTR* job_data;
     if ((job_data= tcxstrnew()))
     {
       tcxstrcat(job_data, (const char *)function_name, (int)function_name_size);

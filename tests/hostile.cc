@@ -125,21 +125,22 @@ extern "C" {
     {
       libgearman::Client client(current_server());
 
+      libtest::vchar_t payload;
+      payload.resize(success->payload_size);
+
       gearman_client_set_timeout(&client, 1000);
       for (size_t x= 0; x < 100; x++)
       {
         int oldstate;
         pthread_setcanceltype(PTHREAD_CANCEL_DISABLE, &oldstate);
-        libtest::vchar_t payload;
-        payload.resize(success->payload_size);
         gearman_return_t rc;
         void *value= gearman_client_do(&client, WORKER_FUNCTION_NAME,
                                        NULL,
                                        &payload[0], 
                                        payload.size() ? random() % payload.size() : 0,
                                        NULL, &rc);
-        pthread_setcanceltype(oldstate, NULL);
 
+        fatal_assert(gearman_client_has_tasks(&client) == false);
         if (gearman_success(rc))
         {
           success->increment();
@@ -149,7 +150,10 @@ extern "C" {
         {
           free(value);
         }
+        pthread_setcanceltype(oldstate, NULL);
       }
+      
+      fatal_assert(gearman_client_has_tasks(&client) == false);
     }
 
     pthread_exit(0);
@@ -195,9 +199,9 @@ static bool join_thread(pthread_t& thread_arg)
 {
   int error;
 
+#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
   if (HAVE_PTHREAD_TIMEDJOIN_NP)
   {
-#if defined(HAVE_PTHREAD_TIMEDJOIN_NP) && HAVE_PTHREAD_TIMEDJOIN_NP
     int limit= 2;
     while (--limit)
     {
@@ -228,10 +232,10 @@ static bool join_thread(pthread_t& thread_arg)
       Error << "pthread_cancel() " << strerror(error);
       return false;
     }
-#endif
 
     return true;
   }
+#endif
 
   if ((error= pthread_join(thread_arg, NULL)) != 0)
   {
@@ -272,13 +276,13 @@ static test_return_t worker_ramp_exec(const size_t payload_size)
   std::vector<client_thread_context_st>  success;
   success.resize(children.size());
 
-  for (size_t x= 0; x < children.size(); x++)
+  for (size_t x= 0; x < children.size(); ++x)
   {
     success[x].payload_size= payload_size;
     pthread_create(&children[x], NULL, client_thread, &success[x]);
   }
   
-  for (size_t x= 0; x < children.size(); x++)
+  for (size_t x= 0; x < children.size(); ++x)
   {
     pthread_t& thread= children[x];
     bool join_success= false;

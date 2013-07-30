@@ -99,28 +99,32 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
   (void) pthread_once(&function_lookup_once, set_local);
 
   bool corrupt= false;
-  if (is_called() == false && __function.frequency)
+  if (sockfd != -1)
   {
-    if (false)
-    { }
-    else if (--not_until < 0 && rand() % __function.frequency)
+    if (is_called() == false && __function.frequency)
     {
-      __function._used++;
-      shutdown(sockfd, SHUT_RDWR);
-      close(sockfd);
+      if (false)
+      { }
+      else if (--not_until < 0 && rand() % __function.frequency)
+      {
+        __function._used++;
+        int tmp_sockfd= dup(sockfd);
+        shutdown(tmp_sockfd, SHUT_RDWR);
+        close(tmp_sockfd);
 
-      if (rand() % 2)
-      {
-        errno= ECONNREFUSED;
-        return -1;
-      }
-      else
-      {
-        errno= 0;
+        if (rand() % 2)
+        {
+          errno= ECONNREFUSED;
+          return -1;
+        }
+        else
+        {
+          errno= 0;
 #if 0
-        perror("HOSTILE CLOSE() of socket during recv()");
+          perror("HOSTILE CLOSE() of socket during recv()");
 #endif
-        return 0;
+          return 0; // Simulate EOF
+        }
       }
     }
   }

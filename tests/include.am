@@ -153,6 +153,9 @@ noinst_PROGRAMS+=t/c
 valgrind-c: t/c
 	@$(VALGRIND_COMMAND) t/c
 
+gdb-c: t/c
+	@$(GDB_COMMAND) t/c
+
 test-cycle: t/cycle gearmand/gearmand
 	@t/cycle
 

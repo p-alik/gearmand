@@ -50,6 +50,7 @@ using namespace libtest;
 
 #include <libgearman/gearman.h>
 #include <libgearman/connection.hpp>
+#include "libgearman/command.h"
 #include "libgearman/packet.hpp"
 #include "libgearman/universal.hpp"
 #include "libgearman/is.hpp"
@@ -972,6 +973,7 @@ static test_return_t abandoned_worker_test(void *)
   gearman_packet_free(&packet);
 
   connection1->receiving(packet, ret, false);
+
   test_truth(not (ret != GEARMAN_SUCCESS or packet.command != GEARMAN_COMMAND_JOB_ASSIGN));
 
   test_strcmp(job_handle, packet.arg[0]); // unexepcted job

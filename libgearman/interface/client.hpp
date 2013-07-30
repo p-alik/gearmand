@@ -90,7 +90,11 @@ struct Client
   {
     _do_handle[0]= 0;
 
-    if (shell_)
+    if (shell_ and shell_ == &_owned_shell)
+    {
+      gearman_set_allocated(_shell, true);
+    }
+    else if (shell_)
     {
       gearman_set_allocated(_shell, false);
     }
@@ -108,6 +112,21 @@ struct Client
 
   ~Client()
   {
+    if (_shell)
+    {
+#ifndef NDBUG
+      if (_shell == &_owned_shell)
+      {
+        assert(gearman_is_allocated(_shell));
+      }
+      else // _shell != &_owned_shell
+#endif
+      {
+        gearman_set_allocated(_shell, false);
+        gearman_set_initialized(_shell, false);
+        _shell->_impl= NULL;
+      }
+    }
   }
 
   gearman_client_st* shell()
