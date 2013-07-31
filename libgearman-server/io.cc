@@ -158,7 +158,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
               int err= CyaSSL_get_error(con->_ssl, 0);
               CyaSSL_ERR_error_string(err, errorString);
               _connection_close(connection);
-              gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%s", errorString);
+              gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%d", errorString, ssl_errno);
 
               return 0;
             }
