@@ -1,6 +1,9 @@
-1.1.9
+1.1.9 Fri Aug  2 02:39:25 EDT 2013
 * Added gearman_task_is_finished()
-
+* Improved SSL support.
+* Exceptions are now supported.
+* gearmand excepts its root CA via the environmental variable GEARMAND_PORT. 
+* libgearman will now except GEARMAND_CA_CERTIFICATE, GEARMAN_CLIENT_PEM, and GEARMAN_CLIENT_KEY
 
 1.1.8 Thu Jun  6 18:47:01 EDT 2013
 * Postgres test case now passes.
