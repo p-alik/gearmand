@@ -127,7 +127,6 @@ static test_return_t GEARMAN_COMMAND_WORK_EXCEPTION_TEST(void *)
   ASSERT_TRUE(connection1= gearman_connection_create(universal, GEARMAN_DEFAULT_TCP_HOST, libtest::default_port()));
   ASSERT_TRUE(connection1);
 
-  connection1->set_host(NULL, libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, connection1->send_packet(message, true));
 
   size_t length;
