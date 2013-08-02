@@ -203,7 +203,7 @@ gearmand_error_t _initialize(gearman_server_st& server,
 
   (void)PQsetNoticeProcessor(queue->con, _libpq_notice_processor, &server);
 
-  std::string query("SELECT tablename FROM pg_tables WHERE tablename='" +queue->table + "'");
+  std::string query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME ='" +queue->table + "'");
 
   PGresult* result= PQexec(queue->con, query.c_str());
   if (result == NULL || PQresultStatus(result) != PGRES_TUPLES_OK)
@@ -230,13 +230,9 @@ gearmand_error_t _initialize(gearman_server_st& server,
       gearman_server_set_queue(server, NULL, NULL, NULL, NULL, NULL);
       return GEARMAND_QUEUE_ERROR;
     }
+  }
 
-    PQclear(result);
-  }
-  else
-  {
-    PQclear(result);
-  }
+  PQclear(result);
 
   return GEARMAND_SUCCESS;
 }
