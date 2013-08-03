@@ -67,6 +67,11 @@ public:
     return _name.c_str();
   }
 
+  TestCases& tests()
+  {
+    return _testcases;
+  }
+
   void succeess();
 
   void skip();
