@@ -70,6 +70,8 @@ int main(int argc, char *argv[], char* environ_[])
   unsigned long int opt_repeat= 1; // Run all tests once
   bool opt_verbose= false;
   bool opt_quiet= false;
+  bool opt_list_collection= false;
+  bool opt_list_tests= false;
   std::string collection_to_run;
   std::string wildcard;
   std::string binary_name;
@@ -104,9 +106,12 @@ int main(int argc, char *argv[], char* environ_[])
   // Options parsing
   {
     enum long_option_t {
+      OPT_LIBYATL_HELP,
       OPT_LIBYATL_VERBOSE,
       OPT_LIBYATL_VERSION,
       OPT_LIBYATL_MATCH_COLLECTION,
+      OPT_LIBYATL_LIST_COLLECTIONS,
+      OPT_LIBYATL_LIST_TESTS,
       OPT_LIBYATL_MASSIVE,
       OPT_LIBYATL_QUIET,
       OPT_LIBYATL_MATCH_WILDCARD,
@@ -117,11 +122,14 @@ int main(int argc, char *argv[], char* environ_[])
 
     static struct option long_options[]=
     {
+      { "help", no_argument, NULL, OPT_LIBYATL_HELP },
       { "verbose", no_argument, NULL, OPT_LIBYATL_VERBOSE },
       { "version", no_argument, NULL, OPT_LIBYATL_VERSION },
       { "quiet", no_argument, NULL, OPT_LIBYATL_QUIET },
       { "repeat", required_argument, NULL, OPT_LIBYATL_REPEAT },
       { "collection", required_argument, NULL, OPT_LIBYATL_MATCH_COLLECTION },
+      { "list-collections", no_argument, NULL, OPT_LIBYATL_LIST_COLLECTIONS },
+      { "list-tests", no_argument, NULL, OPT_LIBYATL_LIST_TESTS },
       { "wildcard", required_argument, NULL, OPT_LIBYATL_MATCH_WILDCARD },
       { "massive", no_argument, NULL, OPT_LIBYATL_MASSIVE },
       { "ssl", no_argument, NULL, OPT_LIBYATL_SSL },
@@ -139,6 +147,13 @@ int main(int argc, char *argv[], char* environ_[])
 
       switch (option_rv)
       {
+      case OPT_LIBYATL_HELP:
+        for (struct option *opt= long_options; opt->name; ++opt)
+        {
+          Out << "--" << opt->name;
+        }
+        exit(EXIT_SUCCESS);
+
       case OPT_LIBYATL_VERBOSE:
         opt_verbose= true;
         break;
@@ -158,6 +173,13 @@ int main(int argc, char *argv[], char* environ_[])
           Error << "unknown value passed to --repeat: `" << optarg << "`";
           exit(EXIT_FAILURE);
         }
+        break;
+
+      case OPT_LIBYATL_LIST_TESTS:
+        opt_list_tests= true;
+
+      case OPT_LIBYATL_LIST_COLLECTIONS:
+        opt_list_collection= true;
         break;
 
       case OPT_LIBYATL_MATCH_COLLECTION:
@@ -315,6 +337,30 @@ int main(int argc, char *argv[], char* environ_[])
       }
 
       std::auto_ptr<libtest::Framework> frame(new libtest::Framework(signal, binary_name, collection_to_run, wildcard));
+
+      if (opt_list_collection)
+      {
+        for (Suites::iterator iter= frame->suites().begin();
+             iter != frame->suites().end();
+             ++iter)
+        {
+          if (opt_list_tests)
+          {
+            for (TestCases::iterator test_iter= (*iter)->tests().begin();
+                 test_iter != (*iter)->tests().end();
+                 ++test_iter)
+            {
+              Out << (*iter)->name() << "." << (*test_iter)->name();
+            }
+          }
+          else
+          {
+            Out << (*iter)->name();
+          }
+        }
+        
+        continue;
+      }
 
       // Run create(), bail on error.
       {

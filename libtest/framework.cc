@@ -192,7 +192,7 @@ bool Framework::match(const char* arg)
 
 void Framework::exec()
 {
-  for (std::vector<Collection*>::iterator iter= _collection.begin();
+  for (Suites::iterator iter= _collection.begin();
        iter != _collection.end() and (_signal.is_shutdown() == false);
        ++iter)
   {
