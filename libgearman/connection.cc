@@ -94,7 +94,7 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
   events(0),
   revents(0),
-  fd(-1),
+  fd(INVALID_SOCKET),
   _ssl(NULL),
   cached_errno(0),
   created_id(0),
@@ -660,7 +660,7 @@ gearman_return_t gearman_connection_st::lookup()
         {
           return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "DNS lookup failed for %s:%s", host(), service());
         }
-        return gearman_universal_set_perror(universal, local_errno, GEARMAN_AT, "System error happened during a call to getaddrinfo() for %s:%s", host(), service());
+        return gearman_universal_set_perror(universal, GEARMAN_ERRNO, local_errno, GEARMAN_AT, "System error happened during a call to getaddrinfo() for %s:%s", host(), service());
 
       default:
         break;
@@ -848,13 +848,13 @@ gearman_return_t gearman_connection_st::flush()
             {
               case SSL_ERROR_WANT_CONNECT:
               case SSL_ERROR_WANT_ACCEPT:
-                write_size= -1;
+                write_size= SOCKET_ERROR;
                 errno= EAGAIN;
                 break;
 
               case SSL_ERROR_WANT_WRITE:
               case SSL_ERROR_WANT_READ:
-                write_size= -1;
+                write_size= SOCKET_ERROR;
                 errno= EAGAIN;
                 break;
 
@@ -876,45 +876,46 @@ gearman_return_t gearman_connection_st::flush()
 
         if (write_size == 0) // Zero value on send()
         { }
-        else if (write_size == -1)
+        else if (write_size == SOCKET_ERROR)
         {
           switch (errno)
           {
+            case ENOTCONN:
 #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
-          case EWOULDBLOCK:
+            case EWOULDBLOCK:
 #endif
-          case EAGAIN:
-            {
-              set_events(POLLOUT);
-
-              if (gearman_universal_is_non_blocking(universal))
+            case EAGAIN:
               {
-                return gearman_gerror(universal, GEARMAN_IO_WAIT);
-              }
+                set_events(POLLOUT);
 
-              gearman_return_t gret= gearman_wait(universal);
-              if (gearman_failed(gret))
+                if (gearman_universal_is_non_blocking(universal))
+                {
+                  return gearman_gerror(universal, GEARMAN_IO_WAIT);
+                }
+
+                gearman_return_t gret= gearman_wait(universal);
+                if (gearman_failed(gret))
+                {
+                  return gret;
+                }
+
+                continue;
+              }
+            case EPIPE:
               {
-                return gret;
+                gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
+                close_socket();
+                return ret;
               }
-
-              continue;
-            }
-          case EPIPE:
-            {
-              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
-              close_socket();
-              return ret;
-            }
-          case ECONNRESET:
-          case EHOSTDOWN:
-            {
-              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
-              close_socket();
-              return ret;
-            }
-          default:
-            break;
+            case ECONNRESET:
+            case EHOSTDOWN:
+              {
+                gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
+                close_socket();
+                return ret;
+              }
+            default:
+              break;
           }
 
           gearman_return_t ret= gearman_perror(universal, "send");
@@ -1159,9 +1160,9 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
       return 0;
     }
-    else if (read_size == -1)
+    else if (read_size == SOCKET_ERROR)
     {
-      if (errno == EAGAIN)
+      if (errno == EAGAIN or errno == ENOTCONN)
       {
         set_events(POLLIN);
 
