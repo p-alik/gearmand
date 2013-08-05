@@ -316,10 +316,10 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
         continue;
 
       case EINVAL:
-        return gearman_perror(universal, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
+        return gearman_perror(universal, errno, "RLIMIT_NOFILE exceeded, or if OSX the timeout value was invalid");
 
       default:
-        return gearman_perror(universal, "poll");
+        return gearman_perror(universal, errno, "poll");
       }
     }
 
@@ -378,7 +378,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
     if (read_length == -1)
     {
-      gearman_perror(universal, "read() from shutdown pipe");
+      gearman_perror(universal, errno, "read() from shutdown pipe");
     }
 
 #if 0

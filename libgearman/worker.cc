@@ -1273,7 +1273,7 @@ static gearman_return_t _worker_function_create(Worker *worker,
   _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
   if (function == NULL)
   {
-    gearman_perror(worker->universal, "_worker_function_st::new()");
+    gearman_perror(worker->universal, errno, "_worker_function_st::new()");
     return GEARMAN_MEMORY_ALLOCATION_FAILURE;
   }
 

@@ -199,7 +199,7 @@ gearman_job_st *gearman_job_create(Worker* worker, gearman_job_st *job_shell)
 
       if (job == NULL)
       {
-        gearman_perror(worker->universal, "new");
+        gearman_error(worker->universal, GEARMAN_MEMORY_ALLOCATION_FAILURE, "new failed for Job");
         return NULL;
       }
     }

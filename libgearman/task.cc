@@ -62,7 +62,7 @@ gearman_task_st *gearman_task_internal_create(Client* client, gearman_task_st *t
     return task->shell();
   }
 
-  gearman_perror(client->universal, "gearman_task_st new");
+  gearman_perror(client->universal, errno, "gearman_task_st new");
   gearman_task_free(task_shell);
 
   return NULL;
