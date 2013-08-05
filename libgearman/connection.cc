@@ -94,7 +94,7 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
   events(0),
   revents(0),
-  fd(-1),
+  fd(INVALID_SOCKET),
   _ssl(NULL),
   cached_errno(0),
   created_id(0),
@@ -138,7 +138,7 @@ static gearman_connection_st *__connection_create(gearman_universal_st &universa
   gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal);
   if (connection == NULL)
   {
-    gearman_perror(universal, "Failed at new() gearman_connection_st new");
+    gearman_perror(universal, errno, "Failed at new() gearman_connection_st new");
   }
 
   return connection;
@@ -660,7 +660,7 @@ gearman_return_t gearman_connection_st::lookup()
         {
           return gearman_universal_set_error(universal, GEARMAN_GETADDRINFO, GEARMAN_AT, "DNS lookup failed for %s:%s", host(), service());
         }
-        return gearman_universal_set_perror(universal, local_errno, GEARMAN_AT, "System error happened during a call to getaddrinfo() for %s:%s", host(), service());
+        return gearman_universal_set_perror(universal, GEARMAN_ERRNO, local_errno, GEARMAN_AT, "System error happened during a call to getaddrinfo() for %s:%s", host(), service());
 
       default:
         break;
@@ -734,7 +734,7 @@ gearman_return_t gearman_connection_st::flush()
       if (fd == INVALID_SOCKET)
       {
         state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
-        return gearman_perror(universal, "socket");
+        return gearman_perror(universal, errno, "socket");
       }
 
       {
@@ -778,7 +778,7 @@ gearman_return_t gearman_connection_st::flush()
           break;
 
         default:
-          gearman_perror(universal, "connect");
+          gearman_perror(universal, errno, "connect");
           close_socket();
           return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "%s:%s", _host, _service);
         }
@@ -848,13 +848,13 @@ gearman_return_t gearman_connection_st::flush()
             {
               case SSL_ERROR_WANT_CONNECT:
               case SSL_ERROR_WANT_ACCEPT:
-                write_size= -1;
+                write_size= SOCKET_ERROR;
                 errno= EAGAIN;
                 break;
 
               case SSL_ERROR_WANT_WRITE:
               case SSL_ERROR_WANT_READ:
-                write_size= -1;
+                write_size= SOCKET_ERROR;
                 errno= EAGAIN;
                 break;
 
@@ -876,48 +876,49 @@ gearman_return_t gearman_connection_st::flush()
 
         if (write_size == 0) // Zero value on send()
         { }
-        else if (write_size == -1)
+        else if (write_size == SOCKET_ERROR)
         {
           switch (errno)
           {
+            case ENOTCONN:
 #if defined(EWOULDBLOCK) && EWOULDBLOCK != EAGAIN
-          case EWOULDBLOCK:
+            case EWOULDBLOCK:
 #endif
-          case EAGAIN:
-            {
-              set_events(POLLOUT);
-
-              if (gearman_universal_is_non_blocking(universal))
+            case EAGAIN:
               {
-                return gearman_gerror(universal, GEARMAN_IO_WAIT);
-              }
+                set_events(POLLOUT);
 
-              gearman_return_t gret= gearman_wait(universal);
-              if (gearman_failed(gret))
+                if (gearman_universal_is_non_blocking(universal))
+                {
+                  return gearman_gerror(universal, GEARMAN_IO_WAIT);
+                }
+
+                gearman_return_t gret= gearman_wait(universal);
+                if (gearman_failed(gret))
+                {
+                  return gret;
+                }
+
+                continue;
+              }
+            case EPIPE:
               {
-                return gret;
+                gearman_return_t ret= gearman_perror(universal, errno, "lost connection to server during send");
+                close_socket();
+                return ret;
               }
-
-              continue;
-            }
-          case EPIPE:
-            {
-              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
-              close_socket();
-              return ret;
-            }
-          case ECONNRESET:
-          case EHOSTDOWN:
-            {
-              gearman_return_t ret= gearman_perror(universal, "lost connection to server during send");
-              close_socket();
-              return ret;
-            }
-          default:
-            break;
+            case ECONNRESET:
+            case EHOSTDOWN:
+              {
+                gearman_return_t ret= gearman_perror(universal, errno, "lost connection to server during send");
+                close_socket();
+                return ret;
+              }
+            default:
+              break;
           }
 
-          gearman_return_t ret= gearman_perror(universal, "send");
+          gearman_return_t ret= gearman_perror(universal, errno, "send");
           close_socket();
 
           return ret;
@@ -1159,9 +1160,9 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
       return 0;
     }
-    else if (read_size == -1)
+    else if (read_size == SOCKET_ERROR)
     {
-      if (errno == EAGAIN)
+      if (errno == EAGAIN or errno == ENOTCONN)
       {
         set_events(POLLIN);
 
@@ -1191,11 +1192,11 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
       }
       else if (errno == EPIPE or errno == ECONNRESET or errno == EHOSTDOWN)
       {
-        ret= gearman_perror(universal, "lost connection to server during read");
+        ret= gearman_perror(universal, errno, "lost connection to server during read");
       }
       else
       {
-        ret= gearman_perror(universal, "recv");
+        ret= gearman_perror(universal, errno, "recv");
       }
 
       close_socket();
@@ -1256,12 +1257,12 @@ gearman_return_t gearman_connection_st::set_socket_options()
 
         if (rval == -1)
         {
-          gearman_perror(universal, "fcntl (fd, F_SETFD, flags | FD_CLOEXEC)");
+          gearman_perror(universal, errno, "fcntl (fd, F_SETFD, flags | FD_CLOEXEC)");
         }
       }
       else
       {
-        gearman_perror(universal, "fcntl(fd, F_GETFD, 0)");
+        gearman_perror(universal, errno, "fcntl(fd, F_GETFD, 0)");
       }
     }
   }
@@ -1272,7 +1273,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
                     socklen_t(sizeof(int)));
     if (ret == -1 && errno != EOPNOTSUPP)
     {
-      return gearman_perror(universal, "setsockopt(TCP_NODELAY)");
+      return gearman_perror(universal, errno, "setsockopt(TCP_NODELAY)");
     }
   }
 
@@ -1284,7 +1285,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
                         socklen_t(sizeof(struct linger)));
     if (ret == -1)
     {
-      return gearman_perror(universal, "setsockopt(SO_LINGER)");
+      return gearman_perror(universal, errno, "setsockopt(SO_LINGER)");
     }
   }
 
@@ -1298,7 +1299,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
                         socklen_t(sizeof(struct timeval)));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(universal, "setsockopt(SO_SNDTIMEO)");
+      gearman_perror(universal, errno, "setsockopt(SO_SNDTIMEO)");
       return GEARMAN_ERRNO;
     }
 
@@ -1306,7 +1307,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
                     socklen_t(sizeof(struct timeval)));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      gearman_perror(universal, "setsockopt(SO_RCVTIMEO)");
+      gearman_perror(universal, errno, "setsockopt(SO_RCVTIMEO)");
       return GEARMAN_ERRNO;
     }
   }
@@ -1317,7 +1318,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     int ret= setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &optval, sizeof(optval));
     if (ret == -1 && errno != ENOPROTOOPT)
     {
-      return gearman_perror(universal, "setsockopt(SO_KEEPALIVE)");
+      return gearman_perror(universal, errno, "setsockopt(SO_KEEPALIVE)");
     }
   }
 
@@ -1326,7 +1327,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     ret= setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &ret, socklen_t(sizeof(int)));
     if (ret == -1)
     {
-      return gearman_perror(universal, "setsockopt(SO_SNDBUF)");
+      return gearman_perror(universal, errno, "setsockopt(SO_SNDBUF)");
     }
   }
 
@@ -1339,7 +1340,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     // This is not considered a fatal error 
     if (ret == -1)
     {
-      gearman_perror(universal, "setsockopt(SO_NOSIGPIPE)");
+      gearman_perror(universal, errno, "setsockopt(SO_NOSIGPIPE)");
     }
   }
 #endif
@@ -1349,7 +1350,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
     ret= setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &ret, socklen_t(sizeof(int)));
     if (ret == -1)
     {
-      return gearman_perror(universal, "setsockopt(SO_RCVBUF)");
+      return gearman_perror(universal, errno, "setsockopt(SO_RCVBUF)");
     }
   }
 
@@ -1364,7 +1365,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
 
     if (flags == -1)
     {
-      return gearman_perror(universal, "fcntl(F_GETFL)");
+      return gearman_perror(universal, errno, "fcntl(F_GETFL)");
     }
     else if ((flags & O_NONBLOCK) == 0)
     {
@@ -1376,7 +1377,7 @@ gearman_return_t gearman_connection_st::set_socket_options()
 
       if (retval == -1)
       {
-        return gearman_perror(universal, "fcntl(F_SETFL)");
+        return gearman_perror(universal, errno, "fcntl(F_SETFL)");
       }
     }
   }

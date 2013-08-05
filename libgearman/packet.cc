@@ -90,7 +90,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
         packet->data= gearman_malloc(*packet->universal, arg_size);
         if (packet->data == NULL)
         {
-          return gearman_perror(*packet->universal, "packet->data");
+          return gearman_perror(*packet->universal, errno, "packet->data");
         }
 
         memcpy((void*)packet->data, arg, arg_size);
@@ -124,7 +124,7 @@ inline static gearman_return_t packet_create_arg(gearman_packet_st *packet,
     char *new_args= static_cast<char *>(realloc(packet->args, packet->args_size + arg_size +1));
     if (new_args == NULL)
     {
-      return gearman_perror(*packet->universal, "packet realloc");
+      return gearman_perror(*packet->universal, errno, "packet realloc");
     }
 
     if (was_args_buffer and packet->args_size > 0)

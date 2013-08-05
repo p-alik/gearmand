@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -189,6 +189,7 @@ gearman_return_t gearman_universal_set_gerror(gearman_universal_st& universal,
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
+                                              const gearman_return_t rc,
                                               const int _system_errno,
                                               const char *function, const char *position, 
                                               const char *format, ...)
@@ -202,7 +203,7 @@ gearman_return_t gearman_universal_set_perror(gearman_universal_st &universal,
         break;
 
       default:
-        universal._error.error_code(GEARMAN_ERRNO);
+        universal._error.error_code(rc);
         break;
     }
     universal._error.system_error(_system_errno);
