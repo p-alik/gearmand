@@ -37,6 +37,8 @@
 #include "libtest/yatlcon.h"
 #include <libtest/common.h>
 
+#include "libgearman/ssl.h"
+
 
 namespace libtest {
 
@@ -59,7 +61,10 @@ bool is_massive()
 static bool _is_ssl= false;
 void is_ssl(bool arg)
 {
+  (void)arg;
+#if defined(HAVE_SSL)
   _is_ssl= arg;
+#endif // defined(HAVE_SSL)
 
   if (_is_ssl)
   {

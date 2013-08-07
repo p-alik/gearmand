@@ -66,7 +66,7 @@ struct gearman_connection_st
   short revents;
 private:
   int fd;
-  struct CYASSL* _ssl;
+  SSL* _ssl;
   int cached_errno;
 public:
   uint32_t created_id;

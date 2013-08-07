@@ -208,14 +208,14 @@ void gearman_server_con_free(gearman_server_con_st *con)
   con->_port= NULL;
 
   // Correct location?
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (con->_ssl)
   {
-    CyaSSL_shutdown(con->_ssl);
-    CyaSSL_free(con->_ssl);
+    SSL_shutdown(con->_ssl);
+    SSL_free(con->_ssl);
     con->_ssl= NULL;
   }
-#endif
+#endif // defined(HAVE_SSL)
 
 
   gearman_server_con_delete_timeout(con);

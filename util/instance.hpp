@@ -48,12 +48,7 @@
 
 #include "util/operation.hpp"
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
-
-#include "configmake.h"
-
+#include "libgearman/ssl.h"
 
 struct addrinfo;
 
@@ -132,8 +127,8 @@ private:
   struct addrinfo *_addrinfo_next;
   Finish *_finish_fn;
   Operation::vector _operations;
-  struct CYASSL_CTX* _ctx_ssl;
-  struct CYASSL* _ssl;
+  SSL_CTX* _ctx_ssl;
+  SSL* _ssl;
 
   const char* ssl_ca_file() const
   {

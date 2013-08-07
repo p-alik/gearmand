@@ -52,9 +52,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
+#include "libgearman/ssl.h"
 
 #include <libgearman-server/plugins/protocol/gear/protocol.h>
 #include "libgearman/command.h"
@@ -343,11 +341,11 @@ static Geartext gear_context;
 
 static gearmand_error_t _gear_con_remove(gearman_server_con_st* connection)
 {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (connection->_ssl)
   {
-    CyaSSL_shutdown(connection->_ssl);
-    CyaSSL_free(connection->_ssl);
+    SSL_shutdown(connection->_ssl);
+    SSL_free(connection->_ssl);
     connection->_ssl= NULL;
   }
 #else
@@ -358,27 +356,32 @@ static gearmand_error_t _gear_con_remove(gearman_server_con_st* connection)
 
 static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
 {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (Gearmand()->ctx_ssl())
   {
-    if ((connection->_ssl= CyaSSL_new(Gearmand()->ctx_ssl())) == NULL)
+    if ((connection->_ssl= SSL_new(Gearmand()->ctx_ssl())) == NULL)
     {
-      return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_MEMORY_ALLOCATION_FAILURE, "CyaSSL_new() failed to return a valid object");
+      return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_MEMORY_ALLOCATION_FAILURE, "SSL_new() failed to return a valid object");
     }
 
-    CyaSSL_set_fd(connection->_ssl, connection->con.fd());
+    SSL_set_fd(connection->_ssl, connection->con.fd());
 
-    if (CyaSSL_accept(connection->_ssl) != SSL_SUCCESS)
+    while (SSL_accept(connection->_ssl) != SSL_SUCCESS)
     {
-      if (CyaSSL_get_error(connection->_ssl, 0) != SSL_ERROR_WANT_READ)
+      int cyassl_error= SSL_get_error(connection->_ssl, 0);
+      switch (cyassl_error)
       {
-        int cyassl_error= CyaSSL_get_error(connection->_ssl, 0);
-        char cyassl_error_buffer[1024]= { 0 };
-        CyaSSL_ERR_error_string(cyassl_error, cyassl_error_buffer);
-        return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s:%s %s(%d)", 
-                                   connection->host(),
-                                   connection->port(),
-                                   cyassl_error_buffer, cyassl_error);
+        case SSL_ERROR_WANT_READ:
+        case SSL_ERROR_WANT_WRITE:
+          continue;
+
+        default:
+          char cyassl_error_buffer[SSL_ERROR_SIZE]= { 0 };
+          ERR_error_string_n(cyassl_error, cyassl_error_buffer, sizeof(cyassl_error_buffer));
+          return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s:%s %s(%d)", 
+                                     connection->host(),
+                                     connection->port(),
+                                     cyassl_error_buffer, cyassl_error);
       }
     }
     gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "GearSSL connection made: %s:%s", connection->host(), connection->port());
@@ -455,26 +458,26 @@ gearmand_error_t Gear::start(gearmand_st *gearmand)
 
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Initializing Gear on port %s with SSL: %s", _port.c_str(), opt_ssl ? "true" : "false");
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (opt_ssl)
   {
     gearmand->init_ssl();
 
-    if (CyaSSL_CTX_load_verify_locations(gearmand->ctx_ssl(), _ssl_ca_file.c_str(), 0) != SSL_SUCCESS)
+    if (SSL_CTX_load_verify_locations(gearmand->ctx_ssl(), _ssl_ca_file.c_str(), 0) != SSL_SUCCESS)
     {
-      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "CyaSSL_CTX_load_verify_locations() cannot local the ca certificate %s", _ssl_ca_file.c_str());
+      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "SSL_CTX_load_verify_locations() cannot local the ca certificate %s", _ssl_ca_file.c_str());
     }
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Loading CA certificate : %s", _ssl_ca_file.c_str());
 
-    if (CyaSSL_CTX_use_certificate_file(gearmand->ctx_ssl(), _ssl_certificate.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (SSL_CTX_use_certificate_file(gearmand->ctx_ssl(), _ssl_certificate.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "CyaSSL_CTX_use_certificate_file() cannot obtain certificate %s", _ssl_certificate.c_str());
+      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "SSL_CTX_use_certificate_file() cannot obtain certificate %s", _ssl_certificate.c_str());
     }
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Loading certificate : %s", _ssl_certificate.c_str());
 
-    if (CyaSSL_CTX_use_PrivateKey_file(gearmand->ctx_ssl(), _ssl_key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (SSL_CTX_use_PrivateKey_file(gearmand->ctx_ssl(), _ssl_key.c_str(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "CyaSSL_CTX_use_PrivateKey_file() cannot obtain certificate %s", _ssl_key.c_str());
+      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "SSL_CTX_use_PrivateKey_file() cannot obtain certificate %s", _ssl_key.c_str());
     }
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Loading certificate key : %s", _ssl_key.c_str());
 

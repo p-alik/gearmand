@@ -37,8 +37,26 @@
 
 #pragma once
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
+#if defined(HAVE_SSL) && HAVE_SSL
+
+# define SSL_ERROR_SIZE 120
+
+# if defined(HAVE_CYASSL) && HAVE_CYASSL
+#  include <cyassl/ssl.h>
+#  include <cyassl/openssl/ssl.h>
+# elif defined(HAVE_OPENSSL) && HAVE_OPENSSL
+enum {
+  SSL_SUCCESS= 1,
+};
+#  include <openssl/ssl.h>
+#  include <openssl/err.h>
+# endif
+#else
+struct SSL_CTX {
+};
+
+struct SSL {
+};
 #endif
 
 #include "configmake.h"

@@ -39,6 +39,8 @@
 
 #include <libtest/gearmand.h>
 
+#include "libgearman/ssl.h"
+
 using namespace libtest;
 
 #include <cassert>
@@ -149,10 +151,12 @@ bool Gearmand::build()
 
   if (is_ssl())
   {
+#if defined(HAVE_SSL) && HAVE_SSL
     add_option("--ssl");
     add_option("--ssl-ca-file=" YATL_CA_CERT_PEM);
     add_option("--ssl-certificate=" YATL_CERT_PEM);
     add_option("--ssl-key=" YATL_CERT_KEY_PEM);
+#endif
   }
 
   return true;

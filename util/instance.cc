@@ -39,6 +39,7 @@
 #include "gear_config.h"
 
 #include "util/instance.hpp"
+#include "libgearman/ssl.h"
 
 #include <cstdio>
 #include <iostream>
@@ -101,32 +102,36 @@ Instance::~Instance()
 
   delete _finish_fn;
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (_ssl)
   {
-    CyaSSL_shutdown(_ssl);
-    CyaSSL_free(_ssl);
+    SSL_shutdown(_ssl);
+    SSL_free(_ssl);
   }
+
   if (_ctx_ssl)
   {
-    CyaSSL_CTX_free(_ctx_ssl);
+    SSL_CTX_free(_ctx_ssl);
   }
+# if defined(HAVE_CYASSL) && HAVE_CYASSL
   CyaSSL_Cleanup();
+# endif // defined(HAVE_CYASSL)
 #endif
 }
 
 bool Instance::init_ssl()
 {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CyaSSL_Init();
+#if defined(HAVE_SSL) && HAVE_SSL
+  SSL_load_error_strings();
+  SSL_library_init();
 
-  if ((_ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+  if ((_ctx_ssl= SSL_CTX_new(TLSv1_client_method())) == NULL)
   {
-    _last_error= "CyaSSL_CTX_new error";
+    _last_error= "SSL_CTX_new error";
     return false;
   }
 
-  if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, ssl_ca_file(), 0) != SSL_SUCCESS)
+  if (SSL_CTX_load_verify_locations(_ctx_ssl, ssl_ca_file(), 0) != SSL_SUCCESS)
   {
     std::stringstream message;
     message << "Error loading CA file " << ssl_ca_file();
@@ -134,7 +139,7 @@ bool Instance::init_ssl()
     return false;
   }
 
-  if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, ssl_certificate(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+  if (SSL_CTX_use_certificate_file(_ctx_ssl, ssl_certificate(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
   {
     std::stringstream message;
     message << "Error loading certificate file " << ssl_certificate();
@@ -142,7 +147,7 @@ bool Instance::init_ssl()
     return false;
   }
 
-  if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, ssl_key(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+  if (SSL_CTX_use_PrivateKey_file(_ctx_ssl, ssl_key(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
   {
     std::stringstream message;
     message << "Error loading private key file " << ssl_key();
@@ -252,20 +257,20 @@ bool Instance::run()
         size_t packet_length= operation->size();
         const char *packet= operation->ptr();
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
         if (_ctx_ssl and not _ssl)
         {
-          _ssl= CyaSSL_new(_ctx_ssl);
+          _ssl= SSL_new(_ctx_ssl);
           if (_ssl == NULL)
           {
-            _last_error= "CyaSSL_new() failed";
+            _last_error= "SSL_new() failed";
             return false;
           }
 
           int ssl_error;
-          if ((ssl_error= CyaSSL_set_fd(_ssl, _sockfd)) != SSL_SUCCESS)
+          if ((ssl_error= SSL_set_fd(_ssl, _sockfd)) != SSL_SUCCESS)
           {
-            _last_error= "CyaSSL_set_fd() failed";
+            _last_error= "SSL_set_fd() failed";
             return false;
           }
         }
@@ -274,14 +279,14 @@ bool Instance::run()
         while(packet_length)
         {
           ssize_t write_size;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
           if (_ssl)
           {
-            write_size= CyaSSL_write(_ssl, (const void*)packet, int(packet_length));
+            write_size= SSL_write(_ssl, (const void*)packet, int(packet_length));
             if (write_size < 0)
             {
-              char errorString[80];
-              CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString);
+              char errorString[SSL_ERROR_SIZE];
+              ERR_error_string_n(SSL_get_error(_ssl, 0), errorString, sizeof(errorString));
               _last_error= errorString;
               return false;
             }
@@ -315,14 +320,16 @@ bool Instance::run()
         do
         {
           char buffer[BUFSIZ];
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
           if (_ssl)
           {
-            read_length= CyaSSL_read(_ssl, (void *)buffer, sizeof(buffer));
-            if (read_length < 0)
+            read_length= SSL_read(_ssl, (void *)buffer, sizeof(buffer));
+            if (read_length == 0)
+            { } // Socket has been closed
+            else if (read_length < 0)
             {
-              char errorString[80];
-              CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString);
+              char errorString[SSL_ERROR_SIZE];
+              ERR_error_string_n(SSL_get_error(_ssl, 0), errorString, sizeof(errorString));
               _last_error= errorString;
               return false;
             }
@@ -333,17 +340,17 @@ bool Instance::run()
             read_length= ::recv(_sockfd, buffer, sizeof(buffer), 0);
           }
 
-          if (read_length < 0)
-          {
-            _last_error.clear();
-            _last_error+= "Error occured while reading data from ";
-            _last_error+= _host;
-            return false;
-          }
-          else if (read_length == 0)
+          if (read_length == 0)
           {
             _last_error.clear();
             _last_error+= "Socket was shutdown while reading from ";
+            _last_error+= _host;
+            return false;
+          }
+          else if (read_length < 0)
+          {
+            _last_error.clear();
+            _last_error+= "Error occured while reading data from ";
             _last_error+= _host;
             return false;
           }
@@ -398,34 +405,30 @@ bool Instance::more_to_read() const
 
 void Instance::close_socket()
 {
-  if (_sockfd == INVALID_SOCKET)
+  if (_sockfd != INVALID_SOCKET)
   {
-    return;
-  }
+    /* in case of death shutdown to avoid blocking at close() */
+    if (shutdown(_sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
+    {
+      perror("shutdown");
+    }
+    else if (closesocket(_sockfd) == SOCKET_ERROR)
+    {
+      perror("close");
+    }
 
-  /* in case of death shutdown to avoid blocking at close() */
-  if (shutdown(_sockfd, SHUT_RDWR) == SOCKET_ERROR && get_socket_errno() != ENOTCONN)
-  {
-    perror("shutdown");
+    _sockfd= INVALID_SOCKET;
   }
-  else if (closesocket(_sockfd) == SOCKET_ERROR)
-  {
-    perror("close");
-  }
-
-  _sockfd= INVALID_SOCKET;
 }
 
 void Instance::free_addrinfo()
 {
-  if (_addrinfo == NULL)
+  if (_addrinfo)
   {
-    return;
+    freeaddrinfo(_addrinfo);
+    _addrinfo= NULL;
+    _addrinfo_next= NULL;
   }
-
-  freeaddrinfo(_addrinfo);
-  _addrinfo= NULL;
-  _addrinfo_next= NULL;
 }
 
 } /* namespace util */
