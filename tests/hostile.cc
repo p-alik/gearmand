@@ -325,8 +325,6 @@ static test_return_t skip_SETUP(void*)
 
 static test_return_t worker_ramp_SETUP(void *object)
 {
-  test_skip_valgrind();
-
   worker_handles_st *handles= (worker_handles_st*)object;
 
   gearman_function_t echo_react_fn= gearman_function_create(echo_or_react_worker_v2);
@@ -546,6 +544,7 @@ static test_return_t connect_TEARDOWN(void* object)
 
 static void *world_create(server_startup_st& servers, test_return_t&)
 {
+  SKIP_IF(valgrind_is_caller() == true);
   SKIP_IF(has_hostile() == false);
 
   hostile_server= libtest::get_free_port();
