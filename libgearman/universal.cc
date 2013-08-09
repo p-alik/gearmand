@@ -412,10 +412,10 @@ gearman_universal_st::~gearman_universal_st()
 {
   gearman_string_free(_identifier);
   gearman_string_free(_namespace);
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (_ctx_ssl)
   {
-    CyaSSL_CTX_free(_ctx_ssl);
+    SSL_CTX_free(_ctx_ssl);
   }
 #else
   assert(_ctx_ssl == NULL);
@@ -450,33 +450,34 @@ bool gearman_universal_st::init_ssl()
 {
   if (ssl())
   {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_Init();
+#if defined(HAVE_SSL) && HAVE_SSL
+    SSL_load_error_strings();
+    SSL_library_init();
 
-    if ((_ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+    if ((_ctx_ssl= SSL_CTX_new(TLSv1_client_method())) == NULL)
     {
       gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "CyaTLSv1_client_method() failed");
       return false;
     }
 
-    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, ssl_ca_file(), 0) != SSL_SUCCESS)
+    if (SSL_CTX_load_verify_locations(_ctx_ssl, ssl_ca_file(), 0) != SSL_SUCCESS)
     {
       gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "Failed to load CA certificate %s", ssl_ca_file());
       return false;
     }
 
-    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, ssl_certificate(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (SSL_CTX_use_certificate_file(_ctx_ssl, ssl_certificate(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
       gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "Failed to load certificate %s", ssl_certificate());
       return false;
     }
 
-    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, ssl_key(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (SSL_CTX_use_PrivateKey_file(_ctx_ssl, ssl_key(), SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
       gearman_universal_set_error(*this, GEARMAN_INVALID_ARGUMENT, GEARMAN_AT, "Failed to load certificate key %s", ssl_key());
       return false;
     }
-#endif // defined(HAVE_CYASSL) && HAVE_CYASSL
+#endif // defined(HAVE_SSL) && HAVE_SSL
   }
 
   return true;

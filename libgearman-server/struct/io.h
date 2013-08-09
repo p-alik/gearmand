@@ -39,9 +39,7 @@
 
 #include "libgearman-server/plugins/base.h"
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
+#include "libgearman/ssl.h"
 
 struct gearmand_io_st
 {
@@ -176,7 +174,7 @@ struct gearman_server_con_st
   char id[GEARMAND_SERVER_CON_ID_SIZE];
   gearmand::protocol::Context* protocol;
   struct event *timeout_event;
-  struct CYASSL* _ssl;
+  SSL* _ssl;
 
   gearman_server_con_st()
   {

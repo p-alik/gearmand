@@ -50,10 +50,6 @@
 # define MSG_NOSIGNAL 0
 #endif
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
-
 namespace libtest {
 
 SimpleClient::SimpleClient(const std::string& hostname_, in_port_t port_) :
@@ -80,29 +76,30 @@ void SimpleClient::init_ssl()
 {
   if (_is_ssl)
   {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_Init();
+#if defined(HAVE_SSL) && HAVE_SSL
+    SSL_load_error_strings();
+    SSL_library_init();
 
-    if ((_ctx_ssl= CyaSSL_CTX_new(CyaTLSv1_client_method())) == NULL)
+    if ((_ctx_ssl= SSL_CTX_new(TLSv1_client_method())) == NULL)
     {
-      FATAL("CyaSSL_CTX_new error" == NULL);
+      FATAL("SSL_CTX_new error" == NULL);
     }
 
-    if (CyaSSL_CTX_load_verify_locations(_ctx_ssl, YATL_CA_CERT_PEM, 0) != SSL_SUCCESS)
+    if (SSL_CTX_load_verify_locations(_ctx_ssl, YATL_CA_CERT_PEM, 0) != SSL_SUCCESS)
     {
-      FATAL("CyaSSL_CTX_load_verify_locations(%s) cannot obtain certificate", YATL_CA_CERT_PEM);
+      FATAL("SSL_CTX_load_verify_locations(%s) cannot obtain certificate", YATL_CA_CERT_PEM);
     }
 
-    if (CyaSSL_CTX_use_certificate_file(_ctx_ssl, YATL_CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (SSL_CTX_use_certificate_file(_ctx_ssl, YATL_CERT_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      FATAL("CyaSSL_CTX_use_certificate_file(%s) cannot obtain certificate", YATL_CERT_PEM);
+      FATAL("SSL_CTX_use_certificate_file(%s) cannot obtain certificate", YATL_CERT_PEM);
     }
 
-    if (CyaSSL_CTX_use_PrivateKey_file(_ctx_ssl, YATL_CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
+    if (SSL_CTX_use_PrivateKey_file(_ctx_ssl, YATL_CERT_KEY_PEM, SSL_FILETYPE_PEM) != SSL_SUCCESS)
     {   
-      FATAL("CyaSSL_CTX_use_PrivateKey_file(%s) cannot obtain certificate", YATL_CERT_KEY_PEM);
+      FATAL("SSL_CTX_use_PrivateKey_file(%s) cannot obtain certificate", YATL_CERT_KEY_PEM);
     }
-#endif // defined(HAVE_CYASSL) && HAVE_CYASSL
+#endif // defined(HAVE_SSL) && HAVE_SSL
   }
 }
 
@@ -206,9 +203,14 @@ SimpleClient::~SimpleClient()
 {
   free_addrinfo();
   close_socket();
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-  CyaSSL_CTX_free(_ctx_ssl);
-  _ctx_ssl= NULL;
+#if defined(HAVE_SSL) && HAVE_SSL
+  {
+    SSL_CTX_free(_ctx_ssl);
+    _ctx_ssl= NULL;
+# if defined(HAVE_OPENSSL) && HAVE_OPENSSL
+    ERR_free_strings();
+# endif
+  }
 #endif
 }
 
@@ -216,11 +218,11 @@ void SimpleClient::close_socket()
 {
   if (sock_fd != INVALID_SOCKET)
   {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_shutdown(_ssl); 
-    CyaSSL_free(_ssl); 
+#if defined(HAVE_SSL) && HAVE_SSL
+    SSL_shutdown(_ssl); 
+    SSL_free(_ssl); 
     _ssl= NULL;
-#endif
+#endif // defined(HAVE_SSL)
     close(sock_fd);
     sock_fd= INVALID_SOCKET;
   }
@@ -292,20 +294,20 @@ bool SimpleClient::is_valid()
   {
     if (instance_connect())
     {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
       if (_ctx_ssl)
       {
-        _ssl= CyaSSL_new(_ctx_ssl);
+        _ssl= SSL_new(_ctx_ssl);
         if (_ssl == NULL)
         {
-          error(__FILE__, __LINE__, "CyaSSL_new failed");
+          error(__FILE__, __LINE__, "SSL_new failed");
           return false;
         }
 
         int ssl_error;
-        if ((ssl_error= CyaSSL_set_fd(_ssl, sock_fd)) != SSL_SUCCESS)
+        if ((ssl_error= SSL_set_fd(_ssl, sock_fd)) != SSL_SUCCESS)
         {
-          error(__FILE__, __LINE__, "CyaSSL_set_fd() should not be returning an error.");
+          error(__FILE__, __LINE__, "SSL_set_fd() should not be returning an error.");
           return false;
         }
       }
@@ -330,26 +332,28 @@ bool SimpleClient::message(const char* ptr, const size_t len)
       do
       {
         ssize_t nw;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          nw= CyaSSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
+          nw= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
           if (nw < 0)
           {
-            int sendErr= CyaSSL_get_error(_ssl, 0);
-            if (sendErr != SSL_ERROR_WANT_WRITE)
+            int sendErr= SSL_get_error(_ssl, nw);
+            switch (sendErr)
             {
-              char errorString[80];
-              int err = CyaSSL_get_error(_ssl, 0);
-              CyaSSL_ERR_error_string(err, errorString);
-              error(__FILE__, __LINE__, errorString);
-            }
-            else
-            {
-              error(__FILE__, __LINE__, "SSL_ERROR_WANT_WRITE");
-            }
+              case SSL_ERROR_WANT_READ:
+              case SSL_ERROR_WANT_WRITE:
+                continue;
 
-            return false;
+              default:
+                {
+                  char errorString[SSL_ERROR_SIZE];
+                  ERR_error_string_n(sendErr, errorString, sizeof(errorString));
+                  error(__FILE__, __LINE__, errorString);
+                  close_socket();
+                  return false;
+                }
+            }
           }
         }
         else
@@ -358,7 +362,7 @@ bool SimpleClient::message(const char* ptr, const size_t len)
           nw= send(sock_fd, ptr + offset, len - offset, MSG_NOSIGNAL);
         }
 
-        if (nw == -1)
+        if (nw == SOCKET_ERROR)
         {
           if (errno != EINTR)
           {
@@ -427,23 +431,29 @@ bool SimpleClient::response(libtest::vchar_t& response_)
       do
       {
         ssize_t nr;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          nr= CyaSSL_read(_ssl, buffer, 1);
+          nr= SSL_read(_ssl, buffer, 1);
           if (_ssl and nr < 0)
           {
-            int readErr = CyaSSL_get_error(_ssl, 0);
-            if (readErr != SSL_ERROR_WANT_READ)
+            int readErr= SSL_get_error(_ssl, 0);
+            switch (readErr)
             {
-              error(__FILE__, __LINE__, "CyaSSL_read failed");
-            }
-            else
-            {
-              error(__FILE__, __LINE__, "CyaSSL_read (unknown) failed");
-            }
+              case SSL_ERROR_WANT_WRITE:
+              case SSL_ERROR_WANT_READ:
+                {
+                  continue;
+                }
 
-            return false;
+              default:
+                {
+                  char errorString[SSL_ERROR_SIZE];
+                  ERR_error_string_n(readErr, errorString, sizeof(errorString));
+                  error(__FILE__, __LINE__, errorString);
+                  return false;
+                }
+            }
           }
         }
         else
@@ -452,7 +462,7 @@ bool SimpleClient::response(libtest::vchar_t& response_)
           nr= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
         }
 
-        if (nr == -1)
+        if (nr == SOCKET_ERROR)
         {
           if (errno != EINTR)
           {
@@ -499,28 +509,30 @@ bool SimpleClient::response(std::string& response_)
       do
       {
         ssize_t nr;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          nr= CyaSSL_read(_ssl, buffer, 1);
-          if (_ssl and nr < 0)
+          nr= SSL_read(_ssl, buffer, 1);
+          if (nr < 0)
           {
-            int readErr = CyaSSL_get_error(_ssl, 0);
-            if (readErr != SSL_ERROR_WANT_READ)
+            int readErr = SSL_get_error(_ssl, 0);
+            switch (readErr)
             {
-              error(__FILE__, __LINE__, "CyaSSL_read failed");
-            }
-            else
-            {
-              error(__FILE__, __LINE__, "CyaSSL_read (unknown) failed");
-            }
+              case SSL_ERROR_WANT_WRITE:
+              case SSL_ERROR_WANT_READ:
+                continue;
 
-            return false;
+              default:
+                error(__FILE__, __LINE__, "SSL_read failed");
+                return false;
+            }
           }
         }
         else
 #endif
-        nr= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
+        {
+          nr= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
+        }
         if (nr == -1)
         {
           if (errno != EINTR)

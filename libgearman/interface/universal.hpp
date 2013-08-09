@@ -91,7 +91,7 @@ struct gearman_universal_st : public error_st
   gearman_allocator_t allocator;
   struct gearman_vector_st *_identifier;
   struct gearman_vector_st *_namespace;
-  struct CYASSL_CTX* _ctx_ssl;
+  SSL_CTX* _ctx_ssl;
   struct error_st _error;
   int wakeup_fd[2];
 
@@ -230,7 +230,7 @@ private:
   bool init_ssl();
 
 public:
-  struct CYASSL_CTX* ctx_ssl() 
+  SSL_CTX* ctx_ssl() 
   {
     if (ssl())
     {

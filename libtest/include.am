@@ -119,7 +119,17 @@ libtest_libtest_la_LIBADD=
 libtest_libtest_la_SOURCES=
 libtest_libtest_la_CXXFLAGS+= @LIBMEMCACHED_CFLAGS@
 libtest_libtest_la_LIBADD+= @LIBMEMCACHED_LIB@
+if ENABLE_SSL
+if ENABLE_CYASSL
 libtest_libtest_la_LIBADD+= @CYASSL_LIB@
+libtest_libtest_la_LDFLAGS+= @CYASSL_LDFLAGS@
+else
+if ENABLE_OPENSSL
+libtest_libtest_la_LIBADD+= @OPENSSL_LIBS@
+libtest_libtest_la_LDFLAGS+= @OPENSSL_LDFLAGS@
+endif
+endif
+endif
 
 libtest_libtest_la_SOURCES+= libtest/alarm.cc
 libtest_libtest_la_SOURCES+= libtest/binaries.cc

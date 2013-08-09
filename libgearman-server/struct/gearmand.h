@@ -38,9 +38,7 @@
 #pragma once
 
 #include "libgearman-server/struct/server.h"
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-# include <cyassl/ssl.h>
-#endif
+#include "libgearman/ssl.h"
 
 #include "libgearman-server/struct/port.h"
 
@@ -137,7 +135,7 @@ struct gearmand_st
   struct event wakeup_event;
   std::vector<gearmand_port_st> _port_list;
   private:
-  struct CYASSL_CTX* _ctx_ssl;
+  SSL_CTX* _ctx_ssl;
   public:
 
   gearmand_st(const char *host_,
@@ -175,13 +173,15 @@ struct gearmand_st
 
   void init_ssl()
   {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_Init();
-    _ctx_ssl= CyaSSL_CTX_new(CyaSSLv23_server_method());
+#if defined(HAVE_SSL) && HAVE_SSL
+    SSL_load_error_strings();
+    SSL_library_init();
+
+    _ctx_ssl= SSL_CTX_new(SSLv23_server_method());
 #endif
   }
 
-  struct CYASSL_CTX* ctx_ssl()
+  SSL_CTX* ctx_ssl()
   {
     return _ctx_ssl;
   }
@@ -193,8 +193,8 @@ struct gearmand_st
       free(host);
     }
 
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_CTX_free(_ctx_ssl);
+#if defined(HAVE_SSL) && HAVE_SSL
+    SSL_CTX_free(_ctx_ssl);
 #endif
   }
 

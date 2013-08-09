@@ -229,7 +229,16 @@ AC_CHECK_LIB([rt],[clock_gettime],
 # Check for -lm
 LT_LIB_M
 
+# Check for OPENSSL
+AX_CHECK_OPENSSL([have_openssl=yes
+                  AC_DEFINE([HAVE_OPENSSL],[1],[Enable openssl Support])],
+                  [have_openssl=no]) 
+AM_CONDITIONAL([ENABLE_OPENSSL],[test "x${have_openssl}" = "xyes"])
+
 # Check for CyaSSL
+AX_CHECK_CYASSL([have_cyassl=yes],[have_cyassl=no]) 
+AM_CONDITIONAL([ENABLE_CYASSL],[test "x${have_cyassl}" = "xyes"])
+
 AC_DEFUN([AX_ENABLE_SSL],
          [AC_PREREQ([2.63])dnl
          m4_define([_SSL_ENABLE_DEFAULT], [m4_if($1, no, no, no)])dnl
@@ -243,10 +252,17 @@ AC_DEFUN([AX_ENABLE_SSL],
                                         ],
                                         [enable_ssl=]_SSL_ENABLE_DEFAULT)
          AS_IF([test "x${enable_ssl}" = "xyes"],
-               [AX_CHECK_LIBRARY([CYASSL],[cyassl/ssl.h],[cyassl],[],
-                                 [AC_MSG_ERROR([Unable to find cyassl])
-                                 enable_ssl=no])])
+               [AS_IF([test "x${have_cyassl}" = "xyes"],
+                      [AC_DEFINE([HAVE_SSL],[1],[Enable SSL Support])
+                        AC_DEFINE([HAVE_OPENSSL],[0],[Enable OPENSSL Support])
+                      ],
+                      [test "x${have_openssl}" = "xyes"],
+                      [AC_DEFINE([HAVE_SSL],[1],[Enable SSL Support])],
+                      [enable_ssl=no])
+               ])
+         AM_CONDITIONAL([ENABLE_SSL],[test "x${enable_ssl}" = "xyes"])
          ])
+
 AX_ENABLE_SSL
 
 AX_ENABLE_LIBMEMCACHED
@@ -312,6 +328,8 @@ echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
 echo "   * SSL enabled:               $enable_ssl"
+echo "   * cyassl found:              $have_cyassl"
+echo "   * openssl found:             $have_openssl"
 echo "   * make -j:                   $enable_jobserver"
 echo "   * VCS checkout:              $ac_cv_vcs_checkout"
 echo ""

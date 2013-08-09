@@ -295,9 +295,9 @@ void gearman_connection_st::close_socket()
 {
   if (_ssl)
   {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
-    CyaSSL_shutdown(_ssl);
-    CyaSSL_free(_ssl);
+#if defined(HAVE_SSL) && HAVE_SSL
+    SSL_shutdown(_ssl);
+    SSL_free(_ssl);
     _ssl= NULL;
 #endif
   }
@@ -678,21 +678,22 @@ gearman_return_t gearman_connection_st::lookup()
 
 gearman_return_t gearman_connection_st::enable_ssl()
 {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
   if (universal.ssl())
   {
-    _ssl= CyaSSL_new(universal.ctx_ssl());
+    _ssl= SSL_new(universal.ctx_ssl());
     if (_ssl == NULL)
     {
       close_socket();
       return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, "CyaSSL_new() failed to return a valid object");
     }
 
-    if (CyaSSL_set_fd(_ssl, fd) != SSL_SUCCESS)
+    if (SSL_set_fd(_ssl, fd) != SSL_SUCCESS)
     {
       close_socket();
-      char errorString[80];
-      return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, CyaSSL_ERR_error_string(CyaSSL_get_error(_ssl, 0), errorString));
+      char errorString[SSL_ERROR_SIZE];
+      ERR_error_string_n(SSL_get_error(_ssl, 0), errorString, sizeof(errorString));
+      return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, errorString);
     }
   }
 #endif
@@ -836,15 +837,19 @@ gearman_return_t gearman_connection_st::flush()
       while (send_buffer_size != 0)
       {
         ssize_t write_size;
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
         write_size= 0;
         if (_ssl)
         {
+#if defined(HAVE_CYASSL) && HAVE_CYASSL
           write_size= CyaSSL_send(_ssl, send_buffer_ptr, int(send_buffer_size), MSG_NOSIGNAL);
+#elif defined(HAVE_OPENSSL) && HAVE_OPENSSL
+          write_size= SSL_write(_ssl, send_buffer_ptr, int(send_buffer_size));
+#endif
           if (write_size <= 0)
           {
             int err;
-            switch ((err= CyaSSL_get_error(_ssl, int(write_size))))
+            switch ((err= SSL_get_error(_ssl, int(write_size))))
             {
               case SSL_ERROR_WANT_CONNECT:
               case SSL_ERROR_WANT_ACCEPT:
@@ -861,7 +866,7 @@ gearman_return_t gearman_connection_st::flush()
               default:
                 {
                   char errorString[80];
-                  CyaSSL_ERR_error_string(err, errorString);
+                  ERR_error_string_n(err, errorString, sizeof(errorString));
                   close_socket();
                   return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "SSL failure(%s)", errorString);
                 }
@@ -869,7 +874,7 @@ gearman_return_t gearman_connection_st::flush()
           }
         }
         else
-#endif
+#endif // define(HAVE_SSL)
         {
           write_size= ::send(fd, send_buffer_ptr, send_buffer_size, MSG_NOSIGNAL);
         }
@@ -1128,18 +1133,23 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
   while (1)
   {
-#if defined(HAVE_CYASSL) && HAVE_CYASSL
+#if defined(HAVE_SSL) && HAVE_SSL
     if (_ssl)
     {
+# if defined(HAVE_CYASSL) && HAVE_CYASSL
       read_size= CyaSSL_recv(_ssl, data, int(data_size), MSG_NOSIGNAL);
-      if (read_size <= 0)
+# elif defined(HAVE_OPENSSL) && HAVE_OPENSSL
+      read_size= SSL_read(_ssl, data, int(data_size));
+# endif
+      if (read_size == 0)
+      { } // Socket has been closed
+      else if (read_size < 0)
       {
-        int sendErr= CyaSSL_get_error(_ssl, int(read_size));
+        int sendErr= SSL_get_error(_ssl, int(read_size));
         if (sendErr != SSL_ERROR_WANT_READ)
         {
           char errorString[80];
-          int err= CyaSSL_get_error(_ssl, 0);
-          CyaSSL_ERR_error_string(err, errorString);
+          ERR_error_string_n(sendErr, errorString, sizeof(errorString));
           close_socket();
           ret= gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT,
                                            "SSL failure(%s)", errorString);
@@ -1148,7 +1158,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
       }
     }
     else
-#endif
+#endif // defined(HAVE_SSL)
     {
       read_size= ::recv(fd, data, data_size, MSG_NOSIGNAL);
     }
