@@ -233,8 +233,8 @@ gearmand_error_t gearmand_thread_create(gearmand_st& gearmand)
     }
   }
 
-  gearmand_error_t ret= _wakeup_init(thread);
-  if (ret != GEARMAND_SUCCESS)
+  gearmand_error_t ret;
+  if (gearmand_failed(ret= _wakeup_init(thread)))
   {
     gearmand_thread_free(thread);
     return ret;

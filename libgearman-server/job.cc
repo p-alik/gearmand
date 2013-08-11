@@ -370,9 +370,9 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
                                                  job->unique, job->unique_length,
                                                  job->function->function_name,
                                                  job->function->function_name_size);
-        if (ret != GEARMAND_SUCCESS)
+        if (gearmand_failed(ret))
         {
-          return ret;
+          gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, ret, "Failed to removed %.*s from persistent queue", int(job->unique_length), job->unique);
         }
       }
 

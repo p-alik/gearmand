@@ -1065,14 +1065,13 @@ static void _wakeup_event(int fd, short, void *arg)
 
 static gearmand_error_t _watch_events(gearmand_st *gearmand)
 {
-  gearmand_error_t ret= _listen_watch(gearmand);
-  if (ret != GEARMAND_SUCCESS)
+  gearmand_error_t ret;
+  if (gearmand_failed(ret= _listen_watch(gearmand)))
   {
     return ret;
   }
 
-  ret= _wakeup_watch(gearmand);
-  if (ret != GEARMAND_SUCCESS)
+  if (gearmand_failed(ret= _wakeup_watch(gearmand)))
   {
     return ret;
   }
