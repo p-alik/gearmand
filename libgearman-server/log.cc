@@ -425,7 +425,7 @@ gearmand_error_t gearmand_log_perror(const char *position, const char *function,
   return __errno_to_gearmand_error_t(local_errno);
 }
 
-gearmand_error_t gearmand_log_perror_warn(const char *position, const char *function, const int local_errno, const char *format, ...)
+void gearmand_log_perror_warn(const char *position, const char *function, const int local_errno, const char *format, ...)
 {
   if (not Gearmand() or (Gearmand()->verbose >= GEARMAND_VERBOSE_WARN))
   {
@@ -461,8 +461,6 @@ gearmand_error_t gearmand_log_perror_warn(const char *position, const char *func
       gearmand_log_warning(position, function, "%s", errmsg_ptr);
     }
   }
-
-  return __errno_to_gearmand_error_t(local_errno);
 }
 
 gearmand_error_t gearmand_log_gerror(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)
@@ -484,7 +482,7 @@ gearmand_error_t gearmand_log_gerror(const char *position, const char *function,
   return rc;
 }
 
-gearmand_error_t gearmand_log_gerror_warn(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)
+void gearmand_log_gerror_warn(const char *position, const char *function, const gearmand_error_t rc, const char *format, ...)
 {
   if (gearmand_failed(rc) and rc != GEARMAND_IO_WAIT)
   {
@@ -497,10 +495,6 @@ gearmand_error_t gearmand_log_gerror_warn(const char *position, const char *func
       va_end(args);
     }
   }
-  else if (rc == GEARMAND_IO_WAIT)
-  { }
-
-  return rc;
 }
 
 gearmand_error_t gearmand_log_gai_error(const char *position, const char *function, const int rc, const char *message)
