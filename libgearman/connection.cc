@@ -838,7 +838,6 @@ gearman_return_t gearman_connection_st::flush()
       {
         ssize_t write_size;
 #if defined(HAVE_SSL) && HAVE_SSL
-        write_size= 0;
         if (_ssl)
         {
 #if defined(HAVE_CYASSL) && HAVE_CYASSL
@@ -846,31 +845,39 @@ gearman_return_t gearman_connection_st::flush()
 #elif defined(HAVE_OPENSSL) && HAVE_OPENSSL
           write_size= SSL_write(_ssl, send_buffer_ptr, int(send_buffer_size));
 #endif
-          if (write_size <= 0)
+          int ssl_error;
+          switch ((ssl_error= SSL_get_error(_ssl, int(write_size))))
           {
-            int err;
-            switch ((err= SSL_get_error(_ssl, int(write_size))))
-            {
-              case SSL_ERROR_WANT_CONNECT:
-              case SSL_ERROR_WANT_ACCEPT:
-                write_size= SOCKET_ERROR;
-                errno= EAGAIN;
-                break;
-
-              case SSL_ERROR_WANT_WRITE:
-              case SSL_ERROR_WANT_READ:
-                write_size= SOCKET_ERROR;
-                errno= EAGAIN;
-                break;
-
-              default:
+            case SSL_ERROR_NONE:
+              break;
+            case SSL_ERROR_ZERO_RETURN:
+              {
+                if (SSL_get_shutdown(_ssl) & SSL_RECEIVED_SHUTDOWN)
                 {
-                  char errorString[80];
-                  ERR_error_string_n(err, errorString, sizeof(errorString));
                   close_socket();
-                  return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "SSL failure(%s)", errorString);
+                  return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "Client made a clean SSL shutdown during write.");
                 }
-            }
+              }
+
+            case SSL_ERROR_WANT_CONNECT:
+            case SSL_ERROR_WANT_ACCEPT:
+              write_size= SOCKET_ERROR;
+              errno= EAGAIN;
+              break;
+
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_READ:
+              write_size= SOCKET_ERROR;
+              errno= EAGAIN;
+              break;
+
+            default:
+              {
+                char errorString[80];
+                ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
+                close_socket();
+                return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "SSL failure(%s)", errorString);
+              }
           }
         }
         else
@@ -1141,20 +1148,44 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 # elif defined(HAVE_OPENSSL) && HAVE_OPENSSL
       read_size= SSL_read(_ssl, data, int(data_size));
 # endif
-      if (read_size == 0)
-      { } // Socket has been closed
-      else if (read_size < 0)
+      int ssl_error;
+      switch ((ssl_error= SSL_get_error(_ssl, int(read_size))))
       {
-        int sendErr= SSL_get_error(_ssl, int(read_size));
-        if (sendErr != SSL_ERROR_WANT_READ)
-        {
-          char errorString[80];
-          ERR_error_string_n(sendErr, errorString, sizeof(errorString));
-          close_socket();
-          ret= gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT,
-                                           "SSL failure(%s)", errorString);
-        }
-        errno= EAGAIN;
+        case SSL_ERROR_NONE:
+          break;
+
+        case SSL_ERROR_ZERO_RETURN:
+          {
+            if (SSL_get_shutdown(_ssl) & SSL_RECEIVED_SHUTDOWN)
+            { // Client made a clean SSL shutdown.");
+            }
+            else
+            {
+              gearman_log_info(universal, "Client made a dirty SSL shutdown.");
+            }
+            read_size= 0; // Shutdown occured.
+            break;
+          }
+
+        case SSL_ERROR_WANT_CONNECT:
+        case SSL_ERROR_WANT_ACCEPT:
+          read_size= SOCKET_ERROR;
+          errno= EAGAIN;
+          break;
+
+        case SSL_ERROR_WANT_WRITE:
+        case SSL_ERROR_WANT_READ:
+          read_size= SOCKET_ERROR;
+          errno= EAGAIN;
+          break;
+
+        default:
+          {
+            char errorString[80];
+            ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
+            close_socket();
+            return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "SSL failure(%s)", errorString);
+          }
       }
     }
     else

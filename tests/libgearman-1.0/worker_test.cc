@@ -1358,8 +1358,8 @@ static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
   size_t size= 0;
   void *result= check_unique_worker(job, NULL, &size, &rc);
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_truth(result);
-  test_truth(size);
+  ASSERT_TRUE(result);
+  ASSERT_TRUE(size);
   free(result);
 
   return TEST_SUCCESS;
