@@ -403,8 +403,7 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
                                                            GEARMAN_COMMAND_NOOP, NULL);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("gearman_server_io_packet_add", ret);
-          return ret;
+          gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, ret, "Failed to send NOOP packet to %s:%s", worker->con->host(), worker->con->port());
         }
 
         worker->con->is_noop_sent= true;

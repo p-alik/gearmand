@@ -52,6 +52,9 @@
 
 struct addrinfo;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-private-field"
+
 namespace datadifferential {
 namespace util {
 
@@ -163,3 +166,5 @@ private:
 
 } /* namespace util */
 } /* namespace datadifferential */
+
+#pragma GCC diagnostic pop
