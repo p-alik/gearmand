@@ -123,12 +123,13 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
 #if defined(HAVE_SSL) && HAVE_SSL
     if (con->_ssl)
     {
-      int ssl_errno;
+      int ssl_errno= 0;
 # if defined(HAVE_CYASSL) && HAVE_CYASSL
       read_size= CyaSSL_recv(con->_ssl, data, int(data_size), MSG_DONTWAIT);
 # else
       read_size= SSL_read(con->_ssl, data, int(data_size));
 # endif
+      assert(HAVE_SSL); // Just to make sure if macro is aligned.
       ssl_errno= errno;
       if (read_size == 0)
       { } // Socket has been closed
@@ -306,9 +307,23 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 #elif defined(HAVE_OPENSSL) && HAVE_OPENSSL
           write_size= SSL_write(con->_ssl, connection->send_buffer_ptr, int(connection->send_buffer_size));
 #endif
+          assert(HAVE_SSL); // Just to make sure if macro is aligned.
 
           // I consider this to be a bug in SSL_send()/SSL_write() that is uses a zero in this manner
-          if (write_size <= 0)
+          if (write_size == 0)
+          {
+            if ((err= SSL_get_error(con->_ssl, int(write_size))) == SSL_ERROR_ZERO_RETURN)
+            {
+              _connection_close(connection);
+              if (SSL_get_shutdown(con->_ssl) & SSL_RECEIVED_SHUTDOWN)
+              {
+                return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "Client made a clean SSL shutdown.");
+              }
+
+              return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "Client made a dirty SSL shutdown.");
+            }
+          }
+          else (write_size <= 0)
           {
             int err;
             switch ((err= SSL_get_error(con->_ssl, int(write_size))))
@@ -324,6 +339,11 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
                 write_size= SOCKET_ERROR;
                 errno= EAGAIN;
                 break;
+
+              case SSL_ERROR_SYSCALL:
+                { // errno error
+                  break;  
+                }
 
               default:
                 {
@@ -379,17 +399,15 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           case EPIPE:
           case ECONNRESET:
           case EHOSTDOWN:
-            gearmand_perror(local_errno, "lost connection to client during send(EPIPE || ECONNRESET || EHOSTDOWN)");
             _connection_close(connection);
-            return GEARMAND_LOST_CONNECTION;
+            return gearmand_perror(local_errno, "lost connection to client during send(EPIPE || ECONNRESET || EHOSTDOWN)");
 
           default:
             break;
           }
 
-          gearmand_perror(local_errno, "send() failed, closing connection");
           _connection_close(connection);
-          return GEARMAND_ERRNO;
+          return gearmand_perror(local_errno, "send() failed, closing connection");
         }
 
         gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "send() %u bytes to peer",
