@@ -192,8 +192,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       if (gearmand_failed(ret))
       {
         gearman_server_client_free(server_client);
-        gearmand_gerror("gearman_server_io_packet_add", ret);
-        return ret;
+        return gearmand_gerror("gearman_server_io_packet_add", ret);
       }
 
       gearmand_log_notice(GEARMAN_DEFAULT_LOG_PARAM,"accepted,%.*s,%.*s,%.*s",
@@ -395,10 +394,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           NULL);
       }
 
-      if (ret != GEARMAND_SUCCESS)
+      if (gearmand_failed(ret))
       {
-        gearmand_gerror("gearman_server_io_packet_add", ret);
-        return ret;
+        return gearmand_gerror("gearman_server_io_packet_add", ret);
       }
     }
     break;
@@ -473,10 +471,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           NULL);
       }
 
-      if (ret != GEARMAND_SUCCESS)
+      if (gearmand_failed(ret))
       {
-        gearmand_gerror("gearman_server_io_packet_add", ret);
-        return ret;
+        return gearmand_gerror("gearman_server_io_packet_add", ret);
       }
     }
 
@@ -512,10 +509,9 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                         GEARMAN_COMMAND_OPTION_RES,
                                         packet->arg[0], packet->arg_size[0],
                                         NULL);
-      if (ret != GEARMAND_SUCCESS)
+      if (gearmand_failed(ret))
       {
-        gearmand_gerror("gearman_server_io_packet_add", ret);
-        return ret;
+        return gearmand_gerror("gearman_server_io_packet_add", ret);
       }
     }
 
@@ -591,8 +587,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           GEARMAN_COMMAND_NOOP, NULL);
         if (ret != GEARMAND_SUCCESS)
         {
-          gearmand_gerror("gearman_server_io_packet_add", ret);
-          return ret;
+          return gearmand_gerror("gearman_server_io_packet_add", ret);
         }
       }
     }
@@ -715,8 +710,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
       ret= _server_queue_work_data(server_job, packet, packet->command);
       if (gearmand_failed(ret))
       {
-        gearmand_gerror("_server_queue_work_data", ret);
-        return ret;
+        return gearmand_gerror("_server_queue_work_data", ret);
       }
     }
 
@@ -764,8 +758,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           NULL);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("gearman_server_io_packet_add", ret);
-          return ret;
+          gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, ret, "Failed to send WORK_STATUS packet to %s:%s", server_client->con->host(), server_client->con->port());
         }
       }
     }
@@ -787,8 +780,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                    GEARMAN_COMMAND_WORK_COMPLETE);
       if (gearmand_failed(ret))
       {
-        gearmand_gerror("_server_queue_work_data", ret);
-        return ret;
+        return gearmand_gerror("_server_queue_work_data", ret);
       }
 
       /* Remove from persistent queue if one exists. */
@@ -801,8 +793,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                 server_job->function->function_name_size);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("Remove from persistent queue", ret);
-          return ret;
+          return gearmand_gerror("Remove from persistent queue", ret);
         }
       }
 
@@ -842,8 +833,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                 server_job->function->function_name_size);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("Remove from persistent queue", ret);
-          return ret;
+          return gearmand_gerror("Remove from persistent queue", ret);
         }
       }
 
@@ -886,8 +876,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           NULL);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("gearman_server_io_packet_add", ret);
-          return ret;
+          gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, ret, "Failed to send WORK_FAIL packet to %s:%s", server_client->con->host(), server_client->con->port());
         }
       }
 
@@ -901,8 +890,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                 server_job->function->function_name_size);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("Remove from persistent queue", ret);
-          return ret;
+          return gearmand_gerror("Remove from persistent queue", ret);
         }
       }
 
@@ -1075,9 +1063,9 @@ _server_queue_work_data(gearman_server_job_st *server_job,
                                         data, packet->data_size, NULL);
     }
 
-    if (ret != GEARMAND_SUCCESS)
+    if (gearmand_failed(ret))
     {
-      gearmand_gerror_warn("packet failed gearman_server_io_packet_add()", ret);
+      gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, ret, "Failed to send WORK_FAIL packet to %s:%s", server_client->con->host(), server_client->con->port());
     }
   }
 

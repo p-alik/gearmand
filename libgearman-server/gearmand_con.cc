@@ -295,8 +295,7 @@ gearmand_error_t gearman_server_job_cancel(gearman_server_st& server,
                                 server_job->function->function_name_size);
         if (gearmand_failed(ret))
         {
-          gearmand_gerror("Remove from persistent queue", ret);
-          return ret;
+          return gearmand_gerror("Remove from persistent queue", ret);
         }
       }
 
