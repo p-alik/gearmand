@@ -44,6 +44,7 @@
 #include "gear_config.h"
 #include "libgearman-server/common.h"
 #include <libgearman-server/gearmand.h>
+#include <libgearman-server/queue.h>
 #include <cstring>
 
 #include <cerrno>
@@ -253,10 +254,11 @@ gearman_server_job_st *gearman_server_job_get(gearman_server_st *server,
   return NULL;
 }
 
-bool gearman_server_job_cancel(gearman_server_st& server,
-                               const char *job_handle,
-                               const size_t job_handle_length)
+gearmand_error_t gearman_server_job_cancel(gearman_server_st& server,
+                                           const char *job_handle,
+                                           const size_t job_handle_length)
 {
+  gearmand_error_t ret= GEARMAND_NO_JOBS;
   uint32_t key= _server_job_hash(job_handle, job_handle_length);
 
   gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "cancel: %.*s", int(job_handle_length), job_handle);
@@ -268,14 +270,44 @@ bool gearman_server_job_cancel(gearman_server_st& server,
     if (server_job->job_handle_key == key and
         strncmp(server_job->job_handle, job_handle, GEARMAND_JOB_HANDLE_SIZE) == 0)
     {
+      /* Queue the fail packet for all clients. */
+      for (gearman_server_client_st* client= server_job->client_list; client != NULL; client= client->job_next)
+      {
+        ret= gearman_server_io_packet_add(client->con, false,
+                                          GEARMAN_MAGIC_RESPONSE,
+                                          GEARMAN_COMMAND_WORK_FAIL,
+                                          server_job->job_handle,
+                                          (size_t)strlen(server_job->job_handle),
+                                          NULL);
+        if (gearmand_failed(ret))
+        {
+          gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, ret, "Failed to send WORK_FAIL packet to %s:%s", client->con->host(), client->con->port());
+        }
+      }
+
+      /* Remove from persistent queue if one exists. */
+      if (server_job->job_queued)
+      {
+        ret= gearman_queue_done(Server,
+                                server_job->unique,
+                                server_job->unique_length,
+                                server_job->function->function_name,
+                                server_job->function->function_name_size);
+        if (gearmand_failed(ret))
+        {
+          gearmand_gerror("Remove from persistent queue", ret);
+          return ret;
+        }
+      }
+
       server_job->ignore_job= true;
       server_job->job_queued= false;
 
-      return true;
+      return GEARMAND_SUCCESS;
     }
   }
 
-  return false;
+  return ret;
 }
 
 gearman_server_job_st * gearman_server_job_peek(gearman_server_con_st *server_con)

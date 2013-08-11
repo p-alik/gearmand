@@ -144,9 +144,15 @@ gearmand_error_t server_run_text(gearman_server_con_st *server_con,
     if (packet->argc == 3
         and strcasecmp("job", (char *)(packet->arg[1])) == 0)
     {
-      if (gearman_server_job_cancel(Gearmand()->server, packet->arg[2], strlen(packet->arg[2])))
+      gearmand_error_t ret= gearman_server_job_cancel(Gearmand()->server, packet->arg[2], strlen(packet->arg[2]));
+
+      if (ret == GEARMAND_SUCCESS)
       {
         data.vec_printf(TEXT_SUCCESS);
+      }
+      else if (ret != GEARMAND_NO_JOBS)
+      {
+        data.vec_printf(TEXT_ERROR_INTERNAL_ERROR);
       }
       else
       {
