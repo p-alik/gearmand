@@ -88,7 +88,7 @@
  * @{
  */
 
-gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg) :
+gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg, const char* host_, const char* service_):
   state(GEARMAN_CON_UNIVERSAL_ADDRINFO),
   send_state(GEARMAN_CON_SEND_STATE_NONE),
   recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
@@ -114,6 +114,8 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   send_buffer_ptr(NULL),
   _recv_packet(NULL)
 {
+  set_host(host_, service_);
+
   if (universal.con_list)
   {
     universal.con_list->prev= this;
@@ -124,19 +126,21 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
 
   send_buffer_ptr= send_buffer;
   recv_buffer_ptr= recv_buffer;
-  _host[0]= 0;
-  _service[0]= 0;
 }
 
-/**
- * Initialize a connection structure. Always check the return value even if
- * passing in a pre-allocated structure. Some other initialization may have
- * failed.
- */
-static gearman_connection_st *__connection_create(gearman_universal_st &universal)
+gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
+                                                 const char *host_, const char* service_)
 {
-  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal);
-  if (connection == NULL)
+  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, host_, service_);
+  if (connection)
+  {
+    if (gearman_failed(connection->lookup()))
+    {
+      delete connection;
+      return NULL;
+    }
+  }
+  else
   {
     gearman_perror(universal, errno, "Failed at new() gearman_connection_st new");
   }
@@ -145,46 +149,30 @@ static gearman_connection_st *__connection_create(gearman_universal_st &universa
 }
 
 gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
-                                                 const char *host, const char* service_)
+                                                 const char *host, const in_port_t& port_)
 {
-  gearman_connection_st *connection= __connection_create(universal);
-  if (connection)
-  {
-    connection->set_host(host, (const char*)service_);
+  const char *service_ptr= NULL;
+  char service[GEARMAN_NI_MAXSERV];
 
-    if (gearman_failed(connection->lookup()))
-    {
-      delete connection;
-      return NULL;
-    }
+  if (port_ < 1)
+  {
+    service_ptr= GEARMAN_DEFAULT_TCP_PORT_STRING;
+  }
+  else
+  {
+    snprintf(service, sizeof(service), "%hu", uint16_t(port_));
+    service[GEARMAN_NI_MAXSERV -1]= 0;
+
+    service_ptr= service;
   }
 
-  return connection;
-}
-
-gearman_connection_st *gearman_connection_create(gearman_universal_st& universal,
-                                                 const char *host, const in_port_t& port)
-{
-  gearman_connection_st *connection= __connection_create(universal);
-  if (connection)
-  {
-    connection->set_host(host, port);
-
-    if (gearman_failed(connection->lookup()))
-    {
-      delete connection;
-      return NULL;
-    }
-  }
-
-  return connection;
+  return gearman_connection_create(universal, host, service_ptr);
 }
 
 gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
                                                const gearman_connection_st& from)
 {
-  gearman_connection_st *connection= __connection_create(universal);
-
+  gearman_connection_st *connection= new (std::nothrow) gearman_connection_st(universal, from.host(), from.service());
   if (connection)
   {
     connection->options.ready= from.options.ready;
@@ -193,6 +181,10 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 
     strcpy(connection->_host, from._host);
     strcpy(connection->_service, from._service);
+  }
+  else
+  {
+    gearman_perror(universal, errno, "Failed at new() gearman_connection_st new");
   }
 
   return connection;
@@ -250,7 +242,7 @@ void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
   else
   {
     snprintf(_service, sizeof(_service), "%hu", uint16_t(port_));
-    _service[GEARMAN_NI_MAXSERV - 1]= 0;
+    _service[GEARMAN_NI_MAXSERV -1]= 0;
 
     set_host(host_, _service);
   }
@@ -267,25 +259,16 @@ void gearman_connection_st::set_host(const char *host_, const char* service_)
     host_= GEARMAN_DEFAULT_TCP_HOST;
   }
   strncpy(_host, host_, GEARMAN_NI_MAXHOST);
-  _host[GEARMAN_NI_MAXHOST - 1]= 0;
+  _host[GEARMAN_NI_MAXHOST -1]= 0;
 
-  if (service_ != _service)
+  if (service_ and service_[0])
+  { }
+  else
   {
-    if (service_)
-    {
-      size_t string_len= strlen(service_);
-      if (string_len == 0)
-      {
-        service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
-      }
-    }
-    else
-    {
-      service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
-    }
-    strncpy(_service, service_, GEARMAN_NI_MAXSERV);
-    _service[GEARMAN_NI_MAXSERV - 1]= 0;
+    service_= GEARMAN_DEFAULT_TCP_PORT_STRING;
   }
+  strncpy(_service, service_, GEARMAN_NI_MAXSERV);
+  _service[GEARMAN_NI_MAXSERV -1]= 0;
 }
 
 /*
