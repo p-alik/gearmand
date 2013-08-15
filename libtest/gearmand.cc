@@ -105,7 +105,12 @@ public:
     {
       std::string buffer("--log-file=");
       buffer+= arg;
-      app.add_option("--verbose=DEBUG");
+      // @note leave the logic as a placeholder
+#if defined(VCS_CHECKOUT) && VCS_CHECKOUT
+      app.add_option("--verbose=INFO");
+#else
+      app.add_option("--verbose=INFO");
+#endif
       app.add_option(buffer);
     }
   }
