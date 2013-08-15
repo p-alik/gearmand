@@ -1,3 +1,6 @@
+1.1.10
+*
+
 1.1.9 Fri Aug  2 02:39:25 EDT 2013
 * Added gearman_task_is_finished()
 * Improved SSL support.
