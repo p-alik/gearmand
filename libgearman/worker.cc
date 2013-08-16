@@ -656,6 +656,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
     Worker* worker= worker_shell->impl();
     struct _worker_function_st *function;
     uint32_t active;
+    bool no_job= false;
 
     gearman_return_t unused;
     if (not ret_ptr)
@@ -842,6 +843,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
                 if (worker->job()->impl()->assigned.command == GEARMAN_COMMAND_NO_JOB or
                     worker->job()->impl()->assigned.command == GEARMAN_COMMAND_OPTION_RES)
                 {
+                  no_job= true;
                   gearman_packet_free(&(worker->job()->impl()->assigned));
                   break;
                 }
@@ -859,6 +861,12 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
 
                 gearman_packet_free(&(worker->job()->impl()->assigned));
             }
+          }
+
+          if (worker->in_work() == false and no_job)
+          {
+            *ret_ptr= GEARMAN_NO_JOBS;
+            break;
           }
 
         case GEARMAN_WORKER_STATE_PRE_SLEEP:
@@ -936,6 +944,11 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
           }
 
           break;
+      }
+
+      if (*ret_ptr == GEARMAN_NO_JOBS)
+      {
+        break;
       }
     }
   }
@@ -1038,8 +1051,10 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
     {
       case GEARMAN_WORKER_WORK_UNIVERSAL_GRAB_JOB:
         {
+          worker->in_work(true);
           gearman_return_t ret;
           worker->work_job(gearman_worker_grab_job(worker->shell(), NULL, &ret));
+          worker->in_work(false);
 
           if (gearman_failed(ret))
           {

@@ -49,6 +49,7 @@ struct Worker
     bool grab_uniq;
     bool grab_all;
     bool timeout_return;
+    bool _in_work;
 
     Options() :
       non_blocking(false),
@@ -56,7 +57,8 @@ struct Worker
       change(false),
       grab_uniq(true),
       grab_all(true),
-      timeout_return(false)
+      timeout_return(false),
+      _in_work(false)
     { }
   } options;
   enum gearman_worker_state_t state;
@@ -140,6 +142,16 @@ struct Worker
   void ssl(bool ssl_)
   {
     universal.options._ssl= ssl_;
+  }
+
+  bool in_work() const
+  {
+    return options._in_work;
+  }
+
+  void in_work(bool in_work_)
+  {
+    options._in_work= in_work_;
   }
 
   bool has_identifier() const

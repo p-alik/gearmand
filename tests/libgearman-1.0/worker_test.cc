@@ -148,6 +148,20 @@ static test_return_t gearman_worker_timeout_default_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_grab_job_TEST(void *)
+{
+  libgearman::Worker worker(libtest::default_port());
+
+  ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+
+  gearman_return_t ret;
+  gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
+  ASSERT_NULL(job);
+  ASSERT_EQ(GEARMAN_NO_JOBS, ret);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_worker_free_TEST(void *)
 {
   gearman_worker_free(NULL);
@@ -1599,6 +1613,11 @@ test_st worker_defaults[] ={
   {0, 0, 0}
 };
 
+test_st gearman_worker_grab_job_TESTS[] ={
+  {"gearman_worker_grab_job(NO_JOBS)", 0, gearman_worker_grab_job_TEST },
+  {0, 0, 0}
+};
+
 test_st gearman_worker_st_NULL_invocation_TESTS[] ={
   {"gearman_worker_free()", 0, gearman_worker_free_TEST },
   {"gearman_worker_error()", 0, gearman_worker_error_TEST },
@@ -1619,6 +1638,7 @@ collection_st collection[] ={
   {"worker", 0, 0, worker_TESTS},
   {"worker defaults", 0, 0, worker_defaults},
   {"null gearman_worker_st invocation", 0, 0, gearman_worker_st_NULL_invocation_TESTS },
+  {"gearman_worker_grab_job()", 0, 0, gearman_worker_grab_job_TESTS },
   {"gearman_worker_set_identifier()", 0, 0, gearman_worker_set_identifier_TESTS},
   {0, 0, 0, 0}
 };
