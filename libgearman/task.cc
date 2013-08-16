@@ -77,9 +77,8 @@ void gearman_task_free(gearman_task_st *task_shell)
 {
   if (task_shell and task_shell->impl())
   {
-    assert(gearman_is_initialized(task_shell));
     Task* task= task_shell->impl();
-    if (gearman_is_initialized(task_shell))
+    assert(task_shell == task->shell());
     {
       assert(task->magic_ != TASK_ANTI_MAGIC);
       assert(task->magic_ == TASK_MAGIC);
@@ -123,24 +122,13 @@ void gearman_task_free(gearman_task_st *task_shell)
       }
       task->job_handle[0]= 0;
 
-      gearman_set_initialized(task, false);
-      gearman_set_initialized(task_shell, false);
-
       task_shell->_impl= NULL;
 
-      delete task;
-    }
-    else
-    {
-      task->client= NULL;
-      gearman_set_initialized(task_shell, false);
-      task_shell->_impl= NULL;
       delete task;
     }
   }
   else if (task_shell)
   {
-    gearman_set_initialized(task_shell, false);
     task_shell->_impl= NULL;
   }
 }
@@ -444,7 +432,8 @@ Task::~Task()
     {
       gearman_set_allocated(_shell, false);
     }
-    gearman_set_initialized(_shell, false);
+    _shell->_impl= NULL;
+    _shell= NULL;
   }
 }
 

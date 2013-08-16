@@ -66,7 +66,6 @@ struct gearman_task_st
 {
   struct {
     bool is_allocated;
-    bool is_initialized;
   } options;
   void *_impl;
 #ifdef __cplusplus

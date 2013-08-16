@@ -125,7 +125,8 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker_shell)
   {
     Worker* worker= worker_shell->impl();
 
-    if (gearman_failed(_worker_packet_init(worker)))
+    gearman_return_t ret;
+    if (gearman_failed((ret= _worker_packet_init(worker))))
     {
       gearman_worker_free(worker->shell());
       return NULL;
