@@ -51,20 +51,17 @@ struct Task
     bool is_running;
     bool was_reduced;
     bool is_paused;
-    bool is_initialized;
 
     Options() :
       send_in_use(false),
       is_known(false),
       is_running(false),
       was_reduced(false),
-      is_paused(false),
-      is_initialized(true)
+      is_paused(false)
     { }
 
     ~Options()
     {
-      is_initialized= false;
     }
   } options;
   enum gearman_task_kind_t type;
@@ -126,7 +123,6 @@ struct Task
       _shell= &_owned_shell;
       gearman_set_allocated(_shell, true);
     }
-    gearman_set_initialized(_shell, true);
 
     // Add the task to the client
     {

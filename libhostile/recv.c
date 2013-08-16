@@ -112,18 +112,17 @@ ssize_t recv(int sockfd, void *buf, size_t len, int flags)
         shutdown(tmp_sockfd, SHUT_RDWR);
         close(tmp_sockfd);
 
-        if (rand() % 2)
+        switch(rand() %3)
         {
-          errno= ECONNREFUSED;
-          return -1;
-        }
-        else
-        {
-          errno= 0;
-#if 0
-          perror("HOSTILE CLOSE() of socket during recv()");
-#endif
-          return 0; // Simulate EOF
+          case 0:
+            errno= ECONNREFUSED;
+            return -1;
+          case 1:
+            errno= 0;
+            return 0; // Simulate EOF
+          case 2:
+            errno= EINTR;
+            return -1; // Simulate EOF
         }
       }
     }
