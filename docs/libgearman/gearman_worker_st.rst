@@ -39,6 +39,8 @@ SYNOPSIS
 
 .. c:function:: gearman_return_t gearman_worker_work(gearman_worker_st *worker)
 
+.. c:function:: gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker, gearman_job_st *job, gearman_return_t *ret_ptr)
+
 Link with -lgearman
 
 -----------
@@ -54,6 +56,10 @@ DESCRIPTION
 :c:func:`gearman_worker_timeout` and :c:func:`gearman_worker_set_timeout` get and set the current timeout value, in milliseconds, for the worker.
 
 :c:func:`gearman_worker_function_exist` is used to determine if a given worker has a specific function.
+
+:c:func:`gearman_worker_work` have the worker execute against jobs until an error occurs.
+
+:c:func:`gearman_worker_grab_job` Takes a job from one of the job servers. It is the responsibility of the caller to free the job once they are done. This interface is used in testing, and is very rarely the correct interface to program against.
 
 Normally :manpage:`malloc(3)` and :manpage:`free(3)` are used for allocation and releasing workloads. :c:func:`gearman_worker_set_workload_malloc_fn` and :c:func:`gearman_worker_set_workload_free_fn` can be used to replace these with custom functions.
 
