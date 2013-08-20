@@ -342,24 +342,24 @@ bool SimpleClient::message(const char* ptr, const size_t len)
         if (_ssl)
         {
           nw= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
-          if (nw < 0)
+          int sendErr;
+          switch (sendErr= SSL_get_error(_ssl, nw))
           {
-            int sendErr= SSL_get_error(_ssl, nw);
-            switch (sendErr)
-            {
-              case SSL_ERROR_WANT_READ:
-              case SSL_ERROR_WANT_WRITE:
-                continue;
+            case SSL_ERROR_NONE:
+              break;
 
-              default:
-                {
-                  char errorString[SSL_ERROR_SIZE];
-                  ERR_error_string_n(sendErr, errorString, sizeof(errorString));
-                  error(__FILE__, __LINE__, errorString);
-                  close_socket();
-                  return false;
-                }
-            }
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+              continue;
+
+            default:
+              {
+                char errorString[SSL_ERROR_SIZE];
+                ERR_error_string_n(sendErr, errorString, sizeof(errorString));
+                error(__FILE__, __LINE__, errorString);
+                close_socket();
+                return false;
+              }
           }
         }
         else
@@ -441,25 +441,27 @@ bool SimpleClient::response(libtest::vchar_t& response_)
         if (_ssl)
         {
           nr= SSL_read(_ssl, buffer, 1);
-          if (_ssl and nr < 0)
+          int readErr;
+          switch (readErr= SSL_get_error(_ssl, nr))
           {
-            int readErr= SSL_get_error(_ssl, 0);
-            switch (readErr)
-            {
-              case SSL_ERROR_WANT_WRITE:
-              case SSL_ERROR_WANT_READ:
-                {
-                  continue;
-                }
+            case SSL_ERROR_NONE:
+              break;
 
-              default:
-                {
-                  char errorString[SSL_ERROR_SIZE];
-                  ERR_error_string_n(readErr, errorString, sizeof(errorString));
-                  error(__FILE__, __LINE__, errorString);
-                  return false;
-                }
-            }
+            case SSL_ERROR_WANT_CONNECT:
+            case SSL_ERROR_WANT_ACCEPT:
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_READ:
+              {
+                continue;
+              }
+
+            default:
+              {
+                char errorString[SSL_ERROR_SIZE];
+                ERR_error_string_n(readErr, errorString, sizeof(errorString));
+                error(__FILE__, __LINE__, errorString);
+                return false;
+              }
           }
         }
         else
@@ -518,20 +520,22 @@ bool SimpleClient::response(std::string& response_)
 #if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
+          int readErr;
           nr= SSL_read(_ssl, buffer, 1);
-          if (nr < 0)
+          switch (readErr= SSL_get_error(_ssl, nr))
           {
-            int readErr = SSL_get_error(_ssl, 0);
-            switch (readErr)
-            {
-              case SSL_ERROR_WANT_WRITE:
-              case SSL_ERROR_WANT_READ:
-                continue;
+            case SSL_ERROR_NONE:
+              break;
 
-              default:
-                error(__FILE__, __LINE__, "SSL_read failed");
-                return false;
-            }
+            case SSL_ERROR_WANT_CONNECT:
+            case SSL_ERROR_WANT_ACCEPT:
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_READ:
+              continue;
+
+            default:
+              error(__FILE__, __LINE__, "SSL_read failed");
+              return false;
           }
         }
         else

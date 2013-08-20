@@ -833,6 +833,7 @@ gearman_return_t gearman_connection_st::flush()
           {
             case SSL_ERROR_NONE:
               break;
+
             case SSL_ERROR_ZERO_RETURN:
               {
                 if (SSL_get_shutdown(_ssl) & SSL_RECEIVED_SHUTDOWN)
@@ -844,10 +845,6 @@ gearman_return_t gearman_connection_st::flush()
 
             case SSL_ERROR_WANT_CONNECT:
             case SSL_ERROR_WANT_ACCEPT:
-              write_size= SOCKET_ERROR;
-              errno= EAGAIN;
-              break;
-
             case SSL_ERROR_WANT_WRITE:
             case SSL_ERROR_WANT_READ:
               write_size= SOCKET_ERROR;
@@ -1153,10 +1150,6 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
         case SSL_ERROR_WANT_CONNECT:
         case SSL_ERROR_WANT_ACCEPT:
-          read_size= SOCKET_ERROR;
-          errno= EAGAIN;
-          break;
-
         case SSL_ERROR_WANT_WRITE:
         case SSL_ERROR_WANT_READ:
           read_size= SOCKET_ERROR;

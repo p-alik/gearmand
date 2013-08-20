@@ -146,12 +146,9 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
             read_size= 0; // Shutdown occured.
             break;
           }
+        case SSL_ERROR_WANT_CONNECT:
+        case SSL_ERROR_WANT_ACCEPT:
         case SSL_ERROR_WANT_READ:
-          {
-            read_size= SOCKET_ERROR;
-            errno= EAGAIN;
-            break;
-          }
         case SSL_ERROR_WANT_WRITE:
           {
             read_size= SOCKET_ERROR;
