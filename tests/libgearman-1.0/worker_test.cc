@@ -148,6 +148,24 @@ static test_return_t gearman_worker_timeout_default_test(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t gearman_worker_register_TEST(void *)
+{
+  libgearman::Worker worker(libtest::default_port());
+
+  ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_register_GEARMAN_COULD_NOT_CONNECT_TEST(void *)
+{
+  libgearman::Worker worker;
+
+  ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t gearman_worker_grab_job_TEST(void *)
 {
   libgearman::Worker worker(libtest::default_port());
@@ -158,6 +176,58 @@ static test_return_t gearman_worker_grab_job_TEST(void *)
   gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
   ASSERT_NULL(job);
   ASSERT_EQ(GEARMAN_NO_JOBS, ret);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_grab_job_GEARMAN_NO_SERVERS_NO_FUNCTIONS_TEST(void *)
+{
+  libgearman::Worker worker;
+
+  gearman_return_t ret;
+  gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
+  ASSERT_NULL(job);
+  ASSERT_EQ(GEARMAN_NO_SERVERS, ret);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_grab_job_GEARMAN_NO_REGISTERED_FUNCTIONS_TEST(void *)
+{
+  libgearman::Worker worker(libtest::default_port());
+
+  gearman_return_t ret;
+  gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
+  ASSERT_NULL(job);
+  ASSERT_EQ(GEARMAN_NO_REGISTERED_FUNCTIONS, ret);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_grab_job_GEARMAN_NO_SERVERS_TEST(void *)
+{
+  libgearman::Worker worker;
+
+  ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+
+  gearman_return_t ret;
+  gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
+  ASSERT_NULL(job);
+  ASSERT_EQ(GEARMAN_NO_SERVERS, ret);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_grab_job_GEARMAN_COULD_NOT_CONNECT_TEST(void *)
+{
+  libgearman::Worker worker;
+
+  ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
+
+  gearman_return_t ret;
+  gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
+  ASSERT_NULL(job);
+  ASSERT_EQ(GEARMAN_NO_SERVERS, ret);
 
   return TEST_SUCCESS;
 }
@@ -1204,7 +1274,7 @@ static test_return_t gearman_worker_unregister_all_test(void *)
 
 static test_return_t gearman_worker_work_with_test(int timeout, gearman_worker_options_t option)
 {
-  libgearman::Worker worker;
+  libgearman::Worker worker(libtest::default_port());
 
   if (option)
   {
@@ -1219,32 +1289,32 @@ static test_return_t gearman_worker_work_with_test(int timeout, gearman_worker_o
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
 
   ASSERT_EQ(gearman_worker_add_function(&worker,
-                                           function_name,
-                                           0, fail_worker, NULL),
-               GEARMAN_SUCCESS);
+                                        function_name,
+                                        0, fail_worker, NULL),
+            GEARMAN_SUCCESS);
 
   gearman_worker_set_timeout(&worker, timeout);
 
   if (option == GEARMAN_WORKER_NON_BLOCKING)
   {
-    ASSERT_EQ(GEARMAN_NO_JOBS,
-                 gearman_worker_work(&worker));
+    ASSERT_EQ(GEARMAN_IO_WAIT,
+              gearman_worker_work(&worker));
 
-    ASSERT_EQ(GEARMAN_NO_JOBS,
-                 gearman_worker_work(&worker));
+    ASSERT_EQ(GEARMAN_IO_WAIT,
+              gearman_worker_work(&worker));
   }
   else
   {
     ASSERT_EQ(GEARMAN_TIMEOUT,
-                 gearman_worker_work(&worker));
+              gearman_worker_work(&worker));
 
     ASSERT_EQ(GEARMAN_TIMEOUT,
-                 gearman_worker_work(&worker));
+              gearman_worker_work(&worker));
   }
 
   /* Make sure we have removed the worker function */
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_worker_unregister(&worker, function_name));
+            gearman_worker_unregister(&worker, function_name));
 
   return TEST_SUCCESS;
 }
@@ -1615,6 +1685,16 @@ test_st worker_defaults[] ={
 
 test_st gearman_worker_grab_job_TESTS[] ={
   {"gearman_worker_grab_job(NO_JOBS)", 0, gearman_worker_grab_job_TEST },
+  {"gearman_worker_grab_job(GEARMAN_COULD_NOT_CONNECT)", 0, gearman_worker_grab_job_GEARMAN_COULD_NOT_CONNECT_TEST },
+  {"gearman_worker_grab_job(GEARMAN_NO_SERVERS)", 0, gearman_worker_grab_job_GEARMAN_NO_SERVERS_TEST },
+  {"gearman_worker_grab_job(GEARMAN_NO_REGISTERED_FUNCTIONS)", 0, gearman_worker_grab_job_GEARMAN_NO_REGISTERED_FUNCTIONS_TEST },
+  {"gearman_worker_grab_job(GEARMAN_NO_SERVERS + GEARMAN_NO_REGISTERED_FUNCTIONS)", 0, gearman_worker_grab_job_GEARMAN_NO_SERVERS_NO_FUNCTIONS_TEST },
+  {0, 0, 0}
+};
+
+test_st gearman_worker_register_TESTS[] ={
+  {"gearman_worker_register()", 0, gearman_worker_register_TEST },
+  {"gearman_worker_register(GEARMAN_COULD_NOT_CONNECT)", 0, gearman_worker_register_GEARMAN_COULD_NOT_CONNECT_TEST },
   {0, 0, 0}
 };
 
@@ -1639,6 +1719,7 @@ collection_st collection[] ={
   {"worker defaults", 0, 0, worker_defaults},
   {"null gearman_worker_st invocation", 0, 0, gearman_worker_st_NULL_invocation_TESTS },
   {"gearman_worker_grab_job()", 0, 0, gearman_worker_grab_job_TESTS },
+  {"gearman_worker_register()", 0, 0, gearman_worker_register_TESTS },
   {"gearman_worker_set_identifier()", 0, 0, gearman_worker_set_identifier_TESTS},
   {0, 0, 0, 0}
 };

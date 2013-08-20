@@ -665,6 +665,12 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
       ret_ptr= &unused;
     }
 
+    if (worker->universal.con_list == NULL)
+    {
+      *ret_ptr= GEARMAN_NO_SERVERS;
+      return NULL;
+    }
+
     while (1)
     {
       switch (worker->state)
