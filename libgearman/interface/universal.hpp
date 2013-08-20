@@ -256,6 +256,9 @@ public:
   {
     return _identifier;
   }
+
+  void flush();
+  void reset();
 };
 
 static inline bool gearman_universal_is_non_blocking(gearman_universal_st &self)

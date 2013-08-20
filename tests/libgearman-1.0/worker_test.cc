@@ -220,14 +220,14 @@ static test_return_t gearman_worker_grab_job_GEARMAN_NO_SERVERS_TEST(void *)
 
 static test_return_t gearman_worker_grab_job_GEARMAN_COULD_NOT_CONNECT_TEST(void *)
 {
-  libgearman::Worker worker;
+  libgearman::Worker worker(23); // Would anyone have telnet enabled? 
 
   ASSERT_EQ(gearman_worker_register(&worker, __func__, 0), GEARMAN_SUCCESS);
 
   gearman_return_t ret;
   gearman_job_st* job= gearman_worker_grab_job(&worker, NULL, &ret);
   ASSERT_NULL(job);
-  ASSERT_EQ(GEARMAN_NO_SERVERS, ret);
+  ASSERT_EQ(GEARMAN_COULD_NOT_CONNECT, ret);
 
   return TEST_SUCCESS;
 }
@@ -1689,6 +1689,7 @@ test_st gearman_worker_grab_job_TESTS[] ={
   {"gearman_worker_grab_job(GEARMAN_NO_SERVERS)", 0, gearman_worker_grab_job_GEARMAN_NO_SERVERS_TEST },
   {"gearman_worker_grab_job(GEARMAN_NO_REGISTERED_FUNCTIONS)", 0, gearman_worker_grab_job_GEARMAN_NO_REGISTERED_FUNCTIONS_TEST },
   {"gearman_worker_grab_job(GEARMAN_NO_SERVERS + GEARMAN_NO_REGISTERED_FUNCTIONS)", 0, gearman_worker_grab_job_GEARMAN_NO_SERVERS_NO_FUNCTIONS_TEST },
+  {"gearman_worker_grab_job()", 0, gearman_worker_grab_job_GEARMAN_NO_SERVERS_NO_FUNCTIONS_TEST },
   {0, 0, 0}
 };
 
