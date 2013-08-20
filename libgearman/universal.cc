@@ -224,9 +224,9 @@ void gearman_free_all_cons(gearman_universal_st& universal)
   }
 }
 
-void gearman_reset(gearman_universal_st& universal)
+void gearman_universal_st::reset()
 {
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
+  for (gearman_connection_st *con= con_list; con; con= con->next_connection())
   {
     con->close_socket();
   }
@@ -237,9 +237,9 @@ void gearman_reset(gearman_universal_st& universal)
  * which connection experienced an issue. Error detection is better done in gearman_wait()
  * after flushing all the connections here.
  */
-void gearman_flush_all(gearman_universal_st& universal)
+void gearman_universal_st::flush()
 {
-  for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
+  for (gearman_connection_st *con= con_list; con; con= con->next_connection())
   {
     if (con->events & POLLOUT)
     {

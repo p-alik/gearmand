@@ -1442,7 +1442,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
 
         if (client->new_tasks == 0)
         {
-          gearman_flush_all(client->universal);
+          client->universal.flush();
         }
       }
 
@@ -1726,7 +1726,7 @@ gearman_return_t gearman_client_run_tasks(gearman_client_st *client_shell)
 
     if (rc == GEARMAN_COULD_NOT_CONNECT)
     {
-      gearman_reset(client->universal);
+      client->universal.reset();
     }
 
     return rc;
@@ -1753,7 +1753,7 @@ gearman_return_t gearman_client_run_block_tasks(Client* client, gearman_task_st*
   {
     if (rc == GEARMAN_COULD_NOT_CONNECT)
     {
-      gearman_reset(client->universal);
+      client->universal.reset();
     }
 
     if (client->universal.error_code() != rc and rc != GEARMAN_COULD_NOT_CONNECT)

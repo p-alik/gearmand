@@ -59,13 +59,8 @@ int gearman_universal_timeout(gearman_universal_st &self);
 
 void gearman_universal_set_namespace(gearman_universal_st &self, const char *namespace_key, size_t namespace_key_size);
 
-void gearman_reset(gearman_universal_st& universal);
-
 gearman_return_t cancel_job(gearman_universal_st& universal,
                             gearman_job_handle_t job_handle);
-
-// Flush the send buffer for all connections.
-void gearman_flush_all(gearman_universal_st&);
 
 /**
  * Set custom memory allocation function for workloads. Normally gearman uses

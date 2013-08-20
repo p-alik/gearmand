@@ -441,7 +441,7 @@ int main(int argc, char *argv[], char* environ_[])
   }
   catch (const libtest::__skipped& e)
   {
-    return EXIT_SKIP;
+    exit_code= EXIT_SKIP;
   }
   catch (const libtest::__failure& e)
   {

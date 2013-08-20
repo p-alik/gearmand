@@ -142,7 +142,11 @@ public:
   size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);
 
   gearman_return_t enable_ssl();
+private:
+  friend void gearman_universal_st::flush();
   gearman_return_t flush();
+
+public:
   void close_socket();
 
   // Receive packet from a connection.
