@@ -43,7 +43,11 @@
 
 namespace libtest {
 
+#ifdef __APPLE__
+static const struct timeval default_it_value= { 1200, 0 };
+#else
 static const struct timeval default_it_value= { 600, 0 };
+#endif
 static const struct timeval default_it_interval= { 0, 0 };
 static const struct itimerval defualt_timer= { default_it_interval, default_it_value };
 
