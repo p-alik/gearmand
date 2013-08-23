@@ -459,8 +459,24 @@ gearmand_error_t Gear::start(gearmand_st *gearmand)
   gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Initializing Gear on port %s with SSL: %s", _port.c_str(), opt_ssl ? "true" : "false");
 
 #if defined(HAVE_SSL) && HAVE_SSL
+
   if (opt_ssl)
   {
+    if (getenv("GEARMAND_CA_CERTIFICATE"))
+    {
+      _ssl_ca_file= getenv("GEARMAND_CA_CERTIFICATE");
+    }
+
+    if (getenv("GEARMAND_SERVER_PEM"))
+    {
+      _ssl_certificate= getenv("GEARMAND_SERVER_PEM");
+    }
+
+    if (getenv("GEARMAND_SERVER_KEY"))
+    {
+      _ssl_key= getenv("GEARMAND_SERVER_KEY");
+    }
+
     gearmand->init_ssl();
 
     if (SSL_CTX_load_verify_locations(gearmand->ctx_ssl(), _ssl_ca_file.c_str(), 0) != SSL_SUCCESS)

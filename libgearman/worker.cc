@@ -824,6 +824,7 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
               case GEARMAN_WORKER_STATE_GRAB_JOB_RECV:
                 assert(worker);
                 assert(worker->job());
+                assert(worker->job()->impl());
                 (void)worker->con->receiving(worker->job()->impl()->assigned, *ret_ptr, true);
 
                 if (gearman_failed(*ret_ptr))
