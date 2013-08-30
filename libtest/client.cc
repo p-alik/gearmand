@@ -205,8 +205,11 @@ SimpleClient::~SimpleClient()
   close_socket();
 #if defined(HAVE_SSL) && HAVE_SSL
   {
-    SSL_CTX_free(_ctx_ssl);
-    _ctx_ssl= NULL;
+    if (_ctx_ssl)
+    {
+      SSL_CTX_free(_ctx_ssl);
+      _ctx_ssl= NULL;
+    }
 # if defined(HAVE_OPENSSL) && HAVE_OPENSSL
     ERR_free_strings();
 # endif
@@ -219,9 +222,12 @@ void SimpleClient::close_socket()
   if (sock_fd != INVALID_SOCKET)
   {
 #if defined(HAVE_SSL) && HAVE_SSL
-    SSL_shutdown(_ssl); 
-    SSL_free(_ssl); 
-    _ssl= NULL;
+    if (_ssl)
+    {
+      SSL_shutdown(_ssl); 
+      SSL_free(_ssl); 
+      _ssl= NULL;
+    }
 #endif // defined(HAVE_SSL)
     close(sock_fd);
     sock_fd= INVALID_SOCKET;

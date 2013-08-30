@@ -982,6 +982,7 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       // If we have data, see if it is a complete packet
       if (recv_buffer_size > 0)
       {
+        assert(recv_packet());
         size_t recv_size= gearman_packet_unpack(*(recv_packet()),
                                                 recv_buffer_ptr,
                                                 recv_buffer_size, ret);
