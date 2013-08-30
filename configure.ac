@@ -271,6 +271,7 @@ AC_DEFINE([GEARMAND_BLOBSLAP_WORKER],[1],[Have Gearman Blobslap Worker])
 
 AX_LIBEVENT(,[AC_MSG_ERROR([Unable to find libevent])])
 
+AX_UUID(,[AC_MSG_ERROR([Unable to find libuuid])])
 AX_UUID_GENERATE_TIME_SAFE
 
 AX_AM_JOBSERVER([yes])
