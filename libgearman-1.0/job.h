@@ -150,6 +150,9 @@ GEARMAN_API
 gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job);
 
 GEARMAN_API
+gearman_client_st *gearman_job_use_client(gearman_job_st *job);
+
+GEARMAN_API
   const char *gearman_job_error(gearman_job_st *job);
 
 /** @} */

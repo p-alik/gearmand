@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,69 +37,6 @@
 
 #pragma once
 
-#include "libgearman/interface/worker.hpp"
+LIBTEST_API
+gearman_return_t client_echo_WORKER(gearman_job_st *job, void *);
 
-class Job
-{
-public:
-  Job(gearman_job_st* shell_, Worker& worker_);
-  ~Job();
-
-  gearman_job_st* shell()
-  {
-    return _shell;
-  }
-
-  struct Options {
-    bool assigned_in_use;
-    bool work_in_use;
-    bool finished;
-
-    Options():
-      assigned_in_use(false),
-      work_in_use(false),
-      finished(false)
-    { }
-  } options;
-
-  bool finished() const
-  {
-    return options.finished;
-  }
-
-  void finished(const bool finished_)
-  {
-    options.finished= finished_;
-  }
-
-  Worker& _worker;
-  gearman_client_st* _client;
-  Job *next;
-  Job *prev;
-  gearman_connection_st *con;
-  gearman_packet_st assigned;
-  gearman_packet_st work;
-  struct gearman_job_reducer_st *reducer;
-  gearman_return_t _error_code;
-
-  gearman_universal_st& universal()
-  {
-    return _worker.universal;
-  }
-
-  gearman_client_st* client();
-
-  gearman_universal_st& universal() const
-  {
-    return _worker.universal;
-  }
-
-  gearman_return_t error_code() const
-  {
-    return universal().error_code();
-  }
-
-private:
-  gearman_job_st* _shell;
-  gearman_job_st _owned_shell;
-};

@@ -1,5 +1,5 @@
 1.1.10
-*
+* Added gearman_job_use_client()
 
 1.1.9 Fri Aug  2 02:39:25 EDT 2013
 * Added gearman_task_is_finished()

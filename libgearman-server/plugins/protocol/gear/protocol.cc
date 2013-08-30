@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -229,6 +229,7 @@ public:
       }
     }
 
+#if defined(VCS_CHECKOUT) && VCS_CHECKOUT
     if (packet->command == GEARMAN_COMMAND_ECHO_REQ and packet->data_size)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
@@ -284,6 +285,7 @@ public:
                          "GEAR %s",
                          gearman_strcommand(packet->command));
     }
+#endif
 
     ret_ptr= GEARMAND_SUCCESS;
     return used_size;
@@ -294,6 +296,7 @@ public:
               void *data, const size_t data_size,
               gearmand_error_t& ret_ptr)
   {
+#if defined(VCS_CHECKOUT) && VCS_CHECKOUT
     if (packet->command == GEARMAN_COMMAND_ECHO_RES and packet->data_size)
     {
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
@@ -315,6 +318,7 @@ public:
                          "GEAR %s",
                          gearman_strcommand(packet->command));
     }
+#endif
 
     if (packet->args_size == 0)
     {
