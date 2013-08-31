@@ -36,6 +36,8 @@ SYNOPSIS
 
 .. c:function:: void *gearman_job_take_workload(gearman_job_st *job, size_t *data_size)
 
+.. c:function:: gearman_client_st *gearman_job_use_client(gearman_job_st *job)
+
 Link with -lgearman
 
 -----------
@@ -54,9 +56,12 @@ job was set to execute against.
 
 :c:func:`gearman_job_unique` return the unique value that was used for :c:type:`gearman_job_st`. 
 
-returns the :c:type:`gearman_job_st` workload. The size of it can be determined with :c:func:`gearman_job_workload_size`.
+gearman_job_take_workload returns the :c:type:`gearman_job_st` workload. The size of it can be determined with :c:func:`gearman_job_workload_size`.
 :c:func:`gearman_job_take_workload` is the same as :c:func:`gearman_job_workload` with the exception that the result must be
 :manpage:`free(3)` by the caller.
+
+gearman_job_use_client returns a :c:type:`gearman_client_st` configured from gearman_job_st. The gearman_client_st can be used to communicate client API commands to the server.
+You do not, and should not, call :c:func:`gearman_client_free` on the gearman_client_st. It is cleaned up when job is cleaned up.
 
 ------------
 RETURN VALUE

@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,71 +35,33 @@
  *
  */
 
-#pragma once
+#include <gear_config.h>
 
-#include "libgearman/interface/worker.hpp"
+#include <libtest/test.hpp>
 
-class Job
+#include <libgearman-1.0/gearman.h>
+
+#include "tests/workers/v2/client_echo.h"
+
+#include <cassert>
+#include <cstring>
+
+gearman_return_t client_echo_WORKER(gearman_job_st *job, void *)
 {
-public:
-  Job(gearman_job_st* shell_, Worker& worker_);
-  ~Job();
+  gearman_client_st* client= gearman_job_use_client(job);
 
-  gearman_job_st* shell()
+  if (client)
   {
-    return _shell;
+    if (gearman_failed(gearman_client_echo(client, test_literal_param("Tastes great"))))
+    {
+      assert(gearman_client_error(client));
+      return gearman_job_send_exception(job, gearman_client_error(client), strlen(gearman_client_error(client)));
+    }
+  }
+  else
+  {
+    return gearman_job_send_exception(job, test_literal_param("Failed to allocate gearman_client_st"));
   }
 
-  struct Options {
-    bool assigned_in_use;
-    bool work_in_use;
-    bool finished;
-
-    Options():
-      assigned_in_use(false),
-      work_in_use(false),
-      finished(false)
-    { }
-  } options;
-
-  bool finished() const
-  {
-    return options.finished;
-  }
-
-  void finished(const bool finished_)
-  {
-    options.finished= finished_;
-  }
-
-  Worker& _worker;
-  gearman_client_st* _client;
-  Job *next;
-  Job *prev;
-  gearman_connection_st *con;
-  gearman_packet_st assigned;
-  gearman_packet_st work;
-  struct gearman_job_reducer_st *reducer;
-  gearman_return_t _error_code;
-
-  gearman_universal_st& universal()
-  {
-    return _worker.universal;
-  }
-
-  gearman_client_st* client();
-
-  gearman_universal_st& universal() const
-  {
-    return _worker.universal;
-  }
-
-  gearman_return_t error_code() const
-  {
-    return universal().error_code();
-  }
-
-private:
-  gearman_job_st* _shell;
-  gearman_job_st _owned_shell;
-};
+  return GEARMAN_SUCCESS;
+}

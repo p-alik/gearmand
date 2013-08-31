@@ -87,6 +87,7 @@ notrans_dist_man_MANS+= gearman_job_send_warning.3
 notrans_dist_man_MANS+= gearman_job_st.3
 notrans_dist_man_MANS+= gearman_job_take_workload.3
 notrans_dist_man_MANS+= gearman_job_unique.3
+notrans_dist_man_MANS+= gearman_job_use_client.3
 notrans_dist_man_MANS+= gearman_job_workload.3
 notrans_dist_man_MANS+= gearman_job_workload_size.3
 notrans_dist_man_MANS+= gearman_log_fn.3

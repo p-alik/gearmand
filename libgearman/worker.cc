@@ -1439,16 +1439,6 @@ gearman_id_t gearman_worker_id(gearman_worker_st *self)
   return gearman_universal_id(self->impl()->universal);
 }
 
-gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job_shell)
-{
-  if (job_shell and job_shell->impl())
-  {
-    return gearman_worker_clone(NULL, job_shell->impl()->_worker.shell());
-  }
-
-  return NULL;
-}
-
 gearman_return_t gearman_worker_set_identifier(gearman_worker_st *worker,
                                                const char *id, size_t id_size)
 {

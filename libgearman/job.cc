@@ -226,6 +226,7 @@ gearman_job_st *gearman_job_create(Worker* worker, gearman_job_st *job_shell)
 
 Job::Job(gearman_job_st* shell_, Worker& worker_):
   _worker(worker_),
+  _client(NULL),
   next(NULL),
   prev(NULL),
   con(NULL),
@@ -245,6 +246,30 @@ Job::Job(gearman_job_st* shell_, Worker& worker_):
 
   _shell->impl(this);
   gearman_set_initialized(_shell, true);
+}
+
+Job::~Job()
+{
+  if (_client)
+  {
+    gearman_client_free(_client);
+  }
+
+  delete reducer;
+}
+
+gearman_client_st* Job::client()
+{
+  if (_client == NULL)
+  {
+    _client= gearman_client_create(NULL);
+    if (_client)
+    {
+      gearman_universal_clone(_client->impl()->universal, _worker.universal);
+    }
+  }
+
+  return _client;
 }
 
 bool gearman_job_build_reducer(Job* job, gearman_aggregator_fn *aggregator_fn)
@@ -270,6 +295,27 @@ bool gearman_job_build_reducer(Job* job, gearman_aggregator_fn *aggregator_fn)
   }
 
   return true;
+}
+
+
+gearman_worker_st *gearman_job_clone_worker(gearman_job_st *job_shell)
+{
+  if (job_shell and job_shell->impl())
+  {
+    return gearman_worker_clone(NULL, job_shell->impl()->_worker.shell());
+  }
+
+  return NULL;
+}
+
+gearman_client_st *gearman_job_use_client(gearman_job_st *job_shell)
+{
+  if (job_shell and job_shell->impl())
+  {
+    return job_shell->impl()->client();
+  }
+
+  return NULL;
 }
 
 static inline void gearman_job_reset_error(Job* job)
@@ -777,9 +823,6 @@ void gearman_job_free(gearman_job_st *job_shell)
       job->next->prev= job->prev;
     }
     job->_worker.job_count--;
-
-    delete job->reducer;
-    job->reducer= NULL;
 
     delete job;
   }

@@ -292,6 +292,7 @@ man_pages = [
   ('libgearman/gearman_job_st', 'gearman_job_free_all', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_function_name', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_handle', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
+  ('libgearman/gearman_job_st', 'gearman_job_use_client', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_send_complete', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_send_data', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
   ('libgearman/gearman_job_st', 'gearman_job_send_exception', u'Gearmand Documentation, http://gearman.info/', [u'Data Differential http://www.datadifferential.com/'], 3),
