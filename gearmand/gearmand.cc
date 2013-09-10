@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
   std::string protocol;
   std::string queue_type;
   std::string job_handle_prefix;
-  std::string verbose_string= "ERROR";
+  std::string verbose_string;
   std::string config_file;
 
   uint32_t threads;
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
   ("user,u", boost::program_options::value(&user),
    "Switch to given user after startup.")
 
-  ("verbose", boost::program_options::value(&verbose_string)->default_value(verbose_string),
+  ("verbose", boost::program_options::value(&verbose_string)->default_value("ERROR"),
    "Set verbose level (FATAL, ALERT, CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG).")
 
   ("version,V", "Display the version of gearmand and exit.")
