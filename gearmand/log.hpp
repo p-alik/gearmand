@@ -143,7 +143,6 @@ struct gearmand_log_info_st
                  strerror(errno));
         }
       }
-
     }
 
     if (opt_syslog)
