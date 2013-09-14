@@ -337,38 +337,56 @@ bool SimpleClient::message(const char* ptr, const size_t len)
       off_t offset= 0;
       do
       {
-        ssize_t nw;
+        ssize_t write_size;
 #if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          nw= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
-          if (nw < 0)
+          write_size= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
+          int ssl_error;
+          switch (ssl_error= SSL_get_error(_ssl, write_size))
           {
-            int sendErr= SSL_get_error(_ssl, nw);
-            switch (sendErr)
-            {
-              case SSL_ERROR_WANT_READ:
-              case SSL_ERROR_WANT_WRITE:
-                continue;
+            case SSL_ERROR_NONE:
+              break;
 
-              default:
-                {
-                  char errorString[SSL_ERROR_SIZE];
-                  ERR_error_string_n(sendErr, errorString, sizeof(errorString));
-                  error(__FILE__, __LINE__, errorString);
-                  close_socket();
-                  return false;
-                }
-            }
+            case SSL_ERROR_ZERO_RETURN:
+              errno= ECONNRESET;
+              write_size= SOCKET_ERROR;
+              break;
+
+            case SSL_ERROR_WANT_ACCEPT:
+            case SSL_ERROR_WANT_CONNECT:
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_X509_LOOKUP:
+              errno= EAGAIN;
+              write_size= SOCKET_ERROR;
+              continue;
+
+            case SSL_ERROR_SYSCALL:
+              if (errno) // If errno is really set, then let our normal error logic handle.
+              {
+                write_size= SOCKET_ERROR;
+                break;
+              }
+
+            case SSL_ERROR_SSL:
+            default:
+              {
+                char errorString[SSL_ERROR_SIZE];
+                ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
+                error(__FILE__, __LINE__, errorString);
+                close_socket();
+                return false;
+              }
           }
         }
         else
 #endif
         {
-          nw= send(sock_fd, ptr + offset, len - offset, MSG_NOSIGNAL);
+          write_size= send(sock_fd, ptr + offset, len - offset, MSG_NOSIGNAL);
         }
 
-        if (nw == SOCKET_ERROR)
+        if (write_size == SOCKET_ERROR)
         {
           if (errno != EINTR)
           {
@@ -378,7 +396,7 @@ bool SimpleClient::message(const char* ptr, const size_t len)
         }
         else
         {
-          offset += nw;
+          offset += write_size;
         }
       } while (offset < ssize_t(len));
 
@@ -436,60 +454,77 @@ bool SimpleClient::response(libtest::vchar_t& response_)
       buffer[1]= 0;
       do
       {
-        ssize_t nr;
+        ssize_t read_size;
 #if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          nr= SSL_read(_ssl, buffer, 1);
-          if (_ssl and nr < 0)
+          read_size= SSL_read(_ssl, buffer, 1);
+          int readErr;
+          switch (readErr= SSL_get_error(_ssl, read_size))
           {
-            int readErr= SSL_get_error(_ssl, 0);
-            switch (readErr)
-            {
-              case SSL_ERROR_WANT_WRITE:
-              case SSL_ERROR_WANT_READ:
-                {
-                  continue;
-                }
+            case SSL_ERROR_NONE:
+              break;
 
-              default:
-                {
-                  char errorString[SSL_ERROR_SIZE];
-                  ERR_error_string_n(readErr, errorString, sizeof(errorString));
-                  error(__FILE__, __LINE__, errorString);
-                  return false;
-                }
-            }
+            case SSL_ERROR_ZERO_RETURN:
+              // Fall through to normal recv logic
+              read_size= 0;
+              break;
+
+            case SSL_ERROR_WANT_ACCEPT:
+            case SSL_ERROR_WANT_CONNECT:
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_X509_LOOKUP:
+              errno= EAGAIN;
+              read_size= SOCKET_ERROR;
+              break;
+
+            case SSL_ERROR_SYSCALL:
+              if (errno) // If errno is really set, then let our normal error logic handle.
+              {
+                read_size= SOCKET_ERROR;
+                break;
+              }
+
+            case SSL_ERROR_SSL:
+            default:
+              {
+                char errorString[SSL_ERROR_SIZE];
+                ERR_error_string_n(readErr, errorString, sizeof(errorString));
+                error(__FILE__, __LINE__, errorString);
+                return false;
+              }
           }
         }
         else
 #endif
         {
-          nr= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
+          read_size= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
         }
 
-        if (nr == SOCKET_ERROR)
+        if (read_size == SOCKET_ERROR)
         {
+          // For all errors other then EINTR fail
           if (errno != EINTR)
           {
             error(__FILE__, __LINE__, strerror(errno));
             return false;
           }
         }
-        else if (nr == 0)
+        else if (read_size == 0)
         {
           close_socket();
           more= false;
         }
         else
         {
-          response_.reserve(response_.size() + nr +1);
-          fatal_assert(nr == 1);
+          response_.reserve(response_.size() + read_size +1);
+          fatal_assert(read_size == 1);
           if (buffer[0] == '\n')
           {
             more= false;
           }
-          response_.insert(response_.end(), buffer, buffer +nr);
+          response_.insert(response_.end(), buffer, buffer +read_size);
         }
       } while (more);
 
@@ -514,47 +549,66 @@ bool SimpleClient::response(std::string& response_)
       buffer[1]= 0;
       do
       {
-        ssize_t nr;
+        ssize_t read_size;
 #if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          nr= SSL_read(_ssl, buffer, 1);
-          if (nr < 0)
+          int readErr;
+          read_size= SSL_read(_ssl, buffer, 1);
+          switch (readErr= SSL_get_error(_ssl, read_size))
           {
-            int readErr = SSL_get_error(_ssl, 0);
-            switch (readErr)
-            {
-              case SSL_ERROR_WANT_WRITE:
-              case SSL_ERROR_WANT_READ:
-                continue;
+            case SSL_ERROR_NONE:
+              break;
 
-              default:
-                error(__FILE__, __LINE__, "SSL_read failed");
-                return false;
-            }
+            case SSL_ERROR_ZERO_RETURN:
+              // Fall through to normal recv logic
+              read_size= 0;
+              break;
+
+            case SSL_ERROR_WANT_ACCEPT:
+            case SSL_ERROR_WANT_CONNECT:
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_X509_LOOKUP:
+              errno= EAGAIN;
+              read_size= SOCKET_ERROR;
+              break;
+
+            case SSL_ERROR_SYSCALL:
+              if (errno) // If errno is really set, then let our normal error logic handle.
+              {
+                break;
+              }
+
+            case SSL_ERROR_SSL:
+            default:
+              error(__FILE__, __LINE__, "SSL_read failed");
+              return false;
           }
         }
         else
 #endif
         {
-          nr= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
+          read_size= recv(sock_fd, buffer, 1, MSG_NOSIGNAL);
         }
-        if (nr == -1)
+
+        if (read_size == SOCKET_ERROR)
         {
           if (errno != EINTR)
           {
+            close_socket();
             error(__FILE__, __LINE__, strerror(errno));
             return false;
           }
         }
-        else if (nr == 0)
+        else if (read_size == 0)
         {
           close_socket();
           more= false;
         }
         else
         {
-          fatal_assert(nr == 1);
+          fatal_assert(read_size == 1);
           if (buffer[0] == '\n')
           {
             more= false;

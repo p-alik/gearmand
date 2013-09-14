@@ -62,6 +62,7 @@ Server* server_startup_st::last()
 
 void server_startup_st::push_server(Server *arg)
 {
+  assert(arg);
   servers.push_back(arg);
 
   std::string server_config_string;
@@ -302,7 +303,7 @@ bool server_startup_st::_start_server(const bool is_socket,
     }
 
     /*
-      We will now cycle the server we have created.
+      We will now cycle the server we have created. (In case it was already running?)
     */
     if (server->cycle() == false)
     {
@@ -312,40 +313,30 @@ bool server_startup_st::_start_server(const bool is_socket,
 
     server->init(argv);
 
-#if 0
-    if (false)
+    if (server->start())
     {
-      Out << "Pausing for startup, hit return when ready.";
-      std::string gdb_command= server->base_command();
-      getchar();
+      {
+#ifdef DEBUG
+        if (DEBUG)
+        {
+          Outn();
+          Out << "STARTING SERVER(pid:" << server->pid() << "): " << server->running();
+          Outn();
+        }
+#endif
+      }
     }
     else
-#endif
-
-      if (server->start() == false)
-      {
-        return false;
-      }
-      else
-      {
-        {
-#ifdef DEBUG
-          if (DEBUG)
-          {
-            Outn();
-            Out << "STARTING SERVER(pid:" << server->pid() << "): " << server->running();
-            Outn();
-          }
-#endif
-        }
-      }
-
-    push_server(server.release());
+    {
+      return false;
+    }
 
     if (is_socket and &server)
     {
       set_default_socket(server->socket().c_str());
     }
+
+    push_server(server.release());
   }
   catch (const libtest::disconnected& err)
   {

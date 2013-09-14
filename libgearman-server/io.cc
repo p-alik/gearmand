@@ -134,41 +134,36 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
       {
         case SSL_ERROR_NONE:
           break;
+
         case SSL_ERROR_ZERO_RETURN:
-          {
-            if (SSL_get_shutdown(con->_ssl) & SSL_RECEIVED_SHUTDOWN)
-            { // Client made a clean SSL shutdown.");
-            }
-            else
-            {
-              gearmand_log_gerror_warn(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "Client made a dirty SSL shutdown.");
-            }
-            read_size= 0; // Shutdown occured.
-            break;
-          }
+          read_size= 0;
+          break;
+
+        case SSL_ERROR_WANT_CONNECT:
+        case SSL_ERROR_WANT_ACCEPT:
         case SSL_ERROR_WANT_READ:
-          {
-            read_size= SOCKET_ERROR;
-            errno= EAGAIN;
-            break;
-          }
         case SSL_ERROR_WANT_WRITE:
-          {
-            read_size= SOCKET_ERROR;
-            errno= EAGAIN;
-            break;
-          }
+        case SSL_ERROR_WANT_X509_LOOKUP:
+          read_size= SOCKET_ERROR;
+          errno= EAGAIN;
+          break;
+
         case SSL_ERROR_SYSCALL:
+
           if (errno) // If errno is really set, then let our normal error logic handle.
           {
+            read_size= SOCKET_ERROR;
             break;
           }
+
+        case SSL_ERROR_SSL:
         default:
           { // All other errors
             char errorString[SSL_ERROR_SIZE];
             ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
+            ret= GEARMAND_LOST_CONNECTION;
+            gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%d", errorString);
             _connection_close(connection);
-            gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%d", errorString);
 
             return 0;
           }
@@ -313,7 +308,6 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
 #endif
           assert(HAVE_SSL); // Just to make sure if macro is aligned.
 
-          // I consider this to be a bug in SSL_send()/SSL_write() that is uses a zero in this manner
           int ssl_error;
           switch ((ssl_error= SSL_get_error(con->_ssl, int(write_size))))
           {
@@ -321,23 +315,15 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
               break;
 
             case SSL_ERROR_ZERO_RETURN:
-              {
-                if (SSL_get_shutdown(con->_ssl) & SSL_RECEIVED_SHUTDOWN)
-                {
-                  _connection_close(connection);
-                  return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "Client made a clean SSL shutdown during write.");
-                }
-
-                break;
-              }
-            case SSL_ERROR_WANT_CONNECT:
-            case SSL_ERROR_WANT_ACCEPT:
+              errno= ECONNRESET;
               write_size= SOCKET_ERROR;
-              errno= EAGAIN;
               break;
 
-            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_ACCEPT:
+            case SSL_ERROR_WANT_CONNECT:
             case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+            case SSL_ERROR_WANT_X509_LOOKUP:
               write_size= SOCKET_ERROR;
               errno= EAGAIN;
               break;
@@ -345,8 +331,11 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
             case SSL_ERROR_SYSCALL:
               if (errno) // If errno is really set, then let our normal error logic handle.
               {
+                write_size= SOCKET_ERROR;
                 break;
               }
+
+            case SSL_ERROR_SSL:
             default:
               {
                 char errorString[SSL_ERROR_SIZE];
@@ -376,7 +365,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
           }
           continue;
         }
-        else if (write_size == -1)
+        else if (write_size == SOCKET_ERROR)
         {
           int local_errno= errno;
           switch (local_errno)

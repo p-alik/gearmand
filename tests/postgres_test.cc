@@ -99,7 +99,7 @@ static void *world_create(server_startup_st& servers, test_return_t&)
   SKIP_IF(HAVE_UUID_UUID_H != 1);
   SKIP_IF(has_postgres_support() == false);
 
-  return new Context(default_port(), servers);
+  return new Context(servers);
 }
 
 static bool world_destroy(void *object)

@@ -234,7 +234,7 @@ static void *world_create(server_startup_st& servers, test_return_t& error)
     return NULL;
   }
 
-  return new Context(libtest::get_free_port(), servers);
+  return new Context(servers);
 }
 
 static bool world_destroy(void *object)
