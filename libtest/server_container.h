@@ -60,8 +60,10 @@ private:
 public:
 
   uint8_t udp;
+private:
   std::vector<Server *> servers;
 
+public:
   server_startup_st();
   ~server_startup_st();
 

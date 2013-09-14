@@ -289,44 +289,59 @@ bool Instance::run()
               case SSL_ERROR_NONE:
                 break;
 
-              case SSL_ERROR_WANT_READ:
-              case SSL_ERROR_WANT_WRITE:
+              case SSL_ERROR_ZERO_RETURN:
+                errno= ECONNRESET;
+                write_size= SOCKET_ERROR;
+                break;
+
               case SSL_ERROR_WANT_ACCEPT:
               case SSL_ERROR_WANT_CONNECT:
+              case SSL_ERROR_WANT_READ:
+              case SSL_ERROR_WANT_WRITE:
               case SSL_ERROR_WANT_X509_LOOKUP:
-                continue;
+                errno= EAGAIN;
+                write_size= SOCKET_ERROR;
+                break;
 
               case SSL_ERROR_SYSCALL:
                 {
-                  std::stringstream msg;
-                  msg << "Error occured on SSL_acceptsend(" << strerror(errno) << ")";
-                  _last_error= msg.str();
+                  if (errno)
+                  {
+                    write_size= SOCKET_ERROR;
+                    break;
+                  }
                 }
-                return false;
 
               case SSL_ERROR_SSL:
-              case SSL_ERROR_ZERO_RETURN:
               default:
                 {
                   char cyassl_error_buffer[SSL_ERROR_SIZE]= { 0 };
                   ERR_error_string_n(ssl_error, cyassl_error_buffer, sizeof(cyassl_error_buffer));
                   _last_error= cyassl_error_buffer;
+
+                  errno= ECONNRESET;
+                  write_size= SOCKET_ERROR;
+
+                  break;
                 }
-                return false;
             }
           }
           else
 #endif
           {
             write_size= send(_sockfd, packet, packet_length, 0);
+          }
 
-            if (write_size < 0)
+          if (write_size == SOCKET_ERROR)
+          {
+            if (_last_error.empty())
             {
               std::stringstream msg;
               msg << "Failed during send(" << strerror(errno) << ")";
               _last_error= msg.str();
-              return false;
             }
+
+            return false;
           }
 
           packet_length-= static_cast<size_t>(write_size);
@@ -339,7 +354,7 @@ bool Instance::run()
     case READING:
       if (operation->has_response())
       {
-        ssize_t read_length;
+        ssize_t read_size;
 
         do
         {
@@ -348,11 +363,15 @@ bool Instance::run()
           if (_ssl)
           {
             {
-              read_length= SSL_read(_ssl, (void *)buffer, sizeof(buffer));
+              read_size= SSL_read(_ssl, (void *)buffer, sizeof(buffer));
               int ssl_error;
-              switch ((ssl_error= SSL_get_error(_ssl, int(read_length))))
+              switch ((ssl_error= SSL_get_error(_ssl, int(read_size))))
               {
                 case SSL_ERROR_NONE:
+                  break;
+
+                case SSL_ERROR_ZERO_RETURN:
+                  read_size= 0;
                   break;
 
                 case SSL_ERROR_WANT_READ:
@@ -360,24 +379,30 @@ bool Instance::run()
                 case SSL_ERROR_WANT_ACCEPT:
                 case SSL_ERROR_WANT_CONNECT:
                 case SSL_ERROR_WANT_X509_LOOKUP:
-                  continue;
+                  read_size= SOCKET_ERROR;
+                  errno= EAGAIN;
+                  break;
 
                 case SSL_ERROR_SYSCALL:
                   {
-                    std::stringstream msg;
-                    msg << "Error occured on SSL_acceptsend(" << strerror(errno) << ")";
-                    _last_error= msg.str();
-                    return false;
+                    if (errno)
+                    {
+                      std::stringstream msg;
+                      msg << "Error occured on SSL_acceptsend(" << strerror(errno) << ")";
+                      _last_error= msg.str();
+                      read_size= SOCKET_ERROR;
+                      break;
+                    }
                   }
 
                 case SSL_ERROR_SSL:
-                case SSL_ERROR_ZERO_RETURN:
                 default:
                   {
                     char cyassl_error_buffer[SSL_ERROR_SIZE]= { 0 };
                     ERR_error_string_n(ssl_error, cyassl_error_buffer, sizeof(cyassl_error_buffer));
                     _last_error= cyassl_error_buffer;
-                    return false;
+                    read_size= SOCKET_ERROR;
+                    break;
                   }
               }
             }
@@ -385,25 +410,30 @@ bool Instance::run()
           else
 #endif
           {
-            read_length= ::recv(_sockfd, buffer, sizeof(buffer), 0);
+            read_size= ::recv(_sockfd, buffer, sizeof(buffer), 0);
           }
 
-          if (read_length == 0)
+          if (read_size == 0)
           {
             _last_error.clear();
             _last_error+= "Socket was shutdown while reading from ";
             _last_error+= _host;
+
             return false;
           }
-          else if (read_length < 0)
+          else if (read_size == SOCKET_ERROR)
           {
-            _last_error.clear();
-            _last_error+= "Error occured while reading data from ";
-            _last_error+= _host;
+            if (_last_error.empty())
+            {
+              _last_error.clear();
+              _last_error+= "Error occured while reading data from ";
+              _last_error+= _host;
+            }
+
             return false;
           }
 
-          operation->push(buffer, static_cast<size_t>(read_length));
+          operation->push(buffer, static_cast<size_t>(read_size));
 
         } while (more_to_read());
       } // end has_response

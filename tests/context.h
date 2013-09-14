@@ -21,7 +21,7 @@
  *  promote products derived from this software without specific prior
  *  written permission.
  *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ *  THIs soFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
  *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
@@ -43,17 +43,19 @@
 
 class Context
 {
-public:
-  gearman_worker_st *worker;
+private:
+  gearman_worker_st *_worker;
   in_port_t _port;
   std::string _worker_function_name;
+
+public:
   server_startup_st &_servers;
   bool run_worker;
   std::vector<std::string> _extra_files;
 
-  Context(in_port_t port_arg, server_startup_st &server_arg):
-    worker(NULL),
-    _port(port_arg),
+  Context(server_startup_st &server_arg):
+    _worker(NULL),
+    _port(get_free_port()),
     _worker_function_name("queue_test"),
     _servers(server_arg),
     run_worker(false)
@@ -71,6 +73,21 @@ public:
     return _worker_function_name.c_str();
   }
 
+  gearman_worker_st* worker() 
+  {
+    if (_worker)
+    {
+      return _worker;
+    }
+
+    _worker= gearman_worker_create(NULL);
+    ASSERT_TRUE(_worker);
+
+    ASSERT_TRUE(gearman_success(gearman_worker_add_server(_worker, NULL, _port)));
+
+    return _worker;
+  }
+
   in_port_t port() const
   {
     return _port;
@@ -78,12 +95,7 @@ public:
 
   bool initialize(const char *argv[])
   {
-    _port= get_free_port();
     ASSERT_TRUE(server_startup(_servers, "gearmand", _port, argv));
-
-    ASSERT_TRUE(worker= gearman_worker_create(NULL));
-
-    ASSERT_TRUE(gearman_success(gearman_worker_add_server(worker, NULL, _port)));
 
     return true;
   }
@@ -107,9 +119,10 @@ public:
   void reset()
   {
     _servers.clear();
-    gearman_worker_free(worker);
+    gearman_worker_free(_worker);
 
-    worker= NULL;
+    _worker= NULL;
     extra_clear();
+    _port= get_free_port();
   }
 };

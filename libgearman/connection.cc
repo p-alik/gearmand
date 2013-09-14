@@ -835,22 +835,27 @@ gearman_return_t gearman_connection_st::flush()
               break;
 
             case SSL_ERROR_ZERO_RETURN:
-              {
-                if (SSL_get_shutdown(_ssl) & SSL_RECEIVED_SHUTDOWN)
-                {
-                  close_socket();
-                  return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "Client made a clean SSL shutdown during write.");
-                }
-              }
+              errno= ECONNRESET;
+              write_size= SOCKET_ERROR;
+              break;
 
             case SSL_ERROR_WANT_CONNECT:
             case SSL_ERROR_WANT_ACCEPT:
             case SSL_ERROR_WANT_WRITE:
             case SSL_ERROR_WANT_READ:
-              write_size= SOCKET_ERROR;
+            case SSL_ERROR_WANT_X509_LOOKUP:
               errno= EAGAIN;
+              write_size= SOCKET_ERROR;
               break;
 
+            case SSL_ERROR_SYSCALL:
+              if (errno) // If errno is really set, then let our normal error logic handle.
+              {
+                write_size= SOCKET_ERROR;
+                break;
+              }
+
+            case SSL_ERROR_SSL:
             default:
               {
                 char errorString[80];
@@ -1136,26 +1141,26 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
           break;
 
         case SSL_ERROR_ZERO_RETURN:
-          {
-            if (SSL_get_shutdown(_ssl) & SSL_RECEIVED_SHUTDOWN)
-            { // Client made a clean SSL shutdown.");
-            }
-            else
-            {
-              gearman_log_info(universal, "Client made a dirty SSL shutdown.");
-            }
-            read_size= 0; // Shutdown occured.
-            break;
-          }
+          read_size= 0;
+          break;
 
         case SSL_ERROR_WANT_CONNECT:
         case SSL_ERROR_WANT_ACCEPT:
         case SSL_ERROR_WANT_WRITE:
         case SSL_ERROR_WANT_READ:
-          read_size= SOCKET_ERROR;
+        case SSL_ERROR_WANT_X509_LOOKUP:
           errno= EAGAIN;
+          read_size= SOCKET_ERROR;
           break;
 
+        case SSL_ERROR_SYSCALL:
+          if (errno) // If errno is really set, then let our normal error logic handle.
+          {
+            read_size= SOCKET_ERROR;
+            break;
+          }
+
+        case SSL_ERROR_SSL:
         default:
           {
             char errorString[80];

@@ -291,7 +291,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
         struct timespec ts;
         if (fill_timespec(ts))
         {
-          ts.tv_sec+= 30;
+          ts.tv_sec+= 300;
           pthread_error= pthread_timedjoin_np(thread->id, NULL, &ts);
           if (pthread_error)
           {

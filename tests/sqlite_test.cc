@@ -615,7 +615,7 @@ static void *world_create(server_startup_st& servers, test_return_t&)
   SKIP_IF(HAVE_UUID_UUID_H != 1);
   SKIP_IF(test_for_HAVE_LIBSQLITE3() == false);
 
-  return new Context(libtest::get_free_port(), servers);
+  return new Context(servers);
 }
 
 static bool world_destroy(void *object)
