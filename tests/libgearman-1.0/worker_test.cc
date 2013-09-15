@@ -1697,15 +1697,13 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
 
 /*********************** World functions **************************************/
 
-static void *world_create(server_startup_st& servers, test_return_t& error)
+static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  if (server_startup(servers, "gearmand", libtest::default_port(), NULL) == false)
-  {
-    error= TEST_SKIPPED;
-    return NULL;
-  }
+  ASSERT_TRUE(server_startup(servers, "gearmand", libtest::default_port(), NULL));
 
-  return NULL;
+  ASSERT_TRUE(server_startup(servers, "gearmand", libtest::get_free_port(), NULL));
+
+  return &servers;
 }
 
 test_st worker_TESTS[] ={
