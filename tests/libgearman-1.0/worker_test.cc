@@ -68,6 +68,9 @@ using namespace org::gearmand;
 #include "tests/workers/v2/call_exception.h"
 #include "tests/workers/v2/check_order.h"
 
+// Port to second gearmand server
+static in_port_t second_port;
+
 #if 0
 static gearman_return_t exception_fn(gearman_task_st* task)
 {
@@ -1523,6 +1526,8 @@ static test_return_t gearman_worker_set_identifier_TEST(void *)
 {
   libgearman::Worker worker(libtest::default_port());
 
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, second_port));
+
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_worker_set_identifier(&worker, test_literal_param(__func__)));
 
@@ -1532,6 +1537,7 @@ static test_return_t gearman_worker_set_identifier_TEST(void *)
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work(void *)
 {
   libgearman::Worker worker(libtest::default_port());
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, second_port));
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
   snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
@@ -1701,7 +1707,8 @@ static void *world_create(server_startup_st& servers, test_return_t&)
 {
   ASSERT_TRUE(server_startup(servers, "gearmand", libtest::default_port(), NULL));
 
-  ASSERT_TRUE(server_startup(servers, "gearmand", libtest::get_free_port(), NULL));
+  second_port= libtest::get_free_port();
+  ASSERT_TRUE(server_startup(servers, "gearmand", second_port, NULL));
 
   return &servers;
 }
