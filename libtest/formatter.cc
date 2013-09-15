@@ -124,7 +124,7 @@ void Junit::report(const libtest::TestCase* test, size_t) const
   _output << "\t\t<testcase name=\"" 
     << test->name() 
     << "\" time=\"" 
-    << test->timer().elapsed_milliseconds() 
+    << test->timer()
     << "\">" 
     << std::endl;
 
@@ -170,7 +170,7 @@ void TAP::report(const libtest::TestCase* test, size_t position) const
   {
     case TEST_SUCCESS:
       _output << "ok " << position << " - " << test->name() << " # ";
-      _output << test->timer().elapsed_milliseconds();
+      _output << test->timer();
       break;
 
     case TEST_FAILURE:
