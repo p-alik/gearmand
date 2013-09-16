@@ -47,6 +47,8 @@
 
 #include "libgearman/assert.hpp"
 
+#include "libgearman/log.hpp"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -847,6 +849,11 @@ gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
                   return NULL;
                 }
 
+                if (worker->job()->impl()->assigned.command == GEARMAN_COMMAND_NOOP)
+                {
+                  gearman_log_debug(worker->universal, "Recieved NOOP");
+                }
+
                 if (worker->job()->impl()->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN or
                     worker->job()->impl()->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_ALL or
                     worker->job()->impl()->assigned.command == GEARMAN_COMMAND_JOB_ASSIGN_UNIQ)
@@ -1124,6 +1131,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
           switch (worker->work_function->callback(worker->work_job(),
                                                           static_cast<void *>(worker->work_function->context)))
           {
+            // @todo look at this from a "what should we do" view.
             case GEARMAN_FUNCTION_INVALID_ARGUMENT:
               // worker returned an invalid response, gearman_return_t
             case GEARMAN_FUNCTION_FATAL:

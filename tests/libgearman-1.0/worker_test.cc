@@ -673,7 +673,7 @@ static test_return_t echo_max_test(void *)
 
 // The idea is to return GEARMAN_ERROR until we hit limit, then return
 // GEARMAN_SUCCESS
-static gearman_return_t GEARMAN_ERROR_worker(gearman_job_st* job, void *context)
+static gearman_return_t GEARMAN_ERROR_limit_worker(gearman_job_st* job, void *context)
 {
   assert(gearman_job_workload_size(job) == 0);
   assert(gearman_job_workload(job) == NULL);
@@ -692,6 +692,13 @@ static gearman_return_t GEARMAN_ERROR_worker(gearman_job_st* job, void *context)
   }
 
   return GEARMAN_SUCCESS;
+}
+
+static gearman_return_t GEARMAN_ERROR_worker(gearman_job_st*, void* context)
+{
+  size_t *ret= (size_t*)context;
+  *ret= (*ret) +1;
+  return GEARMAN_ERROR;
 }
 
 static gearman_return_t error_return_worker(gearman_job_st* job, void *)
@@ -778,13 +785,91 @@ static test_return_t error_return_TEST(void *)
   return TEST_SUCCESS;
 }
 
-static test_return_t GEARMAN_ERROR_return_TEST(void *)
+static test_return_t GEARMAN_ERROR_check_retry_TEST(void *)
 {
   libgearman::Client client(libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
 
   size_t count= 0;
   gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           GEARMAN_ERROR_FN,
+                                                           &count,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  gearman_task_st *task= gearman_execute(&client,
+                                         test_literal_param(__func__),
+                                         NULL, 0, // unique
+                                         NULL, // gearman_task_attr_t
+                                         NULL, // gearman_argument_t
+                                         NULL); // context
+  ASSERT_NOT_NULL(task);
+
+  gearman_return_t ret;
+  do {
+    ret= gearman_client_run_tasks(&client);
+    ASSERT_TRUE(gearman_success(ret) or ret == GEARMAN_IO_WAIT);
+  } while (gearman_client_has_active_tasks(&client));
+
+  ASSERT_EQ(GEARMAN_WORK_FAIL, gearman_task_return(task));
+  ASSERT_EQ(count, 30);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t GEARMAN_ERROR_always_return_TEST(void *)
+{
+  libgearman::Client client(libtest::default_port());
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
+
+  size_t count= 0;
+  gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_worker);
+  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                           NULL,
+                                                           __func__,
+                                                           GEARMAN_ERROR_FN,
+                                                           &count,
+                                                           gearman_worker_options_t(),
+                                                           0)); // timeout
+
+  std::vector<gearman_task_st*> tasks;
+  for (size_t x= 0; x < 24; x++)
+  {
+    gearman_task_st *task= gearman_execute(&client,
+                                           test_literal_param(__func__),
+                                           NULL, 0, // unique
+                                           NULL, // gearman_task_attr_t
+                                           NULL, // gearman_argument_t
+                                           NULL); // context
+    test_truth(task);
+    tasks.push_back(task);
+  }
+
+  gearman_return_t ret;
+  do {
+    ret= gearman_client_run_tasks(&client);
+    ASSERT_TRUE(gearman_success(ret) or ret == GEARMAN_IO_WAIT);
+  } while (gearman_client_has_active_tasks(&client));
+
+  for (std::vector<gearman_task_st*>::iterator iter= tasks.begin(); iter != tasks.end(); iter++)
+  {
+    ASSERT_TRUE(*iter);
+    ASSERT_EQ(GEARMAN_WORK_FAIL, gearman_task_return(*iter));
+  }
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t GEARMAN_ERROR_return_TEST(void *)
+{
+  libgearman::Client client(libtest::default_port());
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
+
+  size_t count= 0;
+  gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_limit_worker);
   std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
                                                            NULL,
                                                            __func__,
@@ -1705,10 +1790,11 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
 
 static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  ASSERT_TRUE(server_startup(servers, "gearmand", libtest::default_port(), NULL));
+  const char *argv[]= { "--job-retries=30", NULL };
+  ASSERT_TRUE(server_startup(servers, "gearmand", libtest::default_port(), argv));
 
   second_port= libtest::get_free_port();
-  ASSERT_TRUE(server_startup(servers, "gearmand", second_port, NULL));
+  ASSERT_TRUE(server_startup(servers, "gearmand", second_port, argv));
 
   return &servers;
 }
@@ -1740,6 +1826,8 @@ test_st worker_TESTS[] ={
   {"gearman_return_t worker return coverage", 0, error_return_TEST },
   {"gearman_return_t GEARMAN_FAIL worker coverage", 0, GEARMAN_FAIL_return_TEST },
   {"gearman_return_t GEARMAN_ERROR worker coverage", 0, GEARMAN_ERROR_return_TEST },
+  {"gearman_return_t GEARMAN_ERROR worker always errors", 0, GEARMAN_ERROR_always_return_TEST },
+  {"gearman_return_t GEARMAN_ERROR worker always errors check retry", 0, GEARMAN_ERROR_check_retry_TEST },
   {"gearman_client_run_tasks()", 0, gearman_client_run_tasks_increase_TEST },
   {"gearman_client_run_tasks() GEARMAN_CLIENT_NON_BLOCKING", 0, gearman_client_run_tasks_increase_GEARMAN_CLIENT_NON_BLOCKING_TEST },
   {"gearman_client_run_tasks() chunked", 0, gearman_client_run_tasks_increase_chunk_TEST },

@@ -98,6 +98,7 @@ void gearman_log_info(gearman_universal_st& gearman, const char *format, ...)
 
 void gearman_log_debug(gearman_universal_st& gearman, const char *format, ...)
 {
+#if defined(DEBUG) && DEBUG
   va_list args;
 
   if (gearman.verbose >= GEARMAN_VERBOSE_DEBUG)
@@ -106,5 +107,9 @@ void gearman_log_debug(gearman_universal_st& gearman, const char *format, ...)
     __logger(gearman, GEARMAN_VERBOSE_DEBUG, format, args);
     va_end(args);
   }
+#else
+  (void)gearman;
+  (void)format;
+#endif
 }
 #pragma GCC diagnostic pop

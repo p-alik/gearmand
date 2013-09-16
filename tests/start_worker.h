@@ -66,8 +66,19 @@ public:
   volatile bool failed_startup;
   boost::shared_ptr<libtest::thread::Thread> _thread;
 
+  void error(gearman_return_t)
+  {
+    _error_count++;
+  }
+
+  bool error()
+  {
+    return _error_count;
+  }
+
 private:
   bool _shutdown;
+  uint64_t _error_count;
   libtest::thread::Mutex _shutdown_lock;
   gearman_id_t _worker_id;
   libtest::thread::Barrier _sync_point;
