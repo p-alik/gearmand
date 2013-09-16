@@ -224,6 +224,7 @@ static void thread_runner(context_st* con)
 
     if (ret != GEARMAN_SUCCESS and ret != GEARMAN_INVALID_ARGUMENT and ret != GEARMAN_WORK_FAIL)
     {
+      context->handle->error();
 #if 0
       Error <<  context->function_name << ": " << gearman_strerror(ret) << ": " << gearman_worker_error(&worker);
 #endif
@@ -276,6 +277,7 @@ void worker_handle_st::set_worker_id(gearman_worker_st* worker)
 worker_handle_st::worker_handle_st() :
   failed_startup(false),
   _shutdown(false),
+  _error_count(0),
   _worker_id(gearman_id_t()),
   _sync_point(2)
 {

@@ -3,6 +3,7 @@
 * Improve compile time.
 * Fix for NOOP failure (bad worker causes early exit of loop).
 * Fix for postgres (use INFORMATION_SCHEMA).
+* Added gearman_client_has_active_tasks() so that you can see if a client has active tasks that it is working on.
 
 1.1.9 Fri Aug  2 02:39:25 EDT 2013
 * Added gearman_task_is_finished()

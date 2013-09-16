@@ -712,26 +712,28 @@ size_t gearman_client_count_tasks(gearman_client_st *client_shell)
   return count;
 }
 
-#if 0
-static bool _active_tasks(gearman_client_st *client_shell)
+bool gearman_client_has_active_tasks(gearman_client_st *client_shell)
 {
-  assert(client_shell);
-  gearman_task_st *search= client_shell->impl()->task_list;
-
-  if (not search)
-    return false;
-
-  do
+  if (client_shell and client_shell->impl())
   {
-    if (gearman_task_is_active(search))
+    Client* client= client_shell->impl();
+
+    if (client->task_list and client->task_list->impl())
     {
-      return true;
+      gearman_task_st* search= client->task_list;
+
+      do
+      {
+        if (gearman_task_is_active(search))
+        {
+          return true;
+        }
+      } while ((search= search->impl()->next));
     }
-  } while ((search= search->next));
+  }
 
   return false;
 }
-#endif
 
 const char *gearman_client_do_job_handle(gearman_client_st *self)
 {
