@@ -152,7 +152,7 @@ gearman_connection_st *gearman_connection_create(gearman_universal_st& universal
                                                  const char *host, const in_port_t& port_)
 {
   const char *service_ptr= NULL;
-  char service[GEARMAN_NI_MAXSERV];
+  char service[GEARMAN_NI_MAXSERV]= { 0 };
 
   if (port_ < 1)
   {
