@@ -1,3 +1,6 @@
+1.1.11
+* Workers which return a bad gearman_return_t will be counted as an error by the server and not a final (i.e. they will be retried).
+
 1.1.10 Mon Sep 16 04:20:13 CDT 2013
 * Added gearman_job_use_client()
 * Improve compile time.

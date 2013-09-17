@@ -128,5 +128,5 @@ gearman_function_error_t FunctionV2::callback(gearman_job_st* job_shell, void *c
   gearman_universal_set_error(job->universal(), GEARMAN_INVALID_ARGUMENT, GEARMAN_AT,
                               "Worker returned invalid gearman_return_t:  %s",
                               gearman_strerror(error));
-  return GEARMAN_FUNCTION_INVALID_ARGUMENT;
+  return GEARMAN_FUNCTION_ERROR;
 }
