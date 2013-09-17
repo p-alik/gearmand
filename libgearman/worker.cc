@@ -1131,9 +1131,6 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
           switch (worker->work_function->callback(worker->work_job(),
                                                           static_cast<void *>(worker->work_function->context)))
           {
-            // @todo look at this from a "what should we do" view.
-            case GEARMAN_FUNCTION_INVALID_ARGUMENT:
-              // worker returned an invalid response, gearman_return_t
             case GEARMAN_FUNCTION_FATAL:
               if (gearman_job_send_fail_fin(worker->work_job()->impl()) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
               {

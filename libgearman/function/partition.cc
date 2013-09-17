@@ -126,5 +126,8 @@ gearman_function_error_t Partition::callback(gearman_job_st* job_shell, void *co
     break;
   }
 
-  return GEARMAN_FUNCTION_INVALID_ARGUMENT;
+  gearman_universal_set_error(job->universal(), GEARMAN_INVALID_WORKER_FUNCTION, GEARMAN_AT,
+                              "Worker returned invalid gearman_return_t:  %s",
+                              gearman_strerror(error));
+  return GEARMAN_FUNCTION_ERROR;
 }

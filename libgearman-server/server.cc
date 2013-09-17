@@ -585,7 +585,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         ret= gearman_server_io_packet_add(server_con, false,
                                           GEARMAN_MAGIC_RESPONSE,
                                           GEARMAN_COMMAND_NOOP, NULL);
-        if (ret != GEARMAND_SUCCESS)
+        if (gearmand_failed(ret))
         {
           return gearmand_gerror("gearman_server_io_packet_add", ret);
         }
