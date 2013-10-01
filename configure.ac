@@ -10,6 +10,11 @@ m4_include([version.m4])
 AC_REVISION([m4_esyscmd_s([bzr revno])])
 AC_PREREQ([2.63])
 AC_INIT([gearmand],VERSION_NUMBER,[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
+
+# Setup the compilers early on
+AC_PROG_CC([cc gcc clang])
+AC_PROG_CXX([c++ g++ clang++])
+
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -22,6 +27,9 @@ AM_INIT_AUTOMAKE([1.12 color-tests -Wno-portability subdir-objects foreign tar-u
 AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS-DOS.
 AC_SUBST([AUTOHEADER_FILE],[gear_config.h])
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
+
+AC_PROG_CC_C99
+AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
 
 GEARMAN_LIBRARY_VERSION=8:0:0
 #                       | | |
@@ -40,11 +48,6 @@ AC_SUBST([GEARMAN_LIBRARY_VERSION])
 LT_PREREQ([2.2])
 LT_INIT
 LT_LANG([C++])
-
-AC_PROG_CXX
-AC_PROG_CC
-AC_PROG_CC_C99
-AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
 
 AX_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -313,9 +316,9 @@ echo ""
 echo "   * Installation prefix:       $prefix"
 echo "   * System type:               $host_vendor-$host_os"
 echo "   * Host CPU:                  $host_cpu"
-echo "   * C Compiler:                $CC_VERSION"
+echo "   * C Compiler:                $CC $CC_VERSION"
 echo "   * C Flags:                   $CFLAGS"
-echo "   * C++ Compiler:              $CXX_VERSION"
+echo "   * C++ Compiler:              $CXX $CXX_VERSION"
 echo "   * C++ Flags:                 $CXXFLAGS"
 echo "   * CPP Flags:                 $CPPFLAGS"
 echo "   * LIBS:                      $LIBS"
