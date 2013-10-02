@@ -66,7 +66,7 @@ static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool
     {
 #if 0
       gearman_universal_initialize(client_shell->impl()->universal);
-  gearman_universal_initialize(universal);
+      gearman_universal_initialize(universal);
 #endif
     }
 

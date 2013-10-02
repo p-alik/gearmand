@@ -91,13 +91,7 @@ void gearman_nap(gearman_universal_st &self)
 
 void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source)
 {
-  int wakeup_fd[2];
-
-  if (source.has_wakeup())
-  {
-    wakeup_fd[0]= destination.wakeup_fd[0];
-    wakeup_fd[1]= destination.wakeup_fd[1];
-  }
+  destination.wakeup(source.wakeup());
 
   (void)gearman_universal_set_option(destination, GEARMAN_UNIVERSAL_NON_BLOCKING, source.options.non_blocking);
 
