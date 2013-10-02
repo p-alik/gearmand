@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
  *  Copyright (C) 2008 Brian Aker, Eric Day
  *  All rights reserved.
  *
@@ -42,8 +42,6 @@
 #include "libgearman/uuid.hpp"
 #include <libgearman/function/base.hpp>
 #include <libgearman/function/make.hpp>
-
-#include "libgearman/pipe.h"
 
 #include "libgearman/assert.hpp"
 
@@ -159,7 +157,7 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker_shell,
     worker->options.timeout_return= source->options.timeout_return;
     worker->ssl(source->ssl());
 
-    gearman_universal_clone(worker->universal, source->universal, true);
+    gearman_universal_clone(worker->universal, source->universal);
 
     if (gearman_failed(_worker_packet_init(worker)))
     {
@@ -183,16 +181,6 @@ void gearman_worker_free(gearman_worker_st *worker_shell)
   if (worker_shell and worker_shell->impl())
   {
     Worker* worker= worker_shell->impl();
-    if (worker->universal.wakeup_fd[0] != INVALID_SOCKET)
-    {
-      close(worker->universal.wakeup_fd[0]);
-    }
-
-    if (worker->universal.wakeup_fd[1] != INVALID_SOCKET)
-    {
-      close(worker->universal.wakeup_fd[1]);
-    }
-
     gearman_worker_unregister_all(worker_shell);
 
     if (worker->options.packet_init)
@@ -1250,7 +1238,7 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker_shell, bool
 #endif
     }
 
-    if (setup_shutdown_pipe(worker->universal.wakeup_fd) == false)
+    if (worker->universal.wakeup(true) == false)
     {
       delete worker;
       return NULL;

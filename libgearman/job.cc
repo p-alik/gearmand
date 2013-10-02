@@ -89,7 +89,7 @@ struct gearman_job_reducer_st {
     client= gearman_client_create(NULL);
     if (client)
     {
-      gearman_universal_clone(client->impl()->universal, universal, false);
+      gearman_universal_clone(client->impl()->universal, universal);
 #if 0
       if (universal._namespace)
       {

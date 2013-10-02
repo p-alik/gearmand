@@ -105,6 +105,16 @@ struct gearman_universal_st : public error_st
     options._ssl= ssl_;
   }
 
+  private:
+  void close_wakeup();
+
+  public:
+  bool wakeup(bool);
+  bool has_wakeup() const
+  {
+    return wakeup_fd[0] != INVALID_SOCKET;
+  }
+
   bool is_non_blocking() const
   {
     return options.non_blocking;

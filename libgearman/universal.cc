@@ -52,6 +52,8 @@
 #include "libgearman/log.hpp"
 #include "libgearman/vector.h"
 #include "libgearman/uuid.hpp"
+#include "libgearman/pipe.h"
+
 
 #include "libgearman/protocol/echo.h"
 #include "libgearman/protocol/option.h"
@@ -87,21 +89,9 @@ void gearman_nap(gearman_universal_st &self)
   gearman_nap(self.timeout);
 }
 
-void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source, bool has_wakeup_fd)
+void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source)
 {
-  int wakeup_fd[2];
-
-  if (has_wakeup_fd)
-  {
-    wakeup_fd[0]= destination.wakeup_fd[0];
-    wakeup_fd[1]= destination.wakeup_fd[1];
-  }
-
-  if (has_wakeup_fd)
-  {
-    destination.wakeup_fd[0]= wakeup_fd[0];
-    destination.wakeup_fd[1]= wakeup_fd[1];
-  }
+  destination.wakeup(source.has_wakeup());
 
   (void)gearman_universal_set_option(destination, GEARMAN_UNIVERSAL_NON_BLOCKING, source.options.non_blocking);
 
@@ -224,6 +214,23 @@ void gearman_free_all_cons(gearman_universal_st& universal)
   }
 }
 
+bool gearman_universal_st::wakeup(bool has_wakeup_)
+{
+  if (has_wakeup_)
+  {
+    if (wakeup_fd[0] == INVALID_SOCKET)
+    {
+      return setup_shutdown_pipe(wakeup_fd);
+    }
+
+    return true;
+  }
+
+  close_wakeup();
+
+  return true;
+}
+
 void gearman_universal_st::reset()
 {
   for (gearman_connection_st *con= con_list; con; con= con->next_connection())
@@ -254,7 +261,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 {
   struct pollfd *pfds;
 
-  bool have_shutdown_pipe= universal.wakeup_fd[0] == INVALID_SOCKET ? false : true;
+  bool have_shutdown_pipe= universal.has_wakeup();
   size_t con_count= universal.con_count +int(have_shutdown_pipe);
 
   if (universal.pfds_size < con_count)
@@ -408,8 +415,23 @@ gearman_connection_st *gearman_ready(gearman_universal_st& universal)
   return NULL;
 }
 
+void gearman_universal_st::close_wakeup()
+{
+  if (wakeup_fd[0] != INVALID_SOCKET)
+  {
+    close(wakeup_fd[0]);
+  }
+
+  if (wakeup_fd[1] != INVALID_SOCKET)
+  {
+    close(wakeup_fd[1]);
+  }
+}
+
 gearman_universal_st::~gearman_universal_st()
 {
+  close_wakeup();
+
   gearman_string_free(_identifier);
   gearman_string_free(_namespace);
 #if defined(HAVE_SSL) && HAVE_SSL

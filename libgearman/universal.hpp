@@ -43,7 +43,7 @@
 // Get next connection that is ready for I/O.
 gearman_connection_st *gearman_ready(gearman_universal_st&);
 
-void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source, bool has_wakeup_fd= false);
+void gearman_universal_clone(gearman_universal_st &destination, const gearman_universal_st &source);
 
 void gearman_universal_free(gearman_universal_st &gearman);
 
