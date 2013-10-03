@@ -82,7 +82,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 20
+#serial 21
 
 AU_ALIAS([ACX_PTHREAD], [AX_PTHREAD])
 AC_DEFUN([AX_PTHREAD], [
@@ -160,7 +160,13 @@ case ${host_os} in
         ;;
 
         darwin*)
-        ax_pthread_flags="-pthread $ax_pthread_flags"
+        if test "$CC" = "clang"; then 
+          ax_pthread_flags="$ax_pthread_flags"
+        elif test "$CC" = "clang++"; then 
+          ax_pthread_flags="$ax_pthread_flags"
+        else 
+         ax_pthread_flags="-pthread $ax_pthread_flags"
+        fi
         ;;
 esac
 
