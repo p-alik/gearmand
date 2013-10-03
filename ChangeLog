@@ -1,4 +1,4 @@
-1.1.11
+1.1.11 Thu Oct  3 04:38:47 EDT 2013
 * Workers which return a bad gearman_return_t will be counted as an error by the server and not a final (i.e. they will be retried).
 * Fixed possible bug where the server would over count the number of NOOP sent if NOOP messages did not get sent.
 
