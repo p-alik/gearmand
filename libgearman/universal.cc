@@ -68,6 +68,9 @@
 #include <cctype>
 #include <unistd.h>
 #include <memory>
+#ifdef HAVE_SYS_EPOLL_H
+# include <sys/epoll.h>
+#endif
 
 void gearman_nap(int arg)
 {
