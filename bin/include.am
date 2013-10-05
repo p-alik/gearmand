@@ -24,10 +24,10 @@ bin_gearadmin_SOURCES+= bin/gearadmin.cc
 bin_gearadmin_SOURCES+= util/instance.cc
 bin_gearadmin_SOURCES+= util/operation.cc
 
-bin_gearadmin_CXXFLAGS= @BOOST_CPPFLAGS@
-bin_gearadmin_LDFLAGS= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
 bin_gearadmin_LDADD=
-bin_gearadmin_LDADD+= $(BOOST_PROGRAM_OPTIONS_LIBS)
+bin_gearadmin_LDADD+= @BOOST_PROGRAM_OPTIONS_LIB@
+bin_gearadmin_LDFLAGS=
+
 if ENABLE_SSL
 if ENABLE_CYASSL
 bin_gearadmin_LDADD+= @CYASSL_LIB@

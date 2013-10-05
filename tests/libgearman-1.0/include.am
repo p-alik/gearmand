@@ -14,7 +14,6 @@ t_client_CXXFLAGS=
 t_client_SOURCES=
 t_client_LDADD=
 
-t_client_CXXFLAGS+= $(BOOST_CPPFLAGS)
 t_client_CXXFLAGS+= @PTHREAD_CFLAGS@
 t_client_SOURCES+= tests/libgearman-1.0/client_test.cc 
 t_client_SOURCES+= tests/libgearman-1.0/do.cc 

@@ -30,7 +30,6 @@ tests_libstartworker_la_CXXFLAGS=
 tests_libstartworker_la_LIBADD=
 tests_libstartworker_la_SOURCES=
 
-tests_libstartworker_la_CXXFLAGS+= $(BOOST_CPPFLAGS)
 tests_libstartworker_la_CXXFLAGS+= @PTHREAD_CFLAGS@
 tests_libstartworker_la_LIBADD+= @PTHREAD_LIBS@
 tests_libstartworker_la_LIBADD+= @RT_LIB@
