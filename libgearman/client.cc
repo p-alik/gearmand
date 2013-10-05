@@ -1451,7 +1451,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
       /* See if there are any connections ready for I/O. */
       while ((client->con= gearman_ready(client->universal)))
       {
-        if (client->con->revents & (POLLOUT | POLLERR | POLLHUP | POLLNVAL))
+        if (client->con->is_revents(POLLOUT | POLLERR | POLLHUP | POLLNVAL))
         {
           /* Socket is ready for writing, continue submitting jobs. */
           for (client->task= client->task_list; client->task;
@@ -1484,7 +1484,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
           }
 
           /* Connection errors are fatal. */
-          if (client->con->revents & (POLLERR | POLLHUP | POLLNVAL))
+          if (client->con->is_revents(POLLERR | POLLHUP | POLLNVAL))
           {
             gearman_error(client->universal, GEARMAN_LOST_CONNECTION, "detected lost connection in _client_run_tasks()");
             client->con->close_socket();
@@ -1493,7 +1493,7 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
           }
         }
 
-        if ((client->con->revents & POLLIN) == 0)
+        if ((client->con->is_revents(POLLIN)) == false)
         {
           continue;
         }

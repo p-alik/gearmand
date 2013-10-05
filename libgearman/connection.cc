@@ -92,8 +92,8 @@ gearman_connection_st::gearman_connection_st(gearman_universal_st &universal_arg
   state(GEARMAN_CON_UNIVERSAL_ADDRINFO),
   send_state(GEARMAN_CON_SEND_STATE_NONE),
   recv_state(GEARMAN_CON_RECV_UNIVERSAL_NONE),
-  events(0),
-  revents(0),
+  _events(0),
+  _revents(0),
   fd(INVALID_SOCKET),
   _ssl(NULL),
   cached_errno(0),
@@ -298,8 +298,8 @@ void gearman_connection_st::close_socket()
 
     state= GEARMAN_CON_UNIVERSAL_CONNECT;
     fd= INVALID_SOCKET;
-    events= 0;
-    revents= 0;
+    _events= 0;
+    _revents= 0;
 
     send_state= GEARMAN_CON_SEND_STATE_NONE;
     send_buffer_ptr= send_buffer;
@@ -778,13 +778,13 @@ gearman_return_t gearman_connection_st::flush()
     case GEARMAN_CON_UNIVERSAL_CONNECTING:
       while (1)
       {
-        if (revents & (POLLERR | POLLHUP | POLLNVAL))
+        if (_revents & (POLLERR | POLLHUP | POLLNVAL))
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECT;
           addrinfo_next= addrinfo_next->ai_next;
           break;
         }
-        else if (revents & POLLOUT)
+        else if (_revents & POLLOUT)
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTED;
           gearman_return_t ssl_ret;
@@ -1235,12 +1235,12 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
 
 void gearman_connection_st::set_events(short arg)
 {
-  if ((events | arg) == events)
+  if ((_events | arg) == _events)
   {
     return;
   }
 
-  events|= arg;
+  _events|= arg;
 }
 
 void gearman_connection_st::set_revents(short arg)
@@ -1250,8 +1250,8 @@ void gearman_connection_st::set_revents(short arg)
     options.ready= true;
   }
 
-  revents= arg;
-  events&= short(~arg);
+  _revents= arg;
+  _events&= short(~arg);
 }
 
 /*

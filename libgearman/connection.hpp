@@ -62,9 +62,42 @@ struct gearman_connection_st
   enum gearman_con_universal_t state;
   enum gearman_con_send_t send_state;
   enum gearman_con_recv_t recv_state;
-  short events;
-  short revents;
+
+  void set_pollfd(struct pollfd& pollfd_)
+  {
+    pollfd_.fd= socket_descriptor();
+    pollfd_.events= _events;
+    pollfd_.revents= 0;
+  }
+
+  bool events()
+  {
+    return _events;
+  }
+
+  bool is_events(int events_)
+  {
+    if (_events & events_)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool is_revents(int revents_)
+  {
+    if (_revents & revents_)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
 private:
+  short _events;
+  short _revents;
   int fd;
   SSL* _ssl;
   int cached_errno;
