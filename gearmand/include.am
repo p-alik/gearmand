@@ -24,10 +24,9 @@ EXTRA_gearmand_gearmand_DEPENDENCIES=
 gearmand_gearmand_LDFLAGS=
 gearmand_gearmand_SOURCES=
 
-gearmand_gearmand_CXXFLAGS+= $(BOOST_CPPFLAGS)
 EXTRA_gearmand_gearmand_DEPENDENCIES+= configmake.h
 gearmand_gearmand_LDADD+= libgearman-server/libgearman-server.la
-gearmand_gearmand_LDFLAGS+= $(BOOST_PROGRAM_OPTIONS_LDFLAGS)
+gearmand_gearmand_LDFLAGS+= @BOOST_PROGRAM_OPTIONS_LIB@
 gearmand_gearmand_SOURCES+= configmake.h
 gearmand_gearmand_SOURCES+= gearmand/gearmand.cc
 gearmand_gearmand_SOURCES+= util/daemon.cc

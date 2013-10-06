@@ -54,8 +54,8 @@ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 # First look for Boost, maybe for a specific minimum version:
 AC_DEFUN([CHECK_BOOST],
-         [BOOST_REQUIRE([1.39])
-         BOOST_PROGRAM_OPTIONS])
+         [AX_BOOST_BASE([1.39],,[AC_MSG_ERROR(could not find boost)])
+         AX_BOOST_PROGRAM_OPTIONS])
 CHECK_BOOST
 
 m4_include([libhashkit/include.m4])
@@ -283,7 +283,7 @@ AS_IF([test "x${TARGET_LINUX}" = "xtrue"],
       [AC_DEFINE([BUILD_LIBHOSTILE],[1],[Build libhostile])],[AC_DEFINE([BUILD_LIBHOSTILE],[0],[Build libhostile])])
 AM_CONDITIONAL([TARGET_HOSTILE],[test "x${TARGET_LINUX}" = "xtrue"])
 
-AX_PTHREAD(, [AC_MSG_ERROR(could not find libpthread)])
+AX_PTHREAD(, [AC_MSG_ERROR(could not find Posix Pthread support)])
 AX_PTHREAD_TIMEDJOIN_NP
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
