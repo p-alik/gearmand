@@ -223,8 +223,16 @@ set_VENDOR_RELEASE ()
           echo "mountain_lion"
           VENDOR_RELEASE='mountain_lion'
           ;;
+        10.9)
+          echo "mavericks"
+          VENDOR_RELEASE='mavericks'
+          ;;
+        10.9.*)
+          echo "mavericks"
+          VENDOR_RELEASE='mavericks'
+          ;;
         *)
-          echo $VENDOR_RELEASE
+          echo $release
           VENDOR_RELEASE='unknown'
           ;;
       esac
@@ -421,7 +429,7 @@ run_configure ()
   # If we are executing on OSX use CLANG, otherwise only use it if we find it in the ENV
   case $HOST_OS in
     *-darwin-*)
-      run CC=clang CXX=clang++ $top_srcdir/configure "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=clang CXX=clang++ configure $BUILD_CONFIGURE_ARG"
+      run CC=clang CXX=clang++ $CONFIGURE "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=clang CXX=clang++ configure $BUILD_CONFIGURE_ARG"
       ret=$?
       ;;
     rhel-5*)
@@ -460,7 +468,7 @@ setup_valgrind_command ()
 {
   VALGRIND_PROGRAM="$(type -p valgrind)"
   if [[ -n "$VALGRIND_PROGRAM" ]]; then
-    VALGRIND_COMMAND="$VALGRIND_PROGRAM --leak-check=yes --malloc-fill=A5 --free-fill=DE --xml=yes --xml-file=\"valgrind-%p.xml\""
+    VALGRIND_COMMAND="$VALGRIND_PROGRAM --error-exitcode=1 --leak-check=yes --malloc-fill=A5 --free-fill=DE --xml=yes --xml-file=\"valgrind-%p.xml\""
   fi
 }
 
@@ -793,18 +801,14 @@ make_for_clang_analyzer ()
 
   CC=clang CXX=clang++
   export CC CXX
+  CONFIGURE='scan-build ./configure'
   CONFIGURE_ARGS='--enable-debug'
 
-  make_skeleton
-  ret=$?
-
-  make_target 'clean' 'warn'
+  run_configure
 
   scan-build -o clang-html make -j4 -k
 
   restore_BUILD
-
-  return $ret
 }
 
 # If we are locally testing, we should make sure the environment is setup correctly
@@ -1010,6 +1014,9 @@ make_rpm ()
 {
   if command_exists 'rpmbuild'; then
     if [ -f 'rpm.am' -o -d 'rpm' ]; then
+      mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+      mkdir -p ~/rpmbuild/RPMS/{i386,i486,i586,i686,noarch,athlon}
+
       run_configure_if_required
       make_target 'rpm'
 
@@ -1118,7 +1125,7 @@ run ()
 
 parse_command_line_options ()
 {
-  local SHORTOPTS=':apcmo:t:dvh'
+  local SHORTOPTS=':apcmt:dvh'
 
   nassert OPT_TARGET
 
