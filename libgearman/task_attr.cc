@@ -45,7 +45,7 @@
 
 gearman_task_st *gearman_next(gearman_task_st *shell)
 {
-  if (shell)
+  if (shell and shell->impl())
   {
     return shell->impl()->next;
   }

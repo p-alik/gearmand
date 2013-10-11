@@ -68,6 +68,9 @@
 #include <cctype>
 #include <unistd.h>
 #include <memory>
+#ifdef HAVE_SYS_EPOLL_H
+# include <sys/epoll.h>
+#endif
 
 void gearman_nap(int arg)
 {
@@ -248,7 +251,7 @@ void gearman_universal_st::flush()
 {
   for (gearman_connection_st *con= con_list; con; con= con->next_connection())
   {
-    if (con->events & POLLOUT)
+    if (con->is_events(POLLOUT))
     {
       continue;
     }
@@ -284,15 +287,11 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   nfds_t x= 0;
   for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
-    if (con->events == 0)
+    if (con->events())
     {
-      continue;
+      con->set_pollfd(pfds[x]);
+      x++;
     }
-
-    pfds[x].fd= con->socket_descriptor();
-    pfds[x].events= con->events;
-    pfds[x].revents= 0;
-    x++;
   }
 
   if (x == 0)
@@ -343,24 +342,22 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
   x= 0;
   for (gearman_connection_st *con= universal.con_list; con; con= con->next_connection())
   {
-    if (con->events == 0)
+    if (con->events())
     {
-      continue;
-    }
-
-    if (pfds[x].revents & (POLLERR | POLLHUP | POLLNVAL))
-    {
-      int err;
-      socklen_t len= sizeof (err);
-      if (getsockopt(pfds[x].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
+      if (pfds[x].revents & (POLLERR | POLLHUP | POLLNVAL))
       {
-        con->error(err);
+        int err;
+        socklen_t len= sizeof (err);
+        if (getsockopt(pfds[x].fd, SOL_SOCKET, SO_ERROR, &err, &len) == 0)
+        {
+          con->error(err);
+        }
       }
+
+      con->set_revents(pfds[x].revents);
+
+      x++;
     }
-
-    con->set_revents(pfds[x].revents);
-
-    x++;
   }
 
   if (have_shutdown_pipe and pfds[pipe_array_iterator].revents)

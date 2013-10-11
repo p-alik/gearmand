@@ -144,6 +144,16 @@ struct Client
     universal.ssl(ssl_);
   }
 
+  const char* error() const
+  {
+    return universal.error();
+  }
+
+  gearman_return_t error_code() const
+  {
+    return universal.error_code();
+  }
+
 private:
   gearman_client_st* _shell;
   gearman_client_st _owned_shell;

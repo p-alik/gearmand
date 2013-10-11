@@ -81,12 +81,12 @@ static bool has_hostile()
 }
 #pragma GCC diagnostic pop
 
-static in_port_t hostile_server= 0;
-static in_port_t& current_server_= hostile_server;
+static in_port_t hostile_server_port= 0;
+static in_port_t& current_server_= hostile_server_port;
 
 static void reset_server()
 {
-  current_server_= hostile_server;
+  current_server_= hostile_server_port;
 }
 
 static in_port_t current_server()
@@ -358,9 +358,9 @@ static test_return_t hostile_gearmand_SETUP(void* object)
   test_skip(true, libtest::is_massive());
 
   // Programmer error
-  assert(hostile_server);
+  assert(hostile_server_port);
 
-  set_server(hostile_server);
+  set_server(hostile_server_port);
   worker_ramp_SETUP(object);
 
   return TEST_SUCCESS;
@@ -544,11 +544,11 @@ static test_return_t connect_TEARDOWN(void* object)
 
 static void *world_create(server_startup_st& servers, test_return_t&)
 {
-  SKIP_IF(valgrind_is_caller() == true);
-  SKIP_IF(has_hostile() == false);
+  SKIP_IF(valgrind_is_caller());
+  SKIP_UNLESS(has_hostile());
 
-  hostile_server= libtest::get_free_port();
-  ASSERT_TRUE(server_startup(servers, SERVER_TARGET, hostile_server, NULL));
+  hostile_server_port= libtest::get_free_port();
+  ASSERT_TRUE(server_startup(servers, SERVER_TARGET, hostile_server_port, NULL));
 
   return new worker_handles_st;
 }
