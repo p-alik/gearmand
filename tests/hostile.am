@@ -70,6 +70,7 @@ valgrind-hostile_libgearman: t/hostile_libgearman gearmand/gearmand
 gdb-hostile_libgearman: t/hostile_libgearman gearmand/gearmand
 	@$(GDB_COMMAND) t/hostile_libgearman
 
+.PHONY: hostile
 hostile: test-hostile-gearmand test-hostile_libgearman
 
 gdb-hostile: gdb-hostile-gearmand gdb-hostile_libgearman
