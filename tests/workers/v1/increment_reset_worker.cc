@@ -71,7 +71,7 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     free(temp);
     if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
     {
-      gearman_job_send_warning(job, test_literal_param("strtol() failed"));
+      gearman_job_send_exception(job, test_literal_param("strtol() failed"));
       *ret_ptr= GEARMAN_WORK_FAIL;
       return NULL;
     }
@@ -83,9 +83,9 @@ void *increment_reset_worker(gearman_job_st *job, void *,
     counter= counter +change;
 
     result= (char *)malloc(40);
-    if (not result)
+    if (result == NULL)
     {
-      gearman_job_send_warning(job, test_literal_param("malloc() failed"));
+      gearman_job_send_exception(job, test_literal_param("malloc() failed"));
       *ret_ptr= GEARMAN_WORK_FAIL;
       return NULL;
     }
