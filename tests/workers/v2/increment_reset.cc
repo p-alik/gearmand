@@ -73,7 +73,7 @@ gearman_return_t increment_reset_worker_v2(gearman_job_st *job, void *)
     change= strtol(temp, (char **)NULL, 10);
     if (change ==  LONG_MIN or change == LONG_MAX or ( change == 0 and errno < 0))
     {
-      gearman_job_send_warning(job, test_literal_param("strtol() failed"));
+      gearman_job_send_exception(job, test_literal_param("strtol() failed"));
       return GEARMAN_FAIL;
     }
   }
