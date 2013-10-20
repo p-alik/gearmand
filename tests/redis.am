@@ -17,7 +17,7 @@ t_redis_LDADD+= ${CLIENT_LDADD}
 t_redis_SOURCES+= tests/basic.cc
 t_redis_SOURCES+= tests/redis.cc
 
-#check_PROGRAMS += t/redis
+check_PROGRAMS += t/redis
 noinst_PROGRAMS += t/redis
 
 test-redis: t/redis gearmand/gearmand
