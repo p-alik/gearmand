@@ -78,7 +78,7 @@ void initialize(boost::program_options::options_description &all)
   }
 #endif
 
-#if defined(HAVE_LIBHIREDIS) && HAVE_LIBHIREDIS
+#if defined(HAVE_HIREDIS) && HAVE_HIREDIS
   if (HAVE_HIREDIS)
   {
     queue::initialize_redis();
