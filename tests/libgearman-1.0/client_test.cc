@@ -867,8 +867,8 @@ static test_return_t bug_518512_test(void *)
   test_zero(result_size);
 
   gearman_function_t func_arg= gearman_function_create_v1(client_test_temp_worker);
-  std::auto_ptr<worker_handle_st> completion_worker(test_worker_start(libtest::default_port(), NULL, "client_test_temp",
-                                                                      func_arg, NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> completion_worker(test_worker_start(libtest::default_port(), NULL, "client_test_temp",
+                                                                        func_arg, NULL, gearman_worker_options_t()));
 
   libgearman::Client client2(libtest::default_port());
   gearman_client_set_timeout(&client2, -1);
@@ -931,9 +931,9 @@ static test_return_t regression_785203_do_test(void *)
   }
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
-                                                           __func__,
-                                                           func, NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+                                                             __func__,
+                                                             func, NULL, gearman_worker_options_t()));
 
   gearman_return_t rc;
   size_t result_length;
@@ -952,9 +952,9 @@ static test_return_t regression_785203_do_background_test(void *object)
   test_true(original_client);
 
   gearman_function_t echo_react_chunk_fn_v2= gearman_function_create_v2(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
-                                                           __func__,
-                                                           echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
+                                                             __func__,
+                                                             echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
 
   libgearman::Client client(libtest::default_port());
 
@@ -1011,11 +1011,11 @@ static test_return_t gearman_worker_timeout_TEST(void *object)
   test_truth(client);
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
-                                                                  __func__,
-                                                                  dreaming_fn, NULL,
-                                                                  gearman_worker_options_t(),
-                                                                  0));
+  std::unique_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
+                                                                    __func__,
+                                                                    dreaming_fn, NULL,
+                                                                    gearman_worker_options_t(),
+                                                                    0));
 
   /*
     The client should get a timeout since the "sleeper" will sleep longer then the timeout.
@@ -1048,11 +1048,11 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
   int timeout= ECHO_OR_REACT_DREAM/4;
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
-                                                                  __func__,
-                                                                  dreaming_fn, NULL,
-                                                                  gearman_worker_options_t(),
-                                                                  timeout));
+  std::unique_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
+                                                                    __func__,
+                                                                    dreaming_fn, NULL,
+                                                                    gearman_worker_options_t(),
+                                                                    timeout));
 
   /*
     The client should get a timeout since the "sleeper" will sleep longer then the timeout.
@@ -1079,11 +1079,11 @@ static test_return_t regression_975591_TEST(void *object)
   test_true(client);
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
-                                                                  __func__,
-                                                                  dreaming_fn, NULL,
-                                                                  gearman_worker_options_t(),
-                                                                  0));
+  std::unique_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
+                                                                    __func__,
+                                                                    dreaming_fn, NULL,
+                                                                    gearman_worker_options_t(),
+                                                                    0));
   size_t payload_size[] = { 100, 1000, 10000, 1000000, 1000000, 0 };
   libtest::vchar_t payload;
   for (size_t *ptr= payload_size; *ptr; ptr++)
@@ -1197,9 +1197,9 @@ static test_return_t regression_833394_test(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
 
   gearman_function_t echo_react_chunk_fn_v2= gearman_function_create_v2(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_54, echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
-  std::auto_ptr<worker_handle_st> handle1(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_55, echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
-  std::auto_ptr<worker_handle_st> handle2(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_65, echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_54, echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> handle1(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_55, echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> handle2(test_worker_start(libtest::default_port(), NULL, REGRESSION_FUNCTION_833394_65, echo_react_chunk_fn_v2, NULL, gearman_worker_options_t()));
 
   for (size_t x= 0; x < 100; x++)
   {

@@ -231,13 +231,13 @@ static gearman_return_t job_retry_WORKER(gearman_job_st* job, void *context_arg)
 static test_return_t _job_retry_TEST(Context *context, Limit& limit)
 {
   gearman_function_t job_retry_FN= gearman_function_create(job_retry_WORKER);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(context->port(),
-                                                           NULL,
-                                                           __func__,
-                                                           job_retry_FN,
-                                                           &limit,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(context->port(),
+                                                             NULL,
+                                                             __func__,
+                                                             job_retry_FN,
+                                                             &limit,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
   libgearman::Client client(context->port());
 
   gearman_return_t rc;

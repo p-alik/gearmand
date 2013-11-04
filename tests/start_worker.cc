@@ -114,7 +114,7 @@ struct context_st {
 
 static void thread_runner(context_st* con)
 {
-  std::auto_ptr<context_st> context(con);
+  std::unique_ptr<context_st> context(con);
 
   assert(context.get());
   assert(context.get() == con);
