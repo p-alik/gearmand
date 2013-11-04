@@ -49,33 +49,34 @@
 
 _worker_function_st *make(gearman_vector_st* namespace_arg,
                           const char *name, size_t name_length, 
-                          const gearman_function_t &function_arg, 
-                          void *context_arg)
+                          const gearman_function_t &function_, 
+                          void *context_arg, const int timeout_)
 {
   _worker_function_st *function= NULL;
 
-  switch (function_arg.kind)
+  switch (function_.kind)
   {
     case GEARMAN_WORKER_FUNCTION_V1:
-      function= new (std::nothrow) FunctionV1(function_arg.callback.function_v1.func, context_arg);
+      function= new (std::nothrow) FunctionV1(function_, function_.callback.function_v1.func, context_arg);
       break;
 
     case GEARMAN_WORKER_FUNCTION_V2:
-      function= new (std::nothrow) FunctionV2(function_arg.callback.function_v2.func, context_arg);
+      function= new (std::nothrow) FunctionV2(function_, function_.callback.function_v2.func, context_arg);
       break;
 
     case GEARMAN_WORKER_FUNCTION_PARTITION:
-      function= new (std::nothrow) Partition(function_arg.callback.partitioner.func, 
-                                             function_arg.callback.partitioner.aggregator,
+      function= new (std::nothrow) Partition(function_,
+                                             function_.callback.partitioner.func, 
+                                             function_.callback.partitioner.aggregator,
                                              context_arg);
       break;
 
     case GEARMAN_WORKER_FUNCTION_NULL:
-      function= new (std::nothrow) Null(context_arg);
+      function= new (std::nothrow) Null(function_, context_arg);
       break;
   }
 
-  if (function and function->init(namespace_arg, name, name_length) == false)
+  if (function and function->init(namespace_arg, name, name_length, timeout_) == false)
   {
     delete function;
     return NULL;

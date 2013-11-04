@@ -38,12 +38,14 @@
 
 #include <sys/types.h>
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 #include <libtest/visibility.h>
 
 #include <boost/shared_ptr.hpp>
 
 #include "tests/workers/v2/called.h"
+
+#include "libgearman/worker.hpp"
 
 struct worker_handle_st
 {
@@ -101,6 +103,9 @@ private:
 };
 
 #pragma once
+
+LIBTEST_API
+worker_handle_st *worker_run(const org::gearmand::libgearman::Worker&);
 
 LIBTEST_API
   struct worker_handle_st *test_worker_start(in_port_t port, 

@@ -44,7 +44,7 @@
 namespace libtest {
 
 #ifdef __APPLE__
-static const struct timeval default_it_value= { 1200, 0 };
+static const struct timeval default_it_value= { 2400, 0 };
 #else
 static const struct timeval default_it_value= { 600, 0 };
 #endif
@@ -58,9 +58,15 @@ void set_alarm()
 {
   if (gdb_is_caller() == false)
   {
-    if (setitimer(ITIMER_VIRTUAL, &defualt_timer, NULL) == -1)
+    struct itimerval old_timer;
+    if (setitimer(ITIMER_VIRTUAL, &defualt_timer, &old_timer) == -1)
     {
       Error << "setitimer() failed";
+    }
+
+    if (old_timer.it_interval.tv_sec != 0 or old_timer.it_value.tv_sec != 0)
+    {
+      Error << "setitimer() return an old_timer structure which wasn't zero";
     }
   }
 }

@@ -48,7 +48,7 @@ using namespace libtest;
 #include <cstring>
 #include <unistd.h>
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 #include <libgearman/connection.hpp>
 #include "libgearman/command.h"
 #include "libgearman/packet.hpp"
@@ -62,11 +62,12 @@ using namespace org::gearmand;
 
 #include "tests/start_worker.h"
 #include "tests/workers/v2/call_exception.h"
+#include "tests/workers/v2/call_exception.h"
+#include "tests/workers/v2/check_order.h"
 #include "tests/workers/v2/client_echo.h"
 #include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/call_exception.h"
-#include "tests/workers/v2/check_order.h"
+#include "tests/workers/v2/echo_specific_worker.h"
 
 // Port to second gearmand server
 static in_port_t second_port;
@@ -135,9 +136,19 @@ static test_return_t gearman_worker_clone_NULL_SOURCE(void *)
 {
   libgearman::Worker source;
 
+  gearman_function_t worker_fn= gearman_function_create(echo_specific_worker);
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_define_function(&source,
+                                                            __func__, strlen(__func__),
+                                                            worker_fn,
+                                                            0,
+                                                            NULL));
+  ASSERT_EQ(true, gearman_worker_function_exist(&source, __func__, strlen(__func__)));
+
   gearman_worker_st *worker= gearman_worker_clone(NULL, &source);
-  test_truth(worker);
+  ASSERT_TRUE(worker);
   ASSERT_EQ(true, gearman_is_allocated(worker));
+  ASSERT_EQ(true, gearman_worker_function_exist(worker, __func__, strlen(__func__)));
+
   gearman_worker_free(worker);
 
   return TEST_SUCCESS;
@@ -1786,6 +1797,57 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t worker_connect_too_multiple_server_TEST(void *)
+{
+#if 0
+  libgearman::Worker worker(libtest::default_port());
+
+  // Now add a port which we do not have a server running on
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, second_port));
+
+  gearman_function_t worker_fn= gearman_function_create(echo_specific_worker);
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
+                                                            __func__, strlen(__func__),
+                                                            worker_fn,
+                                                            0,
+                                                            NULL));
+
+  std::auto_ptr<worker_handle_st> handle(worker_run(worker));
+
+  libgearman::Client client_one(libtest::default_port());
+
+  libgearman::Client client_two(libtest::default_port());
+
+  {
+    size_t result_size;
+    gearman_return_t rc;
+    void* result= gearman_client_do(&client_one,
+                                    __func__,
+                                    NULL,
+                                    NULL, 0, // workload, workload_size
+                                    &result_size,
+                                    &rc);
+    ASSERT_TRUE(result_size);
+    ASSERT_NOT_NULL(result);
+  }
+
+  {
+    size_t result_size;
+    gearman_return_t rc;
+    void* result= gearman_client_do(&client_two,
+                                    __func__,
+                                    NULL,
+                                    NULL, 0, // workload, workload_size
+                                    &result_size,
+                                    &rc);
+    ASSERT_TRUE(result_size);
+    ASSERT_NOT_NULL(result);
+  }
+
+#endif
+  return TEST_SUCCESS;
+}
+
 /*********************** World functions **************************************/
 
 static void *world_create(server_startup_st& servers, test_return_t&)
@@ -1837,6 +1899,7 @@ test_st worker_TESTS[] ={
   {"gearman_job_client()", 0, gearman_job_client_TEST },
   {"job order", 0, job_order_TEST },
   {"job background order", 0, job_order_background_TEST },
+  {"check worker's connection to multiple servers", 0, worker_connect_too_multiple_server_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}

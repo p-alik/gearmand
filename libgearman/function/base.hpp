@@ -66,52 +66,92 @@ struct _worker_function_st
 
   struct _worker_function_st *next;
   struct _worker_function_st *prev;
-  char *function_name;
-  size_t function_length;
-  void *context;
 
-  _worker_function_st(void *context_arg) : 
+  private:
+  char* _function_name;
+  size_t _function_length;
+  size_t _namespace_length;
+  void* _context;
+  struct gearman_function_t _function;
+  int _timeout;
+
+  public:
+
+  _worker_function_st(const gearman_function_t& function_, void *context_) : 
     next(NULL),
     prev(NULL),
-    function_name(NULL),
-    function_length(0),
-    context(context_arg)
+    _function_name(NULL),
+    _function_length(0),
+    _namespace_length(0),
+    _context(context_),
+    _function(function_),
+    _timeout(0)
   { }
 
   virtual bool has_callback() const= 0;
 
   virtual gearman_function_error_t callback(gearman_job_st* job, void *context_arg)= 0;
 
-  bool init(gearman_vector_st* namespace_arg, const char *name_arg, size_t size)
+  bool init(gearman_vector_st* namespace_,
+            const char *name_, const size_t size,
+            const int timeout_)
   {
-    function_length= gearman_string_length(namespace_arg) +size;
-    function_name= new (std::nothrow) char[function_length +1];
-    if (function_name == NULL)
+    _timeout= timeout_;
+
+    _namespace_length= gearman_string_length(namespace_);
+    _function_length= _namespace_length +size;
+    _function_name= new (std::nothrow) char[_function_length +1];
+    if (_function_name == NULL)
     {
       return false;
     }
 
-    char *ptr= function_name;
-    if (gearman_string_length(namespace_arg))
+    char *ptr= _function_name;
+    if (gearman_string_length(namespace_))
     {
-      memcpy(ptr, gearman_string_value(namespace_arg), gearman_string_length(namespace_arg));
-      ptr+= gearman_string_length(namespace_arg);
+      memcpy(ptr, gearman_string_value(namespace_), gearman_string_length(namespace_));
+      ptr+= gearman_string_length(namespace_);
     }
 
-    memcpy(ptr, name_arg, size);
-    function_name[function_length]= 0;
+    memcpy(ptr, name_, size);
+    _function_name[_function_length]= 0;
 
     return true;
   }
 
+  int timeout() const
+  {
+    return _timeout;
+  }
+
   const char *name() const
   {
-    return function_name;
+    return _function_name;
+  }
+
+  const char *function_name() const
+  {
+    return _function_name +_namespace_length;
+  }
+
+  size_t function_length() const
+  {
+    return length() -_namespace_length;
   }
 
   size_t length() const
   {
-    return function_length;
+    return _function_length;
+  }
+
+  const gearman_function_t& function()
+  {
+    return _function;
+  }
+
+  void* context()
+  {
+    return _context;
   }
 
   virtual ~_worker_function_st()
@@ -121,7 +161,7 @@ struct _worker_function_st
       gearman_packet_free(&_packet);
     }
 
-    delete [] function_name;
+    delete [] _function_name;
   }
 
   gearman_packet_st& packet()
