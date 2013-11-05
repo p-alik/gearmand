@@ -61,16 +61,16 @@
  * @{
  */
 
-static inline struct _worker_function_st *_function_exist(Worker* worker, const char *function_name, size_t function_length)
+static inline struct _worker_function_st *_function_exist(Worker* worker, const char *function_name, const size_t function_length)
 {
   struct _worker_function_st *function;
 
   for (function= worker->function_list; function;
        function= function->next)
   {
-    if (function_length == function->function_length)
+    if (function_length == function->function_length())
     {
-      if (memcmp(function_name, function->function_name, function_length) == 0)
+      if (memcmp(function_name, function->function_name(), function_length) == 0)
       {
         break;
       }
@@ -99,7 +99,7 @@ static gearman_return_t _worker_add_server(const char *host, in_port_t port, voi
  * Allocate and add a function to the register list.
  */
 static gearman_return_t _worker_function_create(Worker *worker,
-                                                const char *function_name, size_t function_length,
+                                                const char *function_name, const size_t function_length,
                                                 const gearman_function_t &function,
                                                 uint32_t timeout,
                                                 void *context);
@@ -163,6 +163,17 @@ gearman_worker_st *gearman_worker_clone(gearman_worker_st *worker_shell,
     {
       gearman_worker_free(worker_shell);
       return NULL;
+    }
+
+    for (struct _worker_function_st* function= source->function_list;
+         function;
+         function= function->next)
+    {
+      _worker_function_create(worker,
+                              function->function_name(), function->function_length(),
+                              function->function(),
+                              function->timeout(),
+                              function->context());
     }
   }
 
@@ -1092,8 +1103,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
                worker->work_function;
                worker->work_function= worker->work_function->next)
           {
-            if (not strcmp(gearman_job_function_name(worker->work_job()),
-                           worker->work_function->function_name))
+            if (strcmp(gearman_job_function_name(worker->work_job()), worker->work_function->name()) == 0)
             {
               break;
             }
@@ -1117,7 +1127,7 @@ gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
       case GEARMAN_WORKER_WORK_UNIVERSAL_FUNCTION:
         {
           switch (worker->work_function->callback(worker->work_job(),
-                                                          static_cast<void *>(worker->work_function->context)))
+                                                  static_cast<void *>(worker->work_function->context())))
           {
             case GEARMAN_FUNCTION_FATAL:
               if (gearman_job_send_fail_fin(worker->work_job()->impl()) == GEARMAN_LOST_CONNECTION) // If we fail this, we have no connection, @note this causes us to lose the current error
@@ -1283,7 +1293,7 @@ static gearman_return_t _worker_add_server(const char *host, in_port_t port, voi
 }
 
 static gearman_return_t _worker_function_create(Worker *worker,
-                                                const char *function_name, size_t function_length,
+                                                const char *function_name_, const size_t function_length_,
                                                 const gearman_function_t &function_arg,
                                                 uint32_t timeout,
                                                 void *context)
@@ -1291,9 +1301,9 @@ static gearman_return_t _worker_function_create(Worker *worker,
   const void *args[2];
   size_t args_size[2];
 
-  if (function_length == 0 or function_name == NULL or function_length > GEARMAN_FUNCTION_MAX_SIZE)
+  if (function_length_ == 0 or function_name_ == NULL or function_length_ > GEARMAN_FUNCTION_MAX_SIZE)
   {
-    if (function_length > GEARMAN_FUNCTION_MAX_SIZE)
+    if (function_length_ > GEARMAN_FUNCTION_MAX_SIZE)
     {
       gearman_error(worker->universal, GEARMAN_INVALID_ARGUMENT, "function name longer then GEARMAN_MAX_FUNCTION_SIZE");
     } 
@@ -1305,7 +1315,9 @@ static gearman_return_t _worker_function_create(Worker *worker,
     return GEARMAN_INVALID_ARGUMENT;
   }
 
-  _worker_function_st *function= make(worker->universal._namespace, function_name, function_length, function_arg, context);
+  _worker_function_st *function= make(worker->universal._namespace,
+                                      function_name_, function_length_,
+                                      function_arg, context, timeout);
   if (function == NULL)
   {
     gearman_perror(worker->universal, errno, "_worker_function_st::new()");

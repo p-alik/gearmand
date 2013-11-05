@@ -79,6 +79,7 @@ t_worker_SOURCES+= tests/libgearman-1.0/worker_test.cc
 t_worker_SOURCES+= tests/workers/v2/call_exception.cc
 t_worker_SOURCES+= tests/workers/v2/echo_or_react.cc
 t_worker_SOURCES+= tests/workers/v2/echo_or_react_chunk.cc
+t_worker_SOURCES+= tests/workers/v2/echo_specific_worker.cc
 t_worker_LDADD+= ${LIBGEARMAN_1_0_CLIENT_LDADD}
 t_worker_LDADD+= libgearman/libgearmancore.la
 check_PROGRAMS+=t/worker

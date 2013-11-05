@@ -83,6 +83,31 @@ public:
     gearman_worker_add_server(_worker, "localhost", arg);
   }
 
+  Worker(const Worker& worker_)
+  {
+    _worker= gearman_worker_clone(NULL, &worker_);
+
+    if (_worker == NULL)
+    {
+      throw std::runtime_error("gearman_worker_create() failed");
+    }
+    enable_logging();
+    enable_ssl();
+  }
+
+  void operator=(const Worker& worker_)
+  { 
+    gearman_worker_free(_worker);
+    _worker= gearman_worker_clone(NULL, &worker_);
+
+    if (_worker == NULL)
+    {
+      throw std::runtime_error("gearman_worker_create() failed");
+    }
+    enable_logging();
+    enable_ssl();
+  }
+
   gearman_worker_st* operator&() const
   { 
     return _worker;

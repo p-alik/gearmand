@@ -70,35 +70,25 @@ using namespace org::gearmand;
 
 struct context_st {
   worker_handle_st *handle;
-  in_port_t port;
-  gearman_worker_options_t options;
-  gearman_function_t worker_fn;
-  std::string namespace_key;
-  std::string function_name;
-  void *context;
+  private:
+  libgearman::Worker _worker;
+
+  public:
   int magic;
-  int _timeout;
   libtest::thread::Barrier* _sync_point;
 
-  context_st(worker_handle_st* handle_arg,
-             const gearman_function_t& func_arg,
-             in_port_t port_arg,
-             const std::string& namespace_key_arg,
-             const std::string& function_name_arg,
-             void *context_arg,
-             gearman_worker_options_t& options_arg,
-             int timeout_arg) :
-    handle(handle_arg),
-    port(port_arg),
-    options(options_arg),
-    worker_fn(func_arg),
-    namespace_key(namespace_key_arg),
-    function_name(function_name_arg),
-    context(context_arg),
+  context_st(worker_handle_st* handle_,
+             const libgearman::Worker& worker_) :
+    handle(handle_),
+    _worker(worker_),
     magic(CONTEXT_MAGIC_MARKER),
-    _timeout(timeout_arg),
-    _sync_point(handle_arg->sync_point())
+    _sync_point(handle_->sync_point())
   {
+  }
+
+  const libgearman::Worker& worker() const
+  {
+    return _worker;
   }
 
   void wait(void)
@@ -124,7 +114,7 @@ struct context_st {
 
 static void thread_runner(context_st* con)
 {
-  std::auto_ptr<context_st> context(con);
+  std::unique_ptr<context_st> context(con);
 
   assert(context.get());
   assert(context.get() == con);
@@ -143,7 +133,7 @@ static void thread_runner(context_st* con)
     return;
   }
 
-  libgearman::Worker worker(context->port);
+  libgearman::Worker worker(context->worker());
   if (&worker == NULL)
   {
     Error << "Failed to create Worker";
@@ -160,16 +150,10 @@ static void thread_runner(context_st* con)
   }
   context->handle->set_worker_id(&worker);
 
-  if (context->namespace_key.empty() == false)
-  {
-    gearman_worker_set_namespace(&worker, context->namespace_key.c_str(), context->namespace_key.length());
-  }
-
   // Set worker id
   {
     if (gearman_failed(gearman_worker_set_identifier(&worker, gearman_literal_param("start_worker"))))
     {
-      Out << "gearman_worker_set_server_option() failed";
       context->fail();
       return;
     }
@@ -178,25 +162,8 @@ static void thread_runner(context_st* con)
   // Check for a working server by pinging it with echo
   if (gearman_failed(gearman_worker_echo(&worker, gearman_literal_param("start_worker"))))
   {
-    Out << "gearman_worker_set_server_option() failed";
     context->fail();
     return;
-  }
-
-  if (gearman_failed(gearman_worker_define_function(&worker,
-                                                    context->function_name.c_str(), context->function_name.length(),
-                                                    context->worker_fn,
-                                                    context->_timeout, 
-                                                    context->context)))
-  {
-    Error << "Failed to add function " << context->function_name << "(" << gearman_worker_error(&worker) << ")";
-    context->fail();
-    return;
-  }
-
-  if (context->options != gearman_worker_options_t())
-  {
-    gearman_worker_add_options(&worker, context->options);
   }
 
   context->wait();
@@ -217,7 +184,7 @@ static void thread_runner(context_st* con)
       gearman_return_t unreg_ret;
       if (gearman_failed((unreg_ret= gearman_worker_unregister_all(&worker))))
       {
-        Error << "Failed to unregister " << context->function_name << " " << gearman_strerror(unreg_ret);
+        Error << "Failed to unregister " << gearman_strerror(unreg_ret);
       }
       continue;
     }
@@ -232,22 +199,79 @@ static void thread_runner(context_st* con)
   }
 }
 
+worker_handle_st *worker_run(const libgearman::Worker& worker_)
+{
+  worker_handle_st *handle= new worker_handle_st();
+  fatal_assert(handle);
+
+  context_st *context= new context_st(handle, worker_);
+  fatal_assert(context);
+
+  handle->_thread= boost::shared_ptr<libtest::thread::Thread>(new libtest::thread::Thread(thread_runner, context));
+  if (bool(handle->_thread) == false)
+  {
+    delete context;
+    delete handle;
+
+    FATAL("Could not allocate worker");
+  }
+
+  handle->wait();
+
+  return handle;
+}
+
 
 worker_handle_st *test_worker_start(in_port_t port, 
                                     const char *namespace_key,
                                     const char *function_name,
                                     const gearman_function_t &worker_fn,
-                                    void *context_arg,
+                                    void *context_,
                                     gearman_worker_options_t options,
                                     int timeout)
 {
   worker_handle_st *handle= new worker_handle_st();
   fatal_assert(handle);
 
-  context_st *context= new context_st(handle, worker_fn, port,
-                                      namespace_key ? namespace_key : "",
-                                      function_name,
-                                      context_arg, options, timeout);
+  libgearman::Worker worker(port);
+
+  if (namespace_key)
+  {
+    gearman_worker_set_namespace(&worker, namespace_key, strlen(namespace_key));
+  }
+
+  // Set worker id
+  {
+    if (gearman_failed(gearman_worker_set_identifier(&worker, gearman_literal_param("start_worker"))))
+    {
+      delete handle;
+      FATAL("gearman_worker_set_identifier() failed");
+    }
+  }
+
+  // Check for a working server by pinging it with echo
+  if (gearman_failed(gearman_worker_echo(&worker, gearman_literal_param("start_worker"))))
+  {
+    delete handle;
+    FATAL("gearman_worker_echo() failed");
+  }
+
+  if (gearman_failed(gearman_worker_define_function(&worker,
+                                                    function_name, strlen(function_name),
+                                                    worker_fn,
+                                                    timeout, 
+                                                    context_)))
+  {
+    delete handle;
+    FATAL("gearman_worker_define_function() failed");
+  }
+
+  if (options != gearman_worker_options_t())
+  {
+    gearman_worker_add_options(&worker, options);
+  }
+
+  context_st *context= new context_st(handle, worker);
   fatal_assert(context);
 
   handle->_thread= boost::shared_ptr<libtest::thread::Thread>(new libtest::thread::Thread(thread_runner, context));

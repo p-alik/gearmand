@@ -252,42 +252,9 @@ void gearman_packet_free(gearman_packet_st *packet)
   fprintf(stderr, "%s PACKET %u\n", __func__, packet->_id);
   custom_backtrace();
 #endif
-  if (packet->args != packet->args_buffer and packet->args)
-  {
-    // Created with realloc
-    free(packet->args);
-    packet->args= NULL;
-  }
 
   assert_msg(packet->universal, 
              "Packet that is being freed has not been allocated, most likely this is do to freeing a gearman_task_st or other object twice");
-  if (packet->options.free_data and packet->data)
-  {
-    void* data= (void*)packet->data;
-    gearman_free((*packet->universal), data);
-    packet->data= NULL;
-    packet->options.free_data= false;
-  }
-
-  // dont_track_packets == false
-  {
-    if (packet->universal->packet_list == packet)
-    {
-      packet->universal->packet_list= packet->next;
-    }
-
-    if (packet->prev)
-    {
-      packet->prev->next= packet->next;
-    }
-
-    if (packet->next)
-    {
-      packet->next->prev= packet->prev;
-    }
-
-    packet->universal->packet_count--;
-  }
 
   if (gearman_is_allocated(packet))
   {
@@ -568,4 +535,49 @@ void gearman_packet_st::free__data()
     data= NULL;
     options.free_data= false;
   }
+}
+
+void gearman_packet_st::reset()
+{
+  if (args != args_buffer and args)
+  {
+    // Created with realloc
+    free(args);
+    args= NULL;
+  }
+
+  free__data();
+
+  if (universal and universal->packet_list)
+  {
+    if (universal->packet_list == this)
+    {
+      universal->packet_list= next;
+    }
+
+    if (prev)
+    {
+      prev->next= next;
+    }
+
+    if (next)
+    {
+      next->prev= prev;
+    }
+
+    universal->packet_count--;
+  }
+
+  options.complete= false;
+  options.free_data= false;
+  magic= GEARMAN_MAGIC_TEXT;
+  command= GEARMAN_COMMAND_TEXT;
+  argc= 0;
+  args_size= 0;
+  data_size= 0;
+  universal= NULL;
+  next= 0;
+  prev= 0;
+  args= 0;
+  data= 0;
 }

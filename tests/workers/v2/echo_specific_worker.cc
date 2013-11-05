@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,29 @@
  *
  */
 
-#pragma once
+#include <gear_config.h>
 
-struct _worker_function_st;
+#include <libtest/test.hpp>
 
-_worker_function_st *make(gearman_vector_st*,
-                          const char*, size_t, 
-                          const gearman_function_t&, 
-                          void*, const int);
+#include <libgearman-1.0/gearman.h>
+
+#include "tests/workers/v2/echo_specific_worker.h"
+
+#include <cassert>
+#include <cstring>
+
+gearman_return_t echo_specific_worker(gearman_job_st *job, void* name)
+{
+  const char* worker_name= (const char*)name;
+  if (worker_name)
+  {
+    if (gearman_failed(gearman_job_send_data(job, worker_name, strlen(worker_name))))
+    {
+      return GEARMAN_ERROR;
+    }
+
+    return GEARMAN_SUCCESS;
+  }
+
+  return gearman_job_send_exception(job, test_literal_param("Context was null"));
+}

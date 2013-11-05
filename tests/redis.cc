@@ -89,9 +89,22 @@ static test_return_t collection_cleanup(void *object)
   return TEST_SUCCESS;
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunreachable-code"
+static bool test_for_HAVE_HIREDIS()
+{
+  if (HAVE_HIREDIS)
+  {
+    return true;
+  }
+
+  return false;
+}
+#pragma GCC diagnostic pop
 
 static void *world_create(server_startup_st& servers, test_return_t&)
 {
+  SKIP_IF(test_for_HAVE_HIREDIS() == false);
   return new Context(servers);
 }
 

@@ -45,8 +45,9 @@ class FunctionV2: public _worker_function_st
   gearman_function_fn *_function;
 
 public:
-  FunctionV2(gearman_function_fn *_function_arg, void *context_arg) :
-    _worker_function_st(context_arg),
+  FunctionV2(const gearman_function_t &function_,
+             gearman_function_fn *_function_arg, void *context_arg) :
+    _worker_function_st(function_, context_arg),
     _function(_function_arg)
   { }
 

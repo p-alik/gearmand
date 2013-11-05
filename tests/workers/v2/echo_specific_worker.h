@@ -2,7 +2,7 @@
  * 
  *  Gearmand client and server library.
  *
- *  Copyright (C) 2011 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2013 Data Differential, http://datadifferential.com/
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,5 @@
 
 #pragma once
 
-struct _worker_function_st;
-
-_worker_function_st *make(gearman_vector_st*,
-                          const char*, size_t, 
-                          const gearman_function_t&, 
-                          void*, const int);
+LIBTEST_API
+gearman_return_t echo_specific_worker(gearman_job_st *job, void *context);

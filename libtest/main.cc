@@ -336,7 +336,7 @@ int main(int argc, char *argv[], char* environ_[])
         return EXIT_FAILURE;
       }
 
-      std::auto_ptr<libtest::Framework> frame(new libtest::Framework(signal, binary_name, collection_to_run, wildcard));
+      std::unique_ptr<libtest::Framework> frame(new libtest::Framework(signal, binary_name, collection_to_run, wildcard));
 
       if (opt_list_collection)
       {

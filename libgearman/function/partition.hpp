@@ -46,8 +46,10 @@ class Partition: public _worker_function_st
   gearman_aggregator_fn *aggregator_fn;
 
 public:
-  Partition(gearman_function_fn *partition_fn_arg, gearman_aggregator_fn *aggregator_fn_arg, void *context_arg) :
-    _worker_function_st(context_arg),
+  Partition(const gearman_function_t &function_,
+            gearman_function_fn *partition_fn_arg, gearman_aggregator_fn *aggregator_fn_arg,
+            void *context_arg) :
+    _worker_function_st(function_, context_arg),
     _partition_fn(partition_fn_arg),
     aggregator_fn(aggregator_fn_arg)
   { }

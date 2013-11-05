@@ -31,6 +31,14 @@ AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 AC_PROG_CC_C99
 AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
 
+AC_DEFUN([CHECK_CXX0X],[
+          AC_LANG_PUSH([C++])
+          AX_CHECK_COMPILE_FLAG([-std=c++0x],[
+                                 CXXFLAGS="$CXXFLAGS -std=c++0x"])
+          AC_LANG_POP([C++])
+          ])
+CHECK_CXX0X
+
 GEARMAN_LIBRARY_VERSION=8:0:0
 #                       | | |
 #                +------+ | +---+

@@ -44,8 +44,8 @@ class Null: public _worker_function_st
 {
 
 public:
-  Null(void *context_arg) :
-    _worker_function_st(context_arg)
+  Null(const gearman_function_t &function_, void *context_arg) :
+    _worker_function_st(function_, context_arg)
   { }
 
   bool has_callback() const

@@ -351,10 +351,10 @@ test_return_t gearman_client_add_task_check_exception_TEST(void*)
   gearman_client_set_exception_fn(&client, check_exception_function);
 
   gearman_function_t func= gearman_function_create_v2(call_exception_WORKER);
-  std::auto_ptr<worker_handle_st> call_exception_worker(test_worker_start(libtest::default_port(), NULL,
-                                                                          __func__,
-                                                                          func,
-                                                                          NULL, gearman_worker_options_t()));
+  std::unique_ptr<worker_handle_st> call_exception_worker(test_worker_start(libtest::default_port(), NULL,
+                                                                            __func__,
+                                                                            func,
+                                                                            NULL, gearman_worker_options_t()));
 
   std::string exception_string;
   gearman_return_t ret;

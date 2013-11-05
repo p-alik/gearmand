@@ -48,7 +48,7 @@ using namespace libtest;
 #include <cstring>
 #include <unistd.h>
 
-#include <libgearman/gearman.h>
+#include <libgearman-1.0/gearman.h>
 #include <libgearman/connection.hpp>
 #include "libgearman/command.h"
 #include "libgearman/packet.hpp"
@@ -62,11 +62,12 @@ using namespace org::gearmand;
 
 #include "tests/start_worker.h"
 #include "tests/workers/v2/call_exception.h"
+#include "tests/workers/v2/call_exception.h"
+#include "tests/workers/v2/check_order.h"
 #include "tests/workers/v2/client_echo.h"
 #include "tests/workers/v2/echo_or_react.h"
 #include "tests/workers/v2/echo_or_react_chunk.h"
-#include "tests/workers/v2/call_exception.h"
-#include "tests/workers/v2/check_order.h"
+#include "tests/workers/v2/echo_specific_worker.h"
 
 // Port to second gearmand server
 static in_port_t second_port;
@@ -135,9 +136,19 @@ static test_return_t gearman_worker_clone_NULL_SOURCE(void *)
 {
   libgearman::Worker source;
 
+  gearman_function_t worker_fn= gearman_function_create(echo_specific_worker);
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_define_function(&source,
+                                                            __func__, strlen(__func__),
+                                                            worker_fn,
+                                                            0,
+                                                            NULL));
+  ASSERT_EQ(true, gearman_worker_function_exist(&source, __func__, strlen(__func__)));
+
   gearman_worker_st *worker= gearman_worker_clone(NULL, &source);
-  test_truth(worker);
+  ASSERT_TRUE(worker);
   ASSERT_EQ(true, gearman_is_allocated(worker));
+  ASSERT_EQ(true, gearman_worker_function_exist(worker, __func__, strlen(__func__)));
+
   gearman_worker_free(worker);
 
   return TEST_SUCCESS;
@@ -554,13 +565,13 @@ static test_return_t job_order_TEST(void *)
 
   long order_context= order_seed +1;
   gearman_function_t check_order_worker_TEST_FN= gearman_function_create(check_order_worker);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           check_order_worker_TEST_FN,
-                                                           (void*)&order_context,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             check_order_worker_TEST_FN,
+                                                             (void*)&order_context,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   {
     gearman_return_t ret;
@@ -754,13 +765,13 @@ static test_return_t error_return_TEST(void *)
   }
 
   gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           error_return_TEST_FN,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             error_return_TEST_FN,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   for (gearman_return_t x= GEARMAN_IO_WAIT; int(x) < int(GEARMAN_MAX_RETURN); x= gearman_return_t((int(x) +1)))
   {
@@ -792,13 +803,13 @@ static test_return_t GEARMAN_ERROR_check_retry_TEST(void *)
 
   size_t count= 0;
   gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_worker);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           GEARMAN_ERROR_FN,
-                                                           &count,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             GEARMAN_ERROR_FN,
+                                                             &count,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   gearman_task_st *task= gearman_execute(&client,
                                          test_literal_param(__func__),
@@ -827,13 +838,13 @@ static test_return_t GEARMAN_ERROR_always_return_TEST(void *)
 
   size_t count= 0;
   gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_worker);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           GEARMAN_ERROR_FN,
-                                                           &count,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             GEARMAN_ERROR_FN,
+                                                             &count,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   std::vector<gearman_task_st*> tasks;
   for (size_t x= 0; x < 24; x++)
@@ -870,13 +881,13 @@ static test_return_t GEARMAN_ERROR_return_TEST(void *)
 
   size_t count= 0;
   gearman_function_t GEARMAN_ERROR_FN= gearman_function_create(GEARMAN_ERROR_limit_worker);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           GEARMAN_ERROR_FN,
-                                                           &count,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             GEARMAN_ERROR_FN,
+                                                             &count,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   for (size_t x= 0; x < 24; x++)
   {
@@ -913,13 +924,13 @@ static test_return_t GEARMAN_FAIL_return_TEST(void *)
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param(__func__)));
 
   gearman_function_t error_return_TEST_FN= gearman_function_create(error_return_worker);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           error_return_TEST_FN,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             error_return_TEST_FN,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   int count= 3;
   while(--count)
@@ -951,13 +962,13 @@ static test_return_t GEARMAN_FAIL_return_TEST(void *)
 static test_return_t gearman_job_send_exception_mass_TEST(void *)
 {
   gearman_function_t call_exception_WORKER_FN= gearman_function_create(call_exception_WORKER);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           "exception",
-                                                           call_exception_WORKER_FN,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             "exception",
+                                                             call_exception_WORKER_FN,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   std::vector<gearman_task_st*> tasks;
   libgearman::Client client(libtest::default_port());
@@ -1034,13 +1045,13 @@ static test_return_t gearman_job_send_exception_mass_TEST(void *)
 static test_return_t gearman_job_client_TEST(void *)
 {
   gearman_function_t call_client_echo_WORKER_FN= gearman_function_create(client_echo_WORKER);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           "client_echo",
-                                                           call_client_echo_WORKER_FN,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             "client_echo",
+                                                             call_client_echo_WORKER_FN,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   std::vector<gearman_task_st*> tasks;
   libgearman::Client client(libtest::default_port());
@@ -1113,13 +1124,13 @@ static test_return_t gearman_job_send_exception_TEST(void *)
   gearman_client_add_options(&client, GEARMAN_CLIENT_EXCEPTION);
 
   gearman_function_t exception_WORKER_FN= gearman_function_create(exception_WORKER);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           exception_WORKER_FN,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             exception_WORKER_FN,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   gearman_return_t ret;
   gearman_task_st *task= gearman_client_add_task(&client, NULL, NULL,
@@ -1163,13 +1174,13 @@ static test_return_t gearman_client_job_status_is_known_TEST(void *)
   test_true(is_known);
 
   gearman_function_t echo_or_react_worker_v2_FN= gearman_function_create(echo_or_react_worker_v2);
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           echo_or_react_worker_v2_FN,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             echo_or_react_worker_v2_FN,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   return TEST_SUCCESS;
 }
@@ -1662,13 +1673,13 @@ static test_return_t _increase_TEST(gearman_function_t &func, gearman_client_opt
 
   gearman_client_add_options(&client, options);
 
-  std::auto_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
-                                                           NULL,
-                                                           __func__,
-                                                           func,
-                                                           NULL,
-                                                           gearman_worker_options_t(),
-                                                           0)); // timeout
+  std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(),
+                                                             NULL,
+                                                             __func__,
+                                                             func,
+                                                             NULL,
+                                                             gearman_worker_options_t(),
+                                                             0)); // timeout
 
   size_t max_block_size= 4;
   if (libtest::is_massive())
@@ -1786,6 +1797,57 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
   return TEST_SUCCESS;
 }
 
+static test_return_t worker_connect_too_multiple_server_TEST(void *)
+{
+#if 0
+  libgearman::Worker worker(libtest::default_port());
+
+  // Now add a port which we do not have a server running on
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, second_port));
+
+  gearman_function_t worker_fn= gearman_function_create(echo_specific_worker);
+  ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_define_function(&worker,
+                                                            __func__, strlen(__func__),
+                                                            worker_fn,
+                                                            0,
+                                                            NULL));
+
+  std::unique_ptr<worker_handle_st> handle(worker_run(worker));
+
+  libgearman::Client client_one(libtest::default_port());
+
+  libgearman::Client client_two(libtest::default_port());
+
+  {
+    size_t result_size;
+    gearman_return_t rc;
+    void* result= gearman_client_do(&client_one,
+                                    __func__,
+                                    NULL,
+                                    NULL, 0, // workload, workload_size
+                                    &result_size,
+                                    &rc);
+    ASSERT_TRUE(result_size);
+    ASSERT_NOT_NULL(result);
+  }
+
+  {
+    size_t result_size;
+    gearman_return_t rc;
+    void* result= gearman_client_do(&client_two,
+                                    __func__,
+                                    NULL,
+                                    NULL, 0, // workload, workload_size
+                                    &result_size,
+                                    &rc);
+    ASSERT_TRUE(result_size);
+    ASSERT_NOT_NULL(result);
+  }
+
+#endif
+  return TEST_SUCCESS;
+}
+
 /*********************** World functions **************************************/
 
 static void *world_create(server_startup_st& servers, test_return_t&)
@@ -1837,6 +1899,7 @@ test_st worker_TESTS[] ={
   {"gearman_job_client()", 0, gearman_job_client_TEST },
   {"job order", 0, job_order_TEST },
   {"job background order", 0, job_order_background_TEST },
+  {"check worker's connection to multiple servers", 0, worker_connect_too_multiple_server_TEST },
   {"echo_max", 0, echo_max_test },
   {"abandoned_worker", 0, abandoned_worker_test },
   {0, 0, 0}

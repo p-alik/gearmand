@@ -90,6 +90,11 @@ struct gearman_packet_st
   {
   }
 
+  ~gearman_packet_st()
+  {
+    reset();
+  }
+
   void free__data();
 
   bool failed() const
@@ -129,28 +134,5 @@ struct gearman_packet_st
     return NULL;
   }
 
-  void reset()
-  {
-    if (args != args_buffer and args)
-    {
-      // Created with realloc
-      free(args);
-      args= NULL;
-    }
-
-    free__data();
-
-    options.complete= false;
-    options.free_data= false;
-    magic= GEARMAN_MAGIC_TEXT;
-    command= GEARMAN_COMMAND_TEXT;
-    argc= 0;
-    args_size= 0;
-    data_size= 0;
-    universal= NULL;
-    next= 0;
-    prev= 0;
-    args= 0;
-    data= 0;
-  }
+  void reset();
 };
