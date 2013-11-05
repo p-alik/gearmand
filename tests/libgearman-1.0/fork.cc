@@ -106,11 +106,7 @@ test_return_t check_client_fork_TEST(void*)
             ASSERT_EQ(EXIT_SUCCESS, exit_code);
           }
 
-#ifdef __APPLE__ // Apple is obviously broken
           ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param("parent forked")));
-#else
-          ASSERT_EQ(GEARMAN_LOST_CONNECTION, gearman_client_echo(&client, test_literal_param("parent forked")));
-#endif
         }
     }
     return TEST_SUCCESS;
