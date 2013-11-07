@@ -519,7 +519,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
 
   /* Worker requests. */
   case GEARMAN_COMMAND_CAN_DO:
-    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s", packet->arg_size[0], packet->arg[0]);
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s", packet->arg_size[0], packet->arg[0]);
     if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),
                                   packet->arg_size[0], 0) == NULL)
     {
@@ -546,7 +546,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
         return gearmand_log_perror(GEARMAN_DEFAULT_LOG_PARAM, errno, "GEARMAN_COMMAND_CAN_DO_TIMEOUT:strtol: %s", strtol_buffer);
       }
 
-      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout %dl",
+      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Registering function: %.*s with timeout %dl",
                          packet->arg_size[0], packet->arg[0], timeout);
 
       if (gearman_server_worker_add(server_con, (char *)(packet->arg[0]),

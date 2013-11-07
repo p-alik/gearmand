@@ -128,7 +128,7 @@ gearman_worker_st *gearman_worker_create(gearman_worker_st *worker_shell)
     gearman_return_t ret;
     if (gearman_failed((ret= _worker_packet_init(worker))))
     {
-      gearman_worker_free(worker->shell());
+      gearman_worker_free(worker_shell);
       return NULL;
     }
   }
@@ -1242,10 +1242,14 @@ static gearman_worker_st *_worker_allocate(gearman_worker_st *worker_shell, bool
   {
     if (is_clone == false)
     {
-#if 0
-      gearman_universal_initialize(worker->impl()->universal);
-      gearman_universal_set_timeout(worker->impl()->universal, GEARMAN_WORKER_WAIT_TIMEOUT);
-#endif
+      if (getenv("GEARMAN_SERVERS"))
+      {
+        if (gearman_worker_add_servers(worker->shell(), getenv("GEARMAN_SERVERS")))
+        {
+          gearman_worker_free(worker->shell());
+          return NULL;
+        }
+      }
     }
 
     if (worker->universal.wakeup(true) == false)
@@ -1327,8 +1331,9 @@ static gearman_return_t _worker_function_create(Worker *worker,
   gearman_return_t ret;
   if (timeout > 0)
   {
-    char timeout_buffer[11];
+    char timeout_buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH +1];
     snprintf(timeout_buffer, sizeof(timeout_buffer), "%u", timeout);
+    timeout_buffer[GEARMAN_MAXIMUM_INTEGER_DISPLAY_LENGTH]= 0;
     args[0]= function->name();
     args_size[0]= function->length() + 1;
     args[1]= timeout_buffer;

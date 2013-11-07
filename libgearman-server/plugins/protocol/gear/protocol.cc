@@ -105,7 +105,7 @@ public:
 
   void notify(gearman_server_con_st* connection)
   {
-    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Gear connection disconnected: %s:%s", connection->host(), connection->port());
+    gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Gear connection disconnected: %s:%s", connection->host(), connection->port());
   }
 
   size_t unpack(gearmand_packet_st *packet,

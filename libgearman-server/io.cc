@@ -178,7 +178,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
     if (read_size == 0)
     {
       ret= GEARMAND_LOST_CONNECTION;
-      gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Peer connection has called close()");
+      gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Peer connection has called close()");
       _connection_close(connection);
       return 0;
     }

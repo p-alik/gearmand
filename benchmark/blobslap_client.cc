@@ -153,10 +153,13 @@ int main(int argc, char *argv[])
 
   if (host == NULL)
   {
-    if (gearman_failed(gearman_client_add_server(&master_client, NULL, port)))
+    if (getenv("GEARMAN_SERVERS") == NULL)
     {
-      std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&master_client) << std::endl;
-      exit(EXIT_FAILURE);
+      if (gearman_failed(gearman_client_add_server(&master_client, NULL, port)))
+      {
+        std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&master_client) << std::endl;
+        exit(EXIT_FAILURE);
+      }
     }
   }
 
