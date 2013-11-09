@@ -316,7 +316,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     ret= poll(pfds, x, universal.timeout);
     if (ret == -1)
     {
-      switch(errno)
+      switch (errno)
       {
       case EINTR:
         continue;
@@ -389,7 +389,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
     // @todo figure out what happens in an error
   }
 
-  return GEARMAN_SUCCESS;
+  return gearman_gerror(universal, GEARMAN_SUCCESS);
 }
 
 gearman_connection_st *gearman_ready(gearman_universal_st& universal)

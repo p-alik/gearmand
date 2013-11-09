@@ -172,7 +172,7 @@ public:
   }
 
   gearman_return_t send_packet(const gearman_packet_st&, const bool flush_buffer);
-  size_t send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr);
+  size_t send_and_flush(const void *data, size_t data_size, gearman_return_t& ret_ptr);
 
   gearman_return_t enable_ssl();
 private:

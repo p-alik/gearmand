@@ -594,24 +594,33 @@ gearman_return_t gearman_connection_st::_send_packet(const gearman_packet_st& pa
   return GEARMAN_SUCCESS;
 }
 
-size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size, gearman_return_t *ret_ptr)
+size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size, gearman_return_t& rc)
 {
-  if (send_state != GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
+  if (data and data_size)
   {
-    return gearman_error(universal, GEARMAN_NOT_FLUSHING, "not flushing");
+    if (send_state != GEARMAN_CON_SEND_UNIVERSAL_FLUSH_DATA)
+    {
+      rc= gearman_error(universal, GEARMAN_NOT_FLUSHING, "not flushing");
+      return 0;
+    }
+
+    if (data_size > (send_data_size - send_data_offset))
+    {
+      rc= gearman_error(universal, GEARMAN_DATA_TOO_LARGE, "data too large");
+      return 0;
+    }
+
+    send_buffer_ptr= (const char*)data;
+    send_buffer_size= data_size;
+
+    rc= flush();
+
+    return data_size -send_buffer_size;
   }
 
-  if (data_size > (send_data_size - send_data_offset))
-  {
-    return gearman_error(universal, GEARMAN_DATA_TOO_LARGE, "data too large");
-  }
+  rc= GEARMAN_SUCCESS;
 
-  send_buffer_ptr= (const char*)data;
-  send_buffer_size= data_size;
-
-  *ret_ptr= flush();
-
-  return data_size -send_buffer_size;
+  return 0;
 }
 
 gearman_return_t gearman_connection_st::lookup()
@@ -740,8 +749,6 @@ gearman_return_t gearman_connection_st::flush()
 
         switch (errno)
         {
-          // Treat as an async connect
-        case EINTR:
         case EINPROGRESS:
             state= GEARMAN_CON_UNIVERSAL_CONNECTING;
             break;
@@ -752,6 +759,7 @@ gearman_return_t gearman_connection_st::flush()
           addrinfo_next= addrinfo_next->ai_next;
 
           // We will treat this as an error but retry the address
+        case EINTR:
         case EAGAIN:
           state= GEARMAN_CON_UNIVERSAL_CONNECT;
           close_socket();
@@ -800,10 +808,9 @@ gearman_return_t gearman_connection_st::flush()
           return gearman_gerror(universal, GEARMAN_IO_WAIT);
         }
 
-        gearman_return_t gret= gearman_wait(universal);
-        if (gearman_failed(gret))
+        if (gearman_failed(gearman_wait(universal)))
         {
-          return gret;
+          return universal.error_code();
         }
       }
 

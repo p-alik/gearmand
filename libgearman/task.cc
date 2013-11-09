@@ -305,7 +305,7 @@ size_t gearman_task_send_workload(gearman_task_st *task_shell,
 
   if (task_shell and task_shell->impl())
   {
-    return task_shell->impl()->con->send_and_flush(workload, workload_size, ret_ptr);
+    return task_shell->impl()->con->send_and_flush(workload, workload_size, *ret_ptr);
   }
 
   *ret_ptr= GEARMAN_INVALID_ARGUMENT;
