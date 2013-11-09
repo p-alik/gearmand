@@ -1181,41 +1181,45 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
     }
     else if (read_size == SOCKET_ERROR)
     {
-      if (errno == EAGAIN or errno == ENOTCONN)
+      switch (errno)
       {
-        set_events(POLLIN);
-
-        if (universal.is_non_blocking())
-        {
-          ret= gearman_gerror(universal, GEARMAN_IO_WAIT);
-          return 0;
-        }
-
-        ret= gearman_wait(universal);
-
-        if (gearman_failed(ret))
-        {
-          if (ret == GEARMAN_SHUTDOWN)
+        case EAGAIN:
           {
-            close_socket();
+            set_events(POLLIN);
+
+            if (universal.is_non_blocking())
+            {
+              ret= gearman_gerror(universal, GEARMAN_IO_WAIT);
+              return 0;
+            }
+
+            ret= gearman_wait(universal);
+
+            if (gearman_failed(ret))
+            {
+              if (ret == GEARMAN_SHUTDOWN)
+              {
+                close_socket();
+              }
+
+              return 0;
+            }
           }
+          continue;
 
-          return 0;
-        }
+        case EINTR:
+          break;
 
-        continue;
-      }
-      else if (errno == EINTR)
-      {
-        continue;
-      }
-      else if (errno == EPIPE or errno == ECONNRESET or errno == EHOSTDOWN)
-      {
-        ret= gearman_perror(universal, errno, "lost connection to server during read");
-      }
-      else
-      {
-        ret= gearman_perror(universal, errno, "recv");
+        case EPIPE:
+        case ECONNRESET:
+        case EHOSTDOWN:
+          ret= gearman_perror(universal, errno, "lost connection to server during read");
+          break;
+
+        default:
+          assert_msg(errno != ENOTCONN, "Programmer error, recv() was given a bad socket");
+          ret= gearman_perror(universal, errno, "recv");
+          break;
       }
 
       close_socket();

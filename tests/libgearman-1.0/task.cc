@@ -72,21 +72,25 @@ test_return_t gearman_client_add_task_status_by_unique_NOT_FOUND_TEST(void *obje
   fatal_assert(worker_function);
 
   gearman_return_t ret;
+  {
+    gearman_task_st* unique_task= gearman_client_add_task_status_by_unique(client,
+                                                                           NULL, // context
+                                                                           unique_key,
+                                                                           &ret);
+    ASSERT_EQ(GEARMAN_SUCCESS, ret);
+    test_truth(unique_task);
+    test_true(gearman_task_unique(unique_task));
+    ASSERT_EQ(strlen(unique_key), strlen(gearman_task_unique(unique_task)));
 
-  gearman_task_st* unique_task= gearman_client_add_task_status_by_unique(client,
-                                                                         NULL, // context
-                                                                         unique_key,
-                                                                         &ret);
-  ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(unique_task);
-  test_true(gearman_task_unique(unique_task));
-  ASSERT_EQ(strlen(unique_key), strlen(gearman_task_unique(unique_task)));
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_run_tasks(client));
 
-  libtest::dream(1, 0);
-  test_false(gearman_task_is_running(unique_task));
-  test_false(gearman_task_is_known(unique_task));
+    gearman_client_wait(client);
 
-  gearman_task_free(unique_task);
+    ASSERT_FALSE(gearman_task_is_running(unique_task));
+    ASSERT_FALSE(gearman_task_is_known(unique_task));
+
+    gearman_task_free(unique_task);
+  }
 
   return TEST_SUCCESS;
 }
