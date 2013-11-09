@@ -1370,6 +1370,25 @@ static test_return_t gearman_worker_timeout_TEST(void *)
 
   gearman_return_t ret= gearman_worker_work(&worker);
   ASSERT_EQ(ret, GEARMAN_TIMEOUT);
+  ASSERT_EQ(counter, 0);
+
+  return TEST_SUCCESS;
+}
+
+static test_return_t gearman_worker_timeout_GEARMAN_COULD_NOT_CONNECT_TEST(void *)
+{
+  libgearman::Worker worker(0);
+
+  ASSERT_EQ(GEARMAN_SUCCESS, 
+            gearman_worker_add_function(&worker, __func__, 0, fail_worker, NULL));
+
+  gearman_worker_set_timeout(&worker, 1000);
+
+  uint32_t counter= 0;
+  gearman_worker_set_log_fn(&worker, log_callback, &counter, GEARMAN_VERBOSE_ERROR);
+
+  gearman_return_t ret= gearman_worker_work(&worker);
+  ASSERT_EQ(ret, GEARMAN_COULD_NOT_CONNECT);
   ASSERT_EQ(counter, 1);
 
   return TEST_SUCCESS;
@@ -1866,6 +1885,7 @@ test_st worker_TESTS[] ={
   {"allocation", 0, allocation_test },
   {"sanity", 0, sanity_TEST },
   {"gearman_worker_timeout(1000)", 0, gearman_worker_timeout_TEST },
+  {"gearman_worker_timeout(1000) GEARMAN_COULD_NOT_CONNECT", 0, gearman_worker_timeout_GEARMAN_COULD_NOT_CONNECT_TEST },
   {"gearman_worker_clone(NULL, NULL)", 0, gearman_worker_clone_NULL_NULL },
   {"gearman_worker_clone(NULL, source)", 0, gearman_worker_clone_NULL_SOURCE },
   {"gearman_worker_add_server(GEARMAN_GETADDRINFO)", false, gearman_worker_add_server_GEARMAN_GETADDRINFO_TEST },

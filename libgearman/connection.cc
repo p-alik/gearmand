@@ -735,10 +735,6 @@ gearman_return_t gearman_connection_st::flush()
         if (connect(fd, addrinfo_next->ai_addr, addrinfo_next->ai_addrlen) == 0)
         {
           state= GEARMAN_CON_UNIVERSAL_CONNECTED;
-#if 0
-          addrinfo_next= NULL;
-#endif
-
           break;
         }
 

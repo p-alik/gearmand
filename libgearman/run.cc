@@ -84,7 +84,6 @@ gearman_return_t _client_run_task(Task *task)
     }
 
     task->client->new_tasks--;
-
     if (task->send.command != GEARMAN_COMMAND_GET_STATUS)
     {
       task->created_id= task->con->created_id_next;

@@ -334,9 +334,7 @@ gearman_return_t gearman_wait(gearman_universal_st& universal)
 
   if (ret == 0)
   {
-    return gearman_universal_set_error(universal, GEARMAN_TIMEOUT, GEARMAN_AT,
-                                       "timeout reached, %u servers were poll(), no servers were available, pipe:%s",
-                                       uint32_t(x - have_shutdown_pipe), have_shutdown_pipe ? "true" : "false");
+    return gearman_gerror(universal, GEARMAN_TIMEOUT);
   }
 
   x= 0;
