@@ -193,7 +193,6 @@ gearman_connection_st *gearman_connection_copy(gearman_universal_st& universal,
 gearman_connection_st::~gearman_connection_st()
 {
   close_socket();
-
   reset_addrinfo();
 
   { // Remove from universal list
@@ -250,6 +249,7 @@ void gearman_connection_st::set_host(const char *host_, const in_port_t port_)
 
 void gearman_connection_st::set_host(const char *host_, const char* service_)
 {
+  close_socket();
   reset_addrinfo();
 
   if (host_ and host_[0])
@@ -343,6 +343,7 @@ void gearman_connection_st::reset_addrinfo()
   }
 
   addrinfo_next= NULL;
+  state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
 }
 
 gearman_return_t gearman_connection_st::send_identifier(void)
@@ -625,6 +626,7 @@ size_t gearman_connection_st::send_and_flush(const void *data, size_t data_size,
 
 gearman_return_t gearman_connection_st::lookup()
 {
+  assert_msg(_addrinfo == NULL, "Programmer error, reset_addrinfo() is either broke, or was not called.");
   reset_addrinfo();
 
   struct addrinfo ai;
@@ -632,7 +634,6 @@ gearman_return_t gearman_connection_st::lookup()
   ai.ai_socktype= SOCK_STREAM;
   ai.ai_protocol= IPPROTO_TCP;
 
-  assert_msg(_addrinfo == NULL, "Programmer error, reset_addrinfo() is either broke, or was not called.");
   int ret;
   if ((ret= getaddrinfo(_host, _service, &ai, &(_addrinfo))))
   {
@@ -707,6 +708,7 @@ gearman_return_t gearman_connection_st::flush()
         {
           return ret;
         }
+        assert(state == GEARMAN_CON_UNIVERSAL_CONNECT);
       }
 
     case GEARMAN_CON_UNIVERSAL_CONNECT:
@@ -715,18 +717,17 @@ gearman_return_t gearman_connection_st::flush()
         close_socket();
       }
 
+      // We have looped through all available addressinfo bits and come up empty
       if (addrinfo_next == NULL)
       {
-        state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
+        reset_addrinfo();
         return gearman_universal_set_error(universal, GEARMAN_COULD_NOT_CONNECT, GEARMAN_AT, "Connection to %s:%s failed", _host, _service);
       }
 
       // rewrite tye if HAVE_SOCK_CLOEXEC
       fd= socket(addrinfo_next->ai_family, addrinfo_next->ai_socktype|SOCK_CLOEXEC|SOCK_NONBLOCK, addrinfo_next->ai_protocol);
-
       if (fd == INVALID_SOCKET)
       {
-        state= GEARMAN_CON_UNIVERSAL_ADDRINFO;
         return gearman_perror(universal, errno, "socket");
       }
 
@@ -761,7 +762,6 @@ gearman_return_t gearman_connection_st::flush()
           // We will treat this as an error but retry the address
         case EINTR:
         case EAGAIN:
-          state= GEARMAN_CON_UNIVERSAL_CONNECT;
           close_socket();
           break;
 

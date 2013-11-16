@@ -98,8 +98,8 @@ static bool no_error_message(gearman_return_t rc)
 {
   switch (rc)
   {
-    case GEARMAN_SUCCESS:
     case GEARMAN_IO_WAIT:
+    case GEARMAN_SUCCESS:
     case GEARMAN_TIMEOUT:
     case GEARMAN_INVALID_SERVER_OPTION:
     case GEARMAN_WORK_EXCEPTION:

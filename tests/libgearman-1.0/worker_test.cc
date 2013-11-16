@@ -1388,7 +1388,7 @@ static test_return_t gearman_worker_timeout_GEARMAN_COULD_NOT_CONNECT_TEST(void 
   gearman_worker_set_log_fn(&worker, log_callback, &counter, GEARMAN_VERBOSE_ERROR);
 
   gearman_return_t ret= gearman_worker_work(&worker);
-  ASSERT_EQ(ret, GEARMAN_COULD_NOT_CONNECT);
+  test_compare(ret, GEARMAN_COULD_NOT_CONNECT);
   ASSERT_EQ(counter, 1);
 
   return TEST_SUCCESS;
