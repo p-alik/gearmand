@@ -1382,13 +1382,11 @@ static test_return_t gearman_worker_timeout_GEARMAN_COULD_NOT_CONNECT_TEST(void 
   ASSERT_EQ(GEARMAN_SUCCESS, 
             gearman_worker_add_function(&worker, __func__, 0, fail_worker, NULL));
 
-  gearman_worker_set_timeout(&worker, 1000);
-
   uint32_t counter= 0;
   gearman_worker_set_log_fn(&worker, log_callback, &counter, GEARMAN_VERBOSE_ERROR);
 
   gearman_return_t ret= gearman_worker_work(&worker);
-  test_compare(ret, GEARMAN_COULD_NOT_CONNECT);
+  test_compare(GEARMAN_COULD_NOT_CONNECT, ret);
   ASSERT_EQ(counter, 1);
 
   return TEST_SUCCESS;
