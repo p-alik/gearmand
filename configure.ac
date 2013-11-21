@@ -28,17 +28,6 @@ AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS
 AC_SUBST([AUTOHEADER_FILE],[gear_config.h])
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 
-AC_PROG_CC_C99
-AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
-
-AC_DEFUN([CHECK_CXX0X],[
-          AC_LANG_PUSH([C++])
-          AX_CHECK_COMPILE_FLAG([-std=c++0x],[
-                                 CXXFLAGS="$CXXFLAGS -std=c++0x"])
-          AC_LANG_POP([C++])
-          ])
-CHECK_CXX0X
-
 GEARMAN_LIBRARY_VERSION=8:0:0
 #                       | | |
 #                +------+ | +---+
@@ -54,8 +43,21 @@ GEARMAN_LIBRARY_VERSION=8:0:0
 AC_SUBST([GEARMAN_LIBRARY_VERSION])
 
 LT_PREREQ([2.2])
-LT_INIT
+LT_INIT([dlopen])
 LT_LANG([C++])
+LT_LIB_M
+
+AC_PROG_CC_C99
+AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
+
+AC_DEFUN([CHECK_CXX0X],[
+          AC_LANG_PUSH([C++])
+          AX_CHECK_COMPILE_FLAG([-std=c++0x],[
+                                 CXXFLAGS="$CXXFLAGS -std=c++0x"])
+          AC_LANG_POP([C++])
+          ])
+CHECK_CXX0X
+
 
 AX_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -237,9 +239,6 @@ AC_CHECK_LIB([rt],[clock_gettime],
               AC_DEFINE([HAVE_LIBRT],[1],[Have -lrt])
              ],
              [AC_CHECK_FUNCS([clock_gettime])])
-
-# Check for -lm
-LT_LIB_M
 
 # Check for OPENSSL
 AX_CHECK_OPENSSL([have_openssl=yes
