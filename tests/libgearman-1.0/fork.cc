@@ -106,7 +106,7 @@ test_return_t check_client_fork_TEST(void*)
             ASSERT_EQ(EXIT_SUCCESS, exit_code);
           }
 
-          ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_echo(&client, test_literal_param("parent forked")));
+          test_compare(GEARMAN_LOST_CONNECTION, gearman_client_echo(&client, test_literal_param("parent forked")));
         }
     }
     return TEST_SUCCESS;
