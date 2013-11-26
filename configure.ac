@@ -291,8 +291,14 @@ AS_IF([test "x${TARGET_LINUX}" = "xtrue"],
       [AC_DEFINE([BUILD_LIBHOSTILE],[1],[Build libhostile])],[AC_DEFINE([BUILD_LIBHOSTILE],[0],[Build libhostile])])
 AM_CONDITIONAL([TARGET_HOSTILE],[test "x${TARGET_LINUX}" = "xtrue"])
 
-AX_PTHREAD(, [AC_MSG_ERROR(could not find Posix Pthread support)])
-AX_PTHREAD_TIMEDJOIN_NP
+AC_DEFUN([CHECK_FOR_PTHREAD_AND_SASL],
+         [AC_LANG_PUSH([C++])
+         AX_PTHREAD(, [AC_MSG_ERROR(could not find Posix Pthread support)])
+         AX_PTHREAD_TIMEDJOIN_NP
+         AC_LANG_POP([C++])
+         ])
+CHECK_FOR_PTHREAD_AND_SASL
+
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_HARDEN_COMPILER_FLAGS
