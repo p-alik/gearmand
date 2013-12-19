@@ -28,17 +28,6 @@ AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS
 AC_SUBST([AUTOHEADER_FILE],[gear_config.h])
 AC_CONFIG_SRCDIR([libgearman/gearman.cc])
 
-AC_PROG_CC_C99
-AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
-
-AC_DEFUN([CHECK_CXX0X],[
-          AC_LANG_PUSH([C++])
-          AX_CHECK_COMPILE_FLAG([-std=c++0x],[
-                                 CXXFLAGS="$CXXFLAGS -std=c++0x"])
-          AC_LANG_POP([C++])
-          ])
-CHECK_CXX0X
-
 GEARMAN_LIBRARY_VERSION=8:0:0
 #                       | | |
 #                +------+ | +---+
@@ -54,8 +43,21 @@ GEARMAN_LIBRARY_VERSION=8:0:0
 AC_SUBST([GEARMAN_LIBRARY_VERSION])
 
 LT_PREREQ([2.2])
-LT_INIT
+LT_INIT([dlopen])
 LT_LANG([C++])
+LT_LIB_M
+
+AC_PROG_CC_C99
+AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
+
+AC_DEFUN([CHECK_CXX0X],[
+          AC_LANG_PUSH([C++])
+          AX_CHECK_COMPILE_FLAG([-std=c++0x],[
+                                 CXXFLAGS="$CXXFLAGS -std=c++0x"])
+          AC_LANG_POP([C++])
+          ])
+CHECK_CXX0X
+
 
 AX_PLATFORM
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
@@ -238,9 +240,6 @@ AC_CHECK_LIB([rt],[clock_gettime],
              ],
              [AC_CHECK_FUNCS([clock_gettime])])
 
-# Check for -lm
-LT_LIB_M
-
 # Check for OPENSSL
 AX_CHECK_OPENSSL([have_openssl=yes
                   AC_DEFINE([HAVE_OPENSSL],[1],[Enable openssl Support])],
@@ -292,8 +291,14 @@ AS_IF([test "x${TARGET_LINUX}" = "xtrue"],
       [AC_DEFINE([BUILD_LIBHOSTILE],[1],[Build libhostile])],[AC_DEFINE([BUILD_LIBHOSTILE],[0],[Build libhostile])])
 AM_CONDITIONAL([TARGET_HOSTILE],[test "x${TARGET_LINUX}" = "xtrue"])
 
-AX_PTHREAD(, [AC_MSG_ERROR(could not find Posix Pthread support)])
-AX_PTHREAD_TIMEDJOIN_NP
+AC_DEFUN([CHECK_FOR_PTHREAD_AND_SASL],
+         [AC_LANG_PUSH([C++])
+         AX_PTHREAD(, [AC_MSG_ERROR(could not find Posix Pthread support)])
+         AX_PTHREAD_TIMEDJOIN_NP
+         AC_LANG_POP([C++])
+         ])
+CHECK_FOR_PTHREAD_AND_SASL
+
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
 AX_HARDEN_COMPILER_FLAGS
