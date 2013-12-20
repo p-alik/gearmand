@@ -161,10 +161,13 @@ int main(int args, char *argv[])
     return EXIT_FAILURE;
   }
 
-  if (gearman_failed(gearman_worker_add_server(worker, host.c_str(), port)))
+  if (getenv("GEARMAN_SERVERS") == NULL)
   {
-    std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_worker_error(worker) << std::endl;
-    return EXIT_FAILURE;
+    if (gearman_failed(gearman_worker_add_server(worker, host.c_str(), port)))
+    {
+      std::cerr << "Failed while adding server " << host << ":" << port << " :" << gearman_worker_error(worker) << std::endl;
+      return EXIT_FAILURE;
+    }
   }
 
   if (identifier.size())

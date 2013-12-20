@@ -64,10 +64,14 @@ static gearman_client_st *_client_allocate(gearman_client_st *client_shell, bool
   {
     if (is_clone == false)
     {
-#if 0
-      gearman_universal_initialize(client_shell->impl()->universal);
-      gearman_universal_initialize(universal);
-#endif
+      if (getenv("GEARMAN_SERVERS"))
+      {
+        if (gearman_client_add_servers(client->shell(), getenv("GEARMAN_SERVERS")))
+        {
+          gearman_client_free(client->shell());
+          return NULL;
+        }
+      }
     }
 
     return client->shell();
