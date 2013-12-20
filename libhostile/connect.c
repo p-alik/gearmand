@@ -84,20 +84,39 @@ int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen)
     {
       if (--not_until < 0 && rand() % __function.frequency)
       {
-        if (rand() % 1)
+        int current_errno= 0;
+        switch (rand() % 5)
         {
-          shutdown(sockfd, SHUT_RDWR);
-          close(sockfd);
-          errno= ECONNABORTED;
-          return -1;
+          case 0:
+            errno= EINPROGRESS;
+            return -1;
+
+          case 1:
+            errno= EINTR;
+            return -1;
+
+          case 2:
+            current_errno= ECONNABORTED;
+            break;
+
+          case 3:
+            current_errno= EMFILE;
+            break;
+
+          case 4:
+            current_errno= ECONNRESET;
+            break;
+
+          default:
+          case 5:
+            current_errno= ETIMEDOUT;
+            break;
         }
-        else
-        {
-          shutdown(sockfd, SHUT_RDWR);
-          close(sockfd);
-          errno= EMFILE;
-          return -1;
-        }
+
+        shutdown(sockfd, SHUT_RDWR);
+        close(sockfd);
+        errno= current_errno;
+        return -1;
       }
     }
   }

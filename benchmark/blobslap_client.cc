@@ -61,6 +61,13 @@ static gearman_return_t _status(gearman_task_st *task);
 static gearman_return_t _complete(gearman_task_st *task);
 static gearman_return_t _fail(gearman_task_st *task);
 
+namespace {
+  void client_logging_fn(const char *message, gearman_verbose_t verbose, void*)
+  {
+    fprintf(stderr, "%s (%s)\n", message, gearman_verbose_name(verbose));
+  }
+}
+
 static void _usage(char *name);
 
 int main(int argc, char *argv[])
@@ -151,12 +158,20 @@ int main(int argc, char *argv[])
     }
   }
 
+  if (benchmark.verbose > 2)
+  {
+    gearman_client_set_log_fn(&master_client, client_logging_fn, NULL, GEARMAN_VERBOSE_DEBUG);
+  }
+
   if (host == NULL)
   {
-    if (gearman_failed(gearman_client_add_server(&master_client, NULL, port)))
+    if (getenv("GEARMAN_SERVERS") == NULL)
     {
-      std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&master_client) << std::endl;
-      exit(EXIT_FAILURE);
+      if (gearman_failed(gearman_client_add_server(&master_client, NULL, port)))
+      {
+        std::cerr << "Failing to add localhost:" << port << " :" << gearman_client_error(&master_client) << std::endl;
+        exit(EXIT_FAILURE);
+      }
     }
   }
 
@@ -234,7 +249,13 @@ int main(int argc, char *argv[])
       if (gearman_failed(ret))
       {
         if (ret == GEARMAN_LOST_CONNECTION)
+        {
+          if (benchmark.verbose > 1)
+          {
+            std::cerr << "Error occured while trying to add task: " << gearman_client_error(&client);
+          }
           continue;
+        }
 
         if (benchmark.background)
         {
@@ -313,7 +334,9 @@ static gearman_return_t _created(gearman_task_st *task)
   gearman_benchmark_st *benchmark= static_cast<gearman_benchmark_st *>(gearman_task_context(task));
 
   if (benchmark->background && benchmark->verbose > 0)
+  {
     benchmark_check_time(benchmark);
+  }
 
   if (benchmark->verbose > 2)
   {
