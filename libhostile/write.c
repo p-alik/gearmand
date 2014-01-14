@@ -55,6 +55,9 @@ static void set_local(void)
   __function= set_function("write", "HOSTILE_WRITE");
 }
 
+#define __WRITE_DEFAULT_ERROR ECONNRESET
+static __thread int __default_error= __WRITE_DEFAULT_ERROR;
+
 ssize_t write(int fd, const void *buf, size_t count)
 {
   hostile_initialize();
@@ -66,9 +69,54 @@ ssize_t write(int fd, const void *buf, size_t count)
     {
       if (--not_until < 0 && random() % __function.frequency)
       {
-        close(fd);
-        errno= ECONNRESET;
-        return -1;
+        int ret= -1;
+        struct stat statbuf;
+        fstat(fd, &statbuf);
+
+        if (S_ISSOCK(statbuf.st_mode))
+        {
+          switch (__default_error)
+          {
+            case EIO:
+              close(fd);
+              errno= EIO;
+              break;
+
+            case ENETDOWN:
+              close(fd);
+              errno= ENETDOWN;
+              break;
+
+            case ECONNRESET:
+            default:
+              close(fd);
+              errno= ECONNRESET;
+              break;
+          }
+        }
+        else
+        {
+          switch (__default_error)
+          {
+            case EIO:
+              errno= EIO;
+              ret= 0;
+              break;
+
+            case ENOSPC:
+              errno= ENOSPC;
+              ret= 0;
+              break;
+
+            case EFBIG:
+            default:
+              errno= EFBIG;
+              ret= 0;
+              break;
+          }
+        }
+
+        return ret;
       }
     }
   }
