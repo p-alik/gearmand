@@ -83,9 +83,9 @@ static test_return_t VALGRIND_COMMAND_test(void *)
 static test_return_t VALGRIND_CHECK_TEST(void *)
 {
   SKIP_IF(bool(getenv("VALGRIND_COMMAND")) == false);
-  SKIP_IF(bool(getenv("TESTS_ENVIRONMENT")) == false);
+  SKIP_IF(bool(getenv("LOG_COMPILER")) == false);
 
-  if (getenv("TESTS_ENVIRONMENT")  && strstr(getenv("TESTS_ENVIRONMENT"), "valgrind"))
+  if (getenv("LOG_COMPILER")  && strstr(getenv("LOG_COMPILER"), "valgrind"))
   {
     ASSERT_TRUE(valgrind_is_caller());
   }
@@ -577,7 +577,7 @@ static test_return_t memcached_sasl_test(void *object)
   server_startup_st *servers= (server_startup_st*)object;
   test_true(servers);
 
-  test_skip(false, bool(getenv("TESTS_ENVIRONMENT")));
+  test_skip(false, bool(getenv("LOG_COMPILER")));
 
   if (MEMCACHED_SASL_BINARY)
   {
