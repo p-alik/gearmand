@@ -1,8 +1,8 @@
 /*  vim:expandtab:shiftwidth=2:tabstop=2:smarttab:
  *
- *  Data Differential YATL (i.e. libtest)  library
+ *  Data Differential's libhostle
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2014 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -34,54 +34,5 @@
  *
  */
 
-#include "libtest/yatlcon.h"
-#include <libtest/common.h>
+#pragma once
 
-namespace libtest {
-
-bool jenkins_is_caller(void)
-{
-  if (bool(getenv("JENKINS_HOME")))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool gdb_is_caller(void)
-{
-  if (bool(getenv("LOG_COMPILER")) and strstr(getenv("LOG_COMPILER"), "gdb"))
-  {
-    return true;
-  }
-
-  if (bool(getenv("LIBTEST_IN_GDB")))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool helgrind_is_caller(void)
-{
-  if (bool(getenv("LOG_COMPILER")) and strstr(getenv("LOG_COMPILER"), "helgrind"))
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool _in_valgrind(const char*, int, const char*)
-{
-  if (valgrind_is_caller())
-  {
-    return true;
-  }
-
-  return false;
-}
-
-} // namespace libtest

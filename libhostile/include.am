@@ -32,6 +32,7 @@ noinst_HEADERS+= libhostile/send.h
 noinst_HEADERS+= libhostile/setsockopt.h
 noinst_HEADERS+= libhostile/socket.h
 noinst_HEADERS+= libhostile/socket_server.h
+noinst_HEADERS+= libhostile/sync.h
 noinst_HEADERS+= libhostile/visibility.h
 noinst_HEADERS+= libhostile/write.h
 

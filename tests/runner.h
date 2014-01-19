@@ -100,7 +100,9 @@ private:
         rc= func(&client);
         if (rc == TEST_SUCCESS)
         {
+#if defined(DEBUG) && DEBUG
           test_warn(gearman_client_has_tasks(&client) == false, "client has uncompleted tasks");
+#endif
         }
       }
 
