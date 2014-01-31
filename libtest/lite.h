@@ -78,6 +78,14 @@
 #endif
 
 #include <libtest/valgrind.h>
+#ifndef DUMPCORE
+# if defined(YATL_FULL) && YATL_FULL
+#  include <libtest/core.h>
+#  define DUMPCORE libtest_create_core()
+# else
+#  define DUMPCORE
+# endif
+#endif
 
 static inline size_t yatl_strlen(const char *s)
 {
@@ -172,6 +180,7 @@ do \
 do \
 { \
   if (! (__expression)) { \
+    DUMPCORE; \
     if (YATL_FULL) { \
       FAIL("Assertion '%s'", #__expression); \
     } \

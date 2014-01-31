@@ -64,3 +64,8 @@ void create_core(void)
 }
 
 } // namespace libtest
+
+void libtest_create_core(void)
+{
+  libtest::create_core();
+}

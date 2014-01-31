@@ -80,7 +80,7 @@ test_return_t unique_SETUP(void *object)
 test_return_t coalescence_TEST(void *object)
 {
   gearman_client_st *client_one= (gearman_client_st *)object;
-  test_true(client_one);
+  ASSERT_TRUE(client_one);
 
   libgearman::Client client_two(client_one);
 
@@ -105,8 +105,8 @@ test_return_t coalescence_TEST(void *object)
                                                        NULL, 0, // workload
                                                        &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(first_task);
-  test_true(gearman_task_unique(first_task));
+  ASSERT_TRUE(first_task);
+  ASSERT_TRUE(gearman_task_unique(first_task));
   ASSERT_EQ(strlen(unique_handle), strlen(gearman_task_unique(first_task)));
  
   // Second task
@@ -118,8 +118,8 @@ test_return_t coalescence_TEST(void *object)
                                                         NULL, 0, // workload
                                                         &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(second_task);
-  test_true(gearman_task_unique(second_task));
+  ASSERT_TRUE(second_task);
+  ASSERT_TRUE(gearman_task_unique(second_task));
   ASSERT_EQ(strlen(unique_handle), strlen(gearman_task_unique(second_task)));
   
   test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
@@ -150,7 +150,7 @@ test_return_t coalescence_TEST(void *object)
 test_return_t coalescence_by_data_hash_TEST(void *object)
 {
   gearman_client_st *client_one= (gearman_client_st *)object;
-  test_true(client_one);
+  ASSERT_TRUE(client_one);
 
   libgearman::Client client_two(client_one);
 
@@ -175,8 +175,8 @@ test_return_t coalescence_by_data_hash_TEST(void *object)
                                                        test_literal_param(__func__), // workload
                                                        &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(first_task);
-  test_true(gearman_task_unique(first_task));
+  ASSERT_TRUE(first_task);
+  ASSERT_TRUE(gearman_task_unique(first_task));
   ASSERT_EQ(strlen("2285535048"), strlen(gearman_task_unique(first_task)));
  
   // Second task
@@ -188,8 +188,8 @@ test_return_t coalescence_by_data_hash_TEST(void *object)
                                                         test_literal_param(__func__), // workload
                                                         &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(second_task);
-  test_true(gearman_task_unique(second_task));
+  ASSERT_TRUE(second_task);
+  ASSERT_TRUE(gearman_task_unique(second_task));
   ASSERT_EQ(strlen("2285535048"), strlen(gearman_task_unique(second_task)));
   
   test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
@@ -221,7 +221,7 @@ test_return_t coalescence_by_data_hash_TEST(void *object)
 test_return_t coalescence_by_data_TEST(void *object)
 {
   gearman_client_st *client_one= (gearman_client_st *)object;
-  test_true(client_one);
+  ASSERT_TRUE(client_one);
 
   libgearman::Client client_two(client_one);
 
@@ -246,8 +246,8 @@ test_return_t coalescence_by_data_TEST(void *object)
                                                        NULL, 0, // workload
                                                        &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(first_task);
-  test_true(gearman_task_unique(first_task));
+  ASSERT_TRUE(first_task);
+  ASSERT_TRUE(gearman_task_unique(first_task));
   ASSERT_EQ(strlen(unique_handle), strlen(gearman_task_unique(first_task)));
  
   // Second task
@@ -259,8 +259,8 @@ test_return_t coalescence_by_data_TEST(void *object)
                                                         NULL, 0, // workload
                                                         &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(second_task);
-  test_true(gearman_task_unique(second_task));
+  ASSERT_TRUE(second_task);
+  ASSERT_TRUE(gearman_task_unique(second_task));
   ASSERT_EQ(strlen(unique_handle), strlen(gearman_task_unique(second_task)));
   
   test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
@@ -291,7 +291,7 @@ test_return_t coalescence_by_data_TEST(void *object)
 test_return_t coalescence_by_data_FAIL_TEST(void *object)
 {
   gearman_client_st *client_one= (gearman_client_st *)object;
-  test_true(client_one);
+  ASSERT_TRUE(client_one);
 
   libgearman::Client client_two(client_one);
 
@@ -316,8 +316,8 @@ test_return_t coalescence_by_data_FAIL_TEST(void *object)
                                                        NULL, 0, // workload
                                                        &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(first_task);
-  test_true(gearman_task_unique(first_task));
+  ASSERT_TRUE(first_task);
+  ASSERT_TRUE(gearman_task_unique(first_task));
   ASSERT_EQ(strlen(unique_handle), strlen(gearman_task_unique(first_task)));
  
   // Second task
@@ -329,8 +329,8 @@ test_return_t coalescence_by_data_FAIL_TEST(void *object)
                                                         test_literal_param("mine"), // workload
                                                         &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(second_task);
-  test_true(gearman_task_unique(second_task));
+  ASSERT_TRUE(second_task);
+  ASSERT_TRUE(gearman_task_unique(second_task));
   ASSERT_EQ(strlen(unique_handle), strlen(gearman_task_unique(second_task)));
   
   test_strcmp(gearman_task_unique(first_task), gearman_task_unique(second_task));
@@ -404,7 +404,7 @@ test_return_t gearman_client_unique_status_TEST(void *object)
                                                                   unique_handle, // unique
                                                                   test_literal_param("first_task"), // workload
                                                                   &ret);
-  test_true(first_task);
+  ASSERT_TRUE(first_task);
 
   gearman_task_st *second_task= gearman_client_add_task_background(&client_two,
                                                                    NULL, // preallocated task
@@ -413,7 +413,7 @@ test_return_t gearman_client_unique_status_TEST(void *object)
                                                                    unique_handle, // unique
                                                                    test_literal_param("second_task"), // workload
                                                                    &ret);
-  test_true(second_task);
+  ASSERT_TRUE(second_task);
 
   gearman_task_st *third_task= gearman_client_add_task_background(&client_three,
                                                                   NULL, // preallocated task
@@ -422,7 +422,7 @@ test_return_t gearman_client_unique_status_TEST(void *object)
                                                                   unique_handle, // unique
                                                                   test_literal_param("third_task"), // workload
                                                                   &ret);
-  test_true(third_task);
+  ASSERT_TRUE(third_task);
 
   {
     ASSERT_EQ(gearman_client_run_tasks(&client_one), GEARMAN_SUCCESS);

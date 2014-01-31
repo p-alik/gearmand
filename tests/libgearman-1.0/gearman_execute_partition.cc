@@ -61,7 +61,7 @@ using namespace libtest;
 test_return_t partition_SETUP(void *object)
 {
   client_test_st *test= (client_test_st *)object;
-  test_true(test);
+  ASSERT_TRUE(test);
 
   test->set_worker_name(WORKER_FUNCTION_NAME);
 
@@ -93,7 +93,7 @@ test_return_t partition_free_SETUP(void *object)
 test_return_t gearman_execute_partition_check_parameters(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
 
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_client_echo(client, test_literal_param("this is mine")));
@@ -176,7 +176,7 @@ test_return_t gearman_execute_partition_workfail(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true(task);
+  ASSERT_TRUE(task);
 
   ASSERT_EQ(GEARMAN_WORK_EXCEPTION, gearman_task_return(task));
 
@@ -201,7 +201,7 @@ test_return_t gearman_execute_partition_fail_in_reduction(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true(task);
+  ASSERT_TRUE(task);
 
   ASSERT_EQ(GEARMAN_WORK_FAIL, gearman_task_return(task));
 
@@ -228,13 +228,13 @@ test_return_t gearman_execute_partition_use_as_function(void *object)
                                          NULL, 0,  // unique
                                          NULL,
                                          &workload, 0);
-  test_true(task);
+  ASSERT_TRUE(task);
 
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_task_return(task));
   gearman_result_st *result= gearman_task_result(task);
-  test_truth(result);
+  ASSERT_TRUE(result);
   const char *value= gearman_result_value(result);
-  test_truth(value);
+  ASSERT_TRUE(value);
   ASSERT_EQ(18UL, gearman_result_size(result));
 
   gearman_task_free(task);
@@ -255,7 +255,7 @@ test_return_t gearman_execute_partition_no_aggregate(void *object)
                                                       NULL, 0,  // unique
                                                       NULL,
                                                       &workload, 0);
-  test_true(task);
+  ASSERT_TRUE(task);
 
   ASSERT_EQ(GEARMAN_SUCCESS, 
                gearman_task_return(task));

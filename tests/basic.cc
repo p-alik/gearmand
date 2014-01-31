@@ -64,12 +64,12 @@ using namespace org::gearmand;
 test_return_t client_echo_fail_test(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
 
   libgearman::Client client(in_port_t(20));
 
   gearman_return_t rc= gearman_client_echo(&client, test_literal_param("This should never work"));
-  test_true(gearman_failed(rc));
+  ASSERT_TRUE(gearman_failed(rc));
 
   return TEST_SUCCESS;
 }
@@ -77,7 +77,7 @@ test_return_t client_echo_fail_test(void *object)
 test_return_t client_echo_test(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
 
   libgearman::Client client(test->port());
 
@@ -89,7 +89,7 @@ test_return_t client_echo_test(void *object)
 test_return_t worker_echo_test(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
 
 #if 0
   gearman_worker_st *worker= test->worker;
@@ -106,9 +106,9 @@ test_return_t worker_echo_test(void *object)
 test_return_t queue_clean(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
   gearman_worker_st *worker= test->worker();
-  test_truth(worker);
+  ASSERT_TRUE(worker);
 
   gearman_worker_set_timeout(worker, 3000);
 
@@ -128,7 +128,7 @@ test_return_t queue_clean(void *object)
 test_return_t queue_add(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
 
   test->run_worker= false;
 
@@ -145,14 +145,14 @@ test_return_t queue_add(void *object)
                                                        test->worker_function_name(), strlen(test->worker_function_name()),
                                                        job_handle);
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
-    test_truth(job_handle[0]);
+    ASSERT_TRUE(job_handle[0]);
 
     gearman_return_t rc;
     do {
       rc= gearman_client_job_status(&client, job_handle, NULL, NULL, NULL, NULL);
-      test_true(rc != GEARMAN_IN_PROGRESS);
+      ASSERT_TRUE(rc != GEARMAN_IN_PROGRESS);
     } while (gearman_continue(rc) and rc != GEARMAN_JOB_EXISTS); // We need to exit on these values since the job will never run
-    test_true(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
+    ASSERT_TRUE(rc == GEARMAN_JOB_EXISTS or rc == GEARMAN_SUCCESS);
   }
 
   test->run_worker= true;
@@ -163,7 +163,7 @@ test_return_t queue_add(void *object)
 test_return_t queue_worker(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
 
   // Fetch worker
   libgearman::Worker worker(test->port());
@@ -174,7 +174,7 @@ test_return_t queue_worker(void *object)
   // Setup job
   ASSERT_EQ(TEST_SUCCESS, queue_add(object));
 
-  test_true(test->run_worker);
+  ASSERT_TRUE(test->run_worker);
 
   Called counter;
   gearman_function_t counter_function= gearman_function_create(called_worker);
@@ -186,7 +186,7 @@ test_return_t queue_worker(void *object)
   gearman_return_t rc= gearman_worker_work(&worker);
   ASSERT_EQ(rc, GEARMAN_SUCCESS);
 
-  test_truth(counter.count());
+  ASSERT_TRUE(counter.count());
 
   return TEST_SUCCESS;
 }
@@ -197,7 +197,7 @@ test_return_t queue_worker(void *object)
 test_return_t lp_734663(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
 
   const char *worker_function_name= "drizzle_queue_test";
 
@@ -212,7 +212,7 @@ test_return_t lp_734663(void *object)
   {
     gearman_job_handle_t job_handle= {};
     ASSERT_EQ(gearman_client_do_background(&client, worker_function_name, NULL, value, sizeof(value), job_handle), GEARMAN_SUCCESS);
-    test_truth(job_handle[0]);
+    ASSERT_TRUE(job_handle[0]);
   }
 
   struct worker_handle_st *worker_handle[NUMBER_OF_WORKERS];
@@ -222,7 +222,7 @@ test_return_t lp_734663(void *object)
   for (uint32_t x= 0; x < NUMBER_OF_WORKERS; x++)
   {
     worker_handle[x]= test_worker_start(test->port(), NULL, worker_function_name, counter_function_fn, &called, gearman_worker_options_t());
-    test_true(worker_handle[x]);
+    ASSERT_TRUE(worker_handle[x]);
   }
 
   while (called.count() < NUMBER_OF_JOBS)

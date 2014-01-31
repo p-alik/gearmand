@@ -2,7 +2,7 @@
  *
  *  Data Differential YATL (i.e. libtest)  library
  *
- *  Copyright (C) 2012 Data Differential, http://datadifferential.com/
+ *  Copyright (C) 2012-2014 Data Differential, http://datadifferential.com/
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are
@@ -36,9 +36,19 @@
 
 #pragma once
 
+LIBTEST_API
+void libtest_create_core(void);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 namespace libtest {
 
-LIBTEST_API
 void create_core(void);
 
 } // namespace libtest
+
+#ifdef __cplusplus
+}
+#endif

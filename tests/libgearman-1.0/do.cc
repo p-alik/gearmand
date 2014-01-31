@@ -80,9 +80,9 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   { // Start up epoch_task
     gearman_task_attr_t work_description= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
     gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-    test_true(epoch_task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &work_description, &value, 0));
-    test_truth(epoch_task);
-    test_truth(gearman_task_job_handle(epoch_task));
+    ASSERT_TRUE(epoch_task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &work_description, &value, 0));
+    ASSERT_TRUE(epoch_task);
+    ASSERT_TRUE(gearman_task_job_handle(epoch_task));
   }
 
   gearman_string_t value= { test_literal_param("submit_job_test") };
@@ -91,7 +91,7 @@ test_return_t gearman_client_do_with_active_background_task(void *object)
   void *job_result= gearman_client_do(client, worker_function, NULL, gearman_string_param(value), &result_length, &rc);
 
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_truth(job_result);
+  ASSERT_TRUE(job_result);
   ASSERT_EQ(gearman_size(value), result_length);
 
   test_memcmp(gearman_c_str(value), job_result, gearman_size(value));

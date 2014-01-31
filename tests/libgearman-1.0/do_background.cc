@@ -62,7 +62,7 @@ test_return_t gearman_client_do_background_basic(void *object)
                                                     test_literal_param("foobar"),
                                                     job_handle);
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_truth(job_handle[0]);
+  ASSERT_TRUE(job_handle[0]);
 
   return TEST_SUCCESS;
 }
@@ -79,7 +79,7 @@ test_return_t gearman_client_do_high_background_basic(void *object)
                                                          test_literal_param("foobar"),
                                                          job_handle);
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_truth(job_handle[0]);
+  ASSERT_TRUE(job_handle[0]);
 
   return TEST_SUCCESS;
 }
@@ -97,7 +97,7 @@ test_return_t gearman_client_do_low_background_basic(void *object)
                                                          job_handle);
 
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_truth(job_handle[0]);
+  ASSERT_TRUE(job_handle[0]);
 
   return TEST_SUCCESS;
 }
