@@ -123,35 +123,35 @@ SYNOPSIS
 
 **Drizzle/MySQL(libdrizzle)**
 
-.. option:: libdrizzle-host arg
+.. option:: --libdrizzle-host arg
 
    Host of server.
 
-.. option:: libdrizzle-port arg
+.. option:: --libdrizzle-port arg
 
    Port of server. (by default Drizzle)
 
-.. option:: libdrizzle-uds arg
+.. option:: --libdrizzle-uds arg
 
    Unix domain socket for server.
 
-.. option:: libdrizzle-user arg
+.. option:: --libdrizzle-user arg
 
    User name for authentication.
 
-.. option:: libdrizzle-password arg
+.. option:: --libdrizzle-password arg
 
    Password for authentication.
 
-.. option:: libdrizzle-db arg
+.. option:: --libdrizzle-db arg
 
    Schema/Database to use.
 
-.. option:: libdrizzle-table arg
+.. option:: --libdrizzle-table arg
 
    Table to use.
 
-.. option:: libdrizzle-mysql arg
+.. option:: --libdrizzle-mysql arg
 
    Use MySQL protocol.
 
