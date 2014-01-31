@@ -15,6 +15,7 @@ sbin_PROGRAMS=
 check_PROGRAMS=
 noinst_PROGRAMS=
 lib_LTLIBRARIES=
+man_MANS=
 noinst_LTLIBRARIES=
 check_LTLIBRARIES=
 nobase_include_HEADERS=
@@ -26,8 +27,7 @@ CLEANFILES=
 BUILT_SOURCES=
 TESTS=
 XFAIL_TESTS=
-
-SUBDIRS= man .
+dist_man_MANS=
 
 #includes additional rules from aminclude.am
 @INC_AMINCLUDE@
@@ -39,6 +39,8 @@ include libhostile/include.am
 include libhashkit-1.0/include.am
 
 include docs/examples.mk
+include docs/include.am
+include man/include.am
 include libgearmancore/include.am
 include libhashkit/include.am
 include benchmark/include.am
@@ -84,7 +86,7 @@ configmake.h: Makefile
 	  mv $@-t $@ ; \
 	  fi
 
-clean-local: clean-libtest-check
+clean-local: clean-libtest-check clean-docs-check
 
 maintainer-clean-local:
 	find . -type f -name '*~' -exec rm -f '{}' \;
