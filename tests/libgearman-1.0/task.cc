@@ -78,8 +78,8 @@ test_return_t gearman_client_add_task_status_by_unique_NOT_FOUND_TEST(void *obje
                                                                          unique_key,
                                                                          &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(unique_task);
-  test_true(gearman_task_unique(unique_task));
+  ASSERT_TRUE(unique_task);
+  ASSERT_TRUE(gearman_task_unique(unique_task));
   ASSERT_EQ(strlen(unique_key), strlen(gearman_task_unique(unique_task)));
 
   libtest::dream(1, 0);
@@ -109,8 +109,8 @@ test_return_t gearman_client_add_task_status_by_unique_TEST(void *object)
                                                  test_literal_param("sleep"), // workload
                                                  &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(task);
-  test_true(gearman_task_unique(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_unique(task));
   ASSERT_EQ(strlen(unique_key), strlen(gearman_task_unique(task)));
 
   do
@@ -143,8 +143,8 @@ test_return_t gearman_client_add_task_status_by_unique_TEST(void *object)
                                                                          unique_key,
                                                                          &ret);
   ASSERT_EQ(GEARMAN_SUCCESS, ret);
-  test_truth(unique_task);
-  test_true(gearman_task_unique(unique_task));
+  ASSERT_TRUE(unique_task);
+  ASSERT_TRUE(gearman_task_unique(unique_task));
   ASSERT_EQ(strlen(unique_key), strlen(gearman_task_unique(unique_task)));
 
   gearman_task_free(unique_task);
@@ -171,8 +171,8 @@ test_return_t gearman_client_add_task_test(void *object)
                                                  test_literal_param("dog"), // workload
                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
-  test_true(gearman_task_unique(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_unique(task));
   ASSERT_EQ(size_t(GEARMAN_MAX_UUID_SIZE), strlen(gearman_task_unique(task)));
 
   do
@@ -212,8 +212,8 @@ test_return_t gearman_client_add_task_test_fail(void *object)
                                                  test_literal_param("fail"),
                                                  &ret);
   ASSERT_EQ(GEARMAN_SUCCESS,ret);
-  test_truth(task);
-  test_truth(task->impl()->client);
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(task->impl()->client);
 
   do {
     ret= gearman_client_run_tasks(client);
@@ -227,11 +227,11 @@ test_return_t gearman_client_add_task_test_fail(void *object)
     return TEST_SUCCESS;
   }
 
-  test_truth(task->impl()->client);
+  ASSERT_TRUE(task->impl()->client);
 
   ASSERT_EQ(gearman_task_return(task), GEARMAN_WORK_FAIL);
 
-  test_truth(task->impl()->client);
+  ASSERT_TRUE(task->impl()->client);
   gearman_task_free(task);
 
   return TEST_SUCCESS;
@@ -289,7 +289,7 @@ test_return_t gearman_client_add_task_exception(void *object)
 
   gearman_return_t ret;
 
-  test_truth(gearman_client_set_server_option(client, test_literal_param("exceptions")));
+  ASSERT_TRUE(gearman_client_set_server_option(client, test_literal_param("exceptions")));
 
   gearman_client_set_exception_fn(client, gearman_exception_test_function);
 
@@ -299,14 +299,14 @@ test_return_t gearman_client_add_task_exception(void *object)
                                                  test_literal_param("exception"),
                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   do {
     ret= gearman_client_run_tasks(client);
   } while (gearman_continue(ret));
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
 
-  test_truth(exception_success);
+  ASSERT_TRUE(exception_success);
 
   gearman_client_set_exception_fn(client, NULL);
 
@@ -363,7 +363,7 @@ test_return_t gearman_client_add_task_check_exception_TEST(void*)
                                                  test_literal_param("exception test"),
                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   do {
     ret= gearman_client_run_tasks(&client);
@@ -373,7 +373,7 @@ test_return_t gearman_client_add_task_check_exception_TEST(void*)
   // This is a defect, from what I understand we should be passing along the
   // exception.
 #if 0
-  test_true(exception_string.compare("exception test") == 0);
+  ASSERT_TRUE(exception_string.compare("exception test") == 0);
 #endif
 
   // If the task has been free() then we can't check anything about it
@@ -400,7 +400,7 @@ test_return_t gearman_client_add_task_background_test(void *object)
                                                             worker_function, NULL, "dog", 3,
                                                             &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   do
   {
@@ -438,7 +438,7 @@ test_return_t gearman_client_add_task_high_background_test(void *object)
                                                                  worker_function, NULL, "dog", 3,
                                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   do
   {
@@ -473,7 +473,7 @@ test_return_t gearman_client_add_task_low_background_test(void *object)
                                                                  worker_function, NULL, "dog", 3,
                                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   do
   {
@@ -528,11 +528,11 @@ test_return_t gearman_client_add_task_warning(void *object)
                                                  test_literal_param("warning"),
                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   ASSERT_EQ(GEARMAN_SUCCESS, 
                gearman_client_run_tasks(client));
-  test_truth(warning_success);
+  ASSERT_TRUE(warning_success);
 
   gearman_client_set_warning_fn(client, NULL);
   if (not gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
@@ -546,7 +546,7 @@ test_return_t gearman_client_add_task_warning(void *object)
 test_return_t gearman_client_add_task_no_servers(void *)
 {
   gearman_client_st *client= gearman_client_create(NULL);
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   gearman_return_t ret;
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
@@ -554,7 +554,7 @@ test_return_t gearman_client_add_task_no_servers(void *)
                                                  test_literal_param("dog"),
                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
+  ASSERT_TRUE(task);
 
   ASSERT_EQ(GEARMAN_NO_SERVERS, 
                gearman_client_run_tasks(client));
@@ -583,11 +583,11 @@ test_return_t gearman_client_add_task_pause_test(void *object)
   gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
                                                  worker_function, NULL, "dog", 3,
                                                  &ret);
-  test_true(client->impl()->actions.data_fn == pause_actions.data_fn);
+  ASSERT_TRUE(client->impl()->actions.data_fn == pause_actions.data_fn);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
 
-  test_truth(task);
-  test_true(gearman_task_unique(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_unique(task));
   ASSERT_EQ(size_t(GEARMAN_MAX_UUID_SIZE), strlen(gearman_task_unique(task)));
 
   do
@@ -596,13 +596,13 @@ test_return_t gearman_client_add_task_pause_test(void *object)
     uint32_t count= 0;
     do {
       count++;
-      test_true(client->impl()->actions.data_fn == pause_actions.data_fn);
+      ASSERT_TRUE(client->impl()->actions.data_fn == pause_actions.data_fn);
       ret= gearman_client_run_tasks(client);
-      test_true(client->impl()->actions.data_fn == pause_actions.data_fn);
+      ASSERT_TRUE(client->impl()->actions.data_fn == pause_actions.data_fn);
     } while (gearman_continue(ret));
 
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
-    test_true(count > 1);
+    ASSERT_TRUE(count > 1);
 
     // If the task has been built to be freed, we won't have it to test
     if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
@@ -676,8 +676,8 @@ test_return_t gearman_client_set_task_context_free_fn_test(void *object)
                                                  worker_function, NULL, "dog", 3,
                                                  &ret);
   ASSERT_EQ(ret, GEARMAN_SUCCESS);
-  test_truth(task);
-  test_true(gearman_task_unique(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_unique(task));
   ASSERT_EQ(size_t(GEARMAN_MAX_UUID_SIZE), strlen(gearman_task_unique(task)));
   gearman_task_set_context(task, &task_free_foo);
 
@@ -694,7 +694,7 @@ test_return_t gearman_client_set_task_context_free_fn_test(void *object)
     // If the task has been built to be freed, we won't have it to test
     if (gearman_client_has_option(client, GEARMAN_CLIENT_FREE_TASKS))
     {
-      test_true(task_free_foo.success());
+      ASSERT_TRUE(task_free_foo.success());
       return TEST_SUCCESS;
     }
 
@@ -702,7 +702,7 @@ test_return_t gearman_client_set_task_context_free_fn_test(void *object)
 
   gearman_task_free(task);
 
-  test_true(task_free_foo.success());
+  ASSERT_TRUE(task_free_foo.success());
 
   return TEST_SUCCESS;
 }

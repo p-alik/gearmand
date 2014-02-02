@@ -47,7 +47,7 @@ using namespace libtest;
 test_return_t function_name_limit_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
 
   std::vector<char> function_name;
   function_name.resize(GEARMAN_FUNCTION_MAX_SIZE +2);
@@ -68,7 +68,7 @@ test_return_t function_name_limit_test(void *object)
 test_return_t unique_name_limit_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
 
   std::vector<char> function_name;
   function_name.resize(GEARMAN_FUNCTION_MAX_SIZE +1);

@@ -192,7 +192,7 @@ static test_return_t burnin_TEST(void*)
   fatal_assert(context);
 
   // This sketchy, don't do this in your own code.
-  test_true(context->num_tasks() > 0);
+  ASSERT_TRUE(context->num_tasks() > 0);
   std::vector<gearman_task_st> tasks;
   try {
     tasks.resize(context->num_tasks());
@@ -242,7 +242,7 @@ static test_return_t burnin_TEST(void*)
       }
 
       ASSERT_EQ(ret, GEARMAN_SUCCESS);
-      test_truth(task_ptr);
+      ASSERT_TRUE(task_ptr);
     }
 
     gearman_return_t ret= gearman_client_run_tasks(client);

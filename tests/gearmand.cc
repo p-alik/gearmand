@@ -189,7 +189,7 @@ static test_return_t long_keepalive_start_TEST(void *)
 {
   in_port_t port= libtest::get_free_port();
   char port_str[1024];
-  test_true(snprintf(port_str, sizeof(port_str), "--port=%d", int32_t(port)) > 0);
+  ASSERT_TRUE(snprintf(port_str, sizeof(port_str), "--port=%d", int32_t(port)) > 0);
 
   const char *args[]= {
     port_str,
@@ -548,7 +548,7 @@ static test_return_t config_file_SIMPLE_TEST(void *)
 {
   in_port_t port= libtest::get_free_port();
   char port_str[1024];
-  test_true(snprintf(port_str, sizeof(port_str), "%d", int32_t(port)) > 0);
+  ASSERT_TRUE(snprintf(port_str, sizeof(port_str), "%d", int32_t(port)) > 0);
 
   std::string config_file= "etc/gearmand.conf";
   {
@@ -565,11 +565,11 @@ static test_return_t config_file_SIMPLE_TEST(void *)
     std::fstream file_stream;
     file_stream.open(config_path.c_str(), std::fstream::out | std::fstream::trunc);
 
-    test_true(file_stream.good());
+    ASSERT_TRUE(file_stream.good());
 
     file_stream << "--port " << port_str << std::endl;
 
-    test_true(file_stream.good());
+    ASSERT_TRUE(file_stream.good());
     file_stream.close();
   }
   test_zero(access(config_file.c_str(), R_OK));

@@ -158,7 +158,7 @@ static test_return_t init_test(void *)
 {
   gearman_client_st client;
 
-  test_truth(gearman_client_create(&client));
+  ASSERT_TRUE(gearman_client_create(&client));
 
   gearman_client_free(&client);
 
@@ -169,7 +169,7 @@ static test_return_t allocation_test(void *)
 {
   gearman_client_st *client;
 
-  test_truth(client= gearman_client_create(NULL));
+  ASSERT_TRUE(client= gearman_client_create(NULL));
 
   gearman_client_free(client);
 
@@ -181,8 +181,8 @@ static test_return_t clone_test(void *)
   {
     gearman_client_st *client= gearman_client_clone(NULL, NULL);
 
-    test_truth(client);
-    test_truth(gearman_is_allocated(client));
+    ASSERT_TRUE(client);
+    ASSERT_TRUE(gearman_is_allocated(client));
 
     gearman_client_free(client);
   }
@@ -218,9 +218,9 @@ static test_return_t option_test(void *)
   gearman_client_options_t default_options;
 
   gear= gearman_client_create(NULL);
-  test_truth(gear);
+  ASSERT_TRUE(gear);
   { // Initial Allocated, no changes
-    test_truth(gearman_is_allocated(gear));
+    ASSERT_TRUE(gearman_is_allocated(gear));
     test_false(gear->impl()->options.non_blocking);
     test_false(gear->impl()->options.unbuffered_result);
     test_false(gear->impl()->options.no_new);
@@ -237,7 +237,7 @@ static test_return_t option_test(void *)
   */
   gearman_client_set_options(gear, default_options);
   { // Initial Allocated, no changes
-    test_truth(gearman_is_allocated(gear));
+    ASSERT_TRUE(gearman_is_allocated(gear));
     test_false(gear->impl()->options.non_blocking);
     test_false(gear->impl()->options.unbuffered_result);
     test_false(gear->impl()->options.no_new);
@@ -251,7 +251,7 @@ static test_return_t option_test(void *)
   {
     gearman_client_remove_options(gear, GEARMAN_CLIENT_ALLOCATED);
     { // Initial Allocated, no changes
-      test_truth(gearman_is_allocated(gear));
+      ASSERT_TRUE(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -260,7 +260,7 @@ static test_return_t option_test(void *)
     }
     gearman_client_remove_options(gear, GEARMAN_CLIENT_NO_NEW);
     { // Initial Allocated, no changes
-      test_truth(gearman_is_allocated(gear));
+      ASSERT_TRUE(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -275,7 +275,7 @@ static test_return_t option_test(void *)
   {
     gearman_client_remove_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
     { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-      test_truth(gearman_is_allocated(gear));
+      ASSERT_TRUE(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
@@ -283,25 +283,25 @@ static test_return_t option_test(void *)
     }
     gearman_client_add_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
     { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-      test_truth(gearman_is_allocated(gear));
-      test_truth(gear->impl()->options.non_blocking);
+      ASSERT_TRUE(gearman_is_allocated(gear));
+      ASSERT_TRUE(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
       test_false(gear->impl()->options.free_tasks);
     }
     gearman_client_set_options(gear, GEARMAN_CLIENT_NON_BLOCKING);
     { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-      test_truth(gearman_is_allocated(gear));
-      test_truth(gear->impl()->options.non_blocking);
+      ASSERT_TRUE(gearman_is_allocated(gear));
+      ASSERT_TRUE(gear->impl()->options.non_blocking);
       test_false(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
       test_false(gear->impl()->options.free_tasks);
     }
     gearman_client_set_options(gear, GEARMAN_CLIENT_UNBUFFERED_RESULT);
     { // Everything is now set to false except GEARMAN_CLIENT_UNBUFFERED_RESULT, and non-mutable options
-      test_truth(gearman_is_allocated(gear));
+      ASSERT_TRUE(gearman_is_allocated(gear));
       test_false(gear->impl()->options.non_blocking);
-      test_truth(gear->impl()->options.unbuffered_result);
+      ASSERT_TRUE(gear->impl()->options.unbuffered_result);
       test_false(gear->impl()->options.no_new);
       test_false(gear->impl()->options.free_tasks);
     }
@@ -343,7 +343,7 @@ static test_return_t option_test(void *)
     {
       gearman_client_set_options(gear, default_options);
       { // See if we return to defaults
-        test_truth(gearman_is_allocated(gear));
+        ASSERT_TRUE(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -352,20 +352,20 @@ static test_return_t option_test(void *)
       }
       gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
       { // All defaults, except timeout_return
-        test_truth(gearman_is_allocated(gear));
+        ASSERT_TRUE(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
-        test_truth(gear->impl()->options.free_tasks);
+        ASSERT_TRUE(gear->impl()->options.free_tasks);
         ASSERT_FALSE(gear->impl()->options.generate_unique);
       }
       gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_NON_BLOCKING|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-        test_truth(gearman_is_allocated(gear));
-        test_truth(gear->impl()->options.non_blocking);
-        test_truth(gear->impl()->options.unbuffered_result);
+        ASSERT_TRUE(gearman_is_allocated(gear));
+        ASSERT_TRUE(gear->impl()->options.non_blocking);
+        ASSERT_TRUE(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
-        test_truth(gear->impl()->options.free_tasks);
+        ASSERT_TRUE(gear->impl()->options.free_tasks);
         ASSERT_FALSE(gear->impl()->options.generate_unique);
       }
     }
@@ -375,7 +375,7 @@ static test_return_t option_test(void *)
     {
       gearman_client_set_options(gear, default_options);
       { // See if we return to defaults
-        test_truth(gearman_is_allocated(gear));
+        ASSERT_TRUE(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
@@ -384,20 +384,20 @@ static test_return_t option_test(void *)
       }
       gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
       { // All defaults, except timeout_return
-        test_truth(gearman_is_allocated(gear));
+        ASSERT_TRUE(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
         test_false(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
-        test_truth(gear->impl()->options.free_tasks);
+        ASSERT_TRUE(gear->impl()->options.free_tasks);
         ASSERT_FALSE(gear->impl()->options.generate_unique);
       }
       gearman_client_add_options(gear, (gearman_client_options_t)(GEARMAN_CLIENT_FREE_TASKS|GEARMAN_CLIENT_UNBUFFERED_RESULT));
       { // GEARMAN_CLIENT_NON_BLOCKING set to default, by default.
-        test_truth(gearman_is_allocated(gear));
+        ASSERT_TRUE(gearman_is_allocated(gear));
         test_false(gear->impl()->options.non_blocking);
-        test_truth(gear->impl()->options.unbuffered_result);
+        ASSERT_TRUE(gear->impl()->options.unbuffered_result);
         test_false(gear->impl()->options.no_new);
-        test_truth(gear->impl()->options.free_tasks);
+        ASSERT_TRUE(gear->impl()->options.free_tasks);
         ASSERT_FALSE(gear->impl()->options.generate_unique);
       }
     }
@@ -411,7 +411,7 @@ static test_return_t option_test(void *)
 static test_return_t echo_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   gearman_string_t value= { test_literal_param("This is my echo test") };
 
@@ -483,7 +483,7 @@ static test_return_t submit_null_job_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   const char *worker_function= (const char *)gearman_client_context(client);
   ASSERT_NOT_NULL(worker_function);
@@ -502,10 +502,10 @@ static test_return_t submit_null_job_test(void *object)
 static test_return_t submit_exception_job_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   size_t result_length;
   gearman_return_t rc;
@@ -531,10 +531,10 @@ static test_return_t submit_exception_job_test(void *object)
 static test_return_t submit_warning_job_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   size_t result_length;
   gearman_return_t rc;
@@ -552,11 +552,11 @@ static test_return_t submit_warning_job_test(void *object)
 static test_return_t submit_fail_job_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   size_t result_length;
   gearman_return_t rc;
@@ -601,12 +601,12 @@ static test_return_t submit_multiple_do(void *object)
 static test_return_t gearman_client_job_status_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   gearman_string_t value= { test_literal_param("background_test") };
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   gearman_job_handle_t job_handle;
   ASSERT_EQ(GEARMAN_SUCCESS,
@@ -644,7 +644,7 @@ static void test_free_fn(void *ptr, void *context)
 static test_return_t gearman_client_set_workload_malloc_fn_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   bool malloc_check= false;
   gearman_client_set_workload_malloc_fn(client, test_malloc_fn, &malloc_check);
@@ -658,7 +658,7 @@ static test_return_t gearman_client_set_workload_malloc_fn_test(void *object)
 static test_return_t gearman_client_set_workload_free_fn_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   bool free_check= false;
   gearman_client_set_workload_free_fn(client, test_free_fn, &free_check);
@@ -724,7 +724,7 @@ static void test_free_count_fn(void *ptr, void *context)
 static test_return_t gearman_client_set_workload_allocators_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   _alloc_test_st _foo;
 
@@ -732,7 +732,7 @@ static test_return_t gearman_client_set_workload_allocators_test(void *object)
   gearman_client_set_workload_free_fn(client, test_free_count_fn, &_foo);
 
   ASSERT_EQ(TEST_SUCCESS, submit_job_test(object));
-  test_true(_foo.success());
+  ASSERT_TRUE(_foo.success());
 
   return TEST_SUCCESS;
 }
@@ -740,12 +740,12 @@ static test_return_t gearman_client_set_workload_allocators_test(void *object)
 static test_return_t gearman_client_job_status_with_return(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   gearman_string_t value= { test_literal_param("background_test") };
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   gearman_job_handle_t job_handle;
   ASSERT_EQ(GEARMAN_SUCCESS,
@@ -781,7 +781,7 @@ static test_return_t background_failure_test(void *object)
   do {
     rc= gearman_client_job_status(client, job_handle, &is_known, &is_running,
                                   &numerator, &denominator);
-    test_true(is_known == true and is_running == false and numerator == 0 and denominator == 0);
+    ASSERT_TRUE(is_known == true and is_running == false and numerator == 0 and denominator == 0);
   } while (gearman_continue(rc)); // We do not test for is_known since the server will keep the job around until a worker comes along
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
 
@@ -833,7 +833,7 @@ static test_return_t gearman_client_st_id_t_TEST(gearman_client_st*)
   // right now.
 #if 0
   gearman_client_st *client= gearman_client_create(NULL);
-  test_true(client);
+  ASSERT_TRUE(client);
   ASSERT_EQ(false, gearman_id_valid(client));
   gearman_client_free(client);
 
@@ -844,7 +844,7 @@ static test_return_t gearman_client_st_id_t_TEST(gearman_client_st*)
 static test_return_t gearman_worker_st_id_t_TEST(gearman_client_st*)
 {
   gearman_worker_st *worker= gearman_worker_create(NULL);
-  test_true(worker);
+  ASSERT_TRUE(worker);
   gearman_id_t id= gearman_worker_id(worker);
   ASSERT_EQ(true, gearman_id_valid(id));
   gearman_worker_free(worker);
@@ -923,11 +923,11 @@ static test_return_t regression_785203_do_test(void *)
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
-    test_truth(gearman_is_allocated(&client));
+    ASSERT_TRUE(gearman_is_allocated(&client));
     test_false((&client)->impl()->options.non_blocking);
     test_false((&client)->impl()->options.unbuffered_result);
     test_false((&client)->impl()->options.no_new);
-    test_truth((&client)->impl()->options.free_tasks);
+    ASSERT_TRUE((&client)->impl()->options.free_tasks);
   }
 
   gearman_function_t func= gearman_function_create_v2(echo_or_react_worker_v2);
@@ -940,7 +940,7 @@ static test_return_t regression_785203_do_test(void *)
   void *result= gearman_client_do(&client, __func__, NULL, 
                                   test_literal_param("keep it rocking and sing"),
                                   &result_length, &rc);
-  test_true(result);
+  ASSERT_TRUE(result);
   free(result);
 
   return TEST_SUCCESS;
@@ -949,7 +949,7 @@ static test_return_t regression_785203_do_test(void *)
 static test_return_t regression_785203_do_background_test(void *object)
 {
   gearman_client_st *original_client= (gearman_client_st *)object;
-  test_true(original_client);
+  ASSERT_TRUE(original_client);
 
   gearman_function_t echo_react_chunk_fn_v2= gearman_function_create_v2(echo_or_react_worker_v2);
   std::unique_ptr<worker_handle_st> handle(test_worker_start(libtest::default_port(), NULL,
@@ -960,11 +960,11 @@ static test_return_t regression_785203_do_background_test(void *object)
 
   gearman_client_add_options(&client, GEARMAN_CLIENT_FREE_TASKS);
   { // All defaults, except timeout_return
-    test_truth(gearman_is_allocated((&client)));
+    ASSERT_TRUE(gearman_is_allocated((&client)));
     test_false((&client)->impl()->options.non_blocking);
     test_false((&client)->impl()->options.unbuffered_result);
     test_false((&client)->impl()->options.no_new);
-    test_truth((&client)->impl()->options.free_tasks);
+    ASSERT_TRUE((&client)->impl()->options.free_tasks);
   }
 
   gearman_job_handle_t job_handle;
@@ -1008,7 +1008,7 @@ static test_return_t regression2_TEST(void *)
 static test_return_t gearman_worker_timeout_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
   std::unique_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
@@ -1028,7 +1028,7 @@ static test_return_t gearman_worker_timeout_TEST(void *object)
                                       gearman_literal_param("sleep"), // We send "sleep" to tell the sleeper to sleep
                                       &result_length, &rc);
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_true(job_result);
+  ASSERT_TRUE(job_result);
   ASSERT_EQ(sizeof("slept") -1, result_length);
   test_memcmp("slept", job_result, 5);
   free(job_result);
@@ -1042,9 +1042,9 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
   test_skip_valgrind();
 
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
 
-  test_truth(ECHO_OR_REACT_DREAM);
+  ASSERT_TRUE(ECHO_OR_REACT_DREAM);
   int timeout= ECHO_OR_REACT_DREAM/4;
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
@@ -1065,7 +1065,7 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
                                       gearman_literal_param("sleep"), // We send "sleep" to tell the sleeper to sleep
                                       &result_length, &rc);
   ASSERT_EQ(GEARMAN_SUCCESS, rc);
-  test_true(job_result);
+  ASSERT_TRUE(job_result);
   ASSERT_EQ(sizeof("slept") -1, result_length);
   test_memcmp("slept", job_result, 5);
   free(job_result);
@@ -1076,7 +1076,7 @@ static test_return_t gearman_worker_timeout_TIMEOUT_TEST(void *object)
 static test_return_t regression_975591_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
 
   gearman_function_t dreaming_fn= gearman_function_create(echo_or_react_worker_v2);
   std::unique_ptr<worker_handle_st> worker_handle(test_worker_start(libtest::default_port(), NULL,
@@ -1123,7 +1123,7 @@ static void log_counter(const char *line, gearman_verbose_t verbose,
 static test_return_t submit_log_failure_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_truth(client);
+  ASSERT_TRUE(client);
   gearman_string_t value= { test_literal_param("submit_log_failure") };
 
   gearman_log_fn *func= log_counter;
@@ -1134,7 +1134,7 @@ static test_return_t submit_log_failure_TEST(void *object)
   test_null(client->impl()->universal.con_list);
 
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   size_t result_length;
   gearman_return_t rc;
@@ -1146,7 +1146,7 @@ static test_return_t submit_log_failure_TEST(void *object)
   test_false(job_result);
   test_zero(result_length);
   test_null(client->impl()->task);
-  test_truth(global_counter);
+  ASSERT_TRUE(global_counter);
 
   return TEST_SUCCESS;
 }
@@ -1203,7 +1203,7 @@ static test_return_t regression_833394_test(void *object)
 
   for (size_t x= 0; x < 100; x++)
   {
-    test_true(client);
+    ASSERT_TRUE(client);
     size_t result_length;
     gearman_return_t rc;
     char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394_54, 
@@ -1211,14 +1211,14 @@ static test_return_t regression_833394_test(void *object)
                                                test_literal_param("this should be echo'ed"),
                                                &result_length, &rc);
     ASSERT_EQ(GEARMAN_SUCCESS, rc);
-    test_true(job_result);
+    ASSERT_TRUE(job_result);
     ASSERT_EQ(test_literal_param_size("this should be echo'ed"), result_length);
     free(job_result);
   }
 
   for (size_t x= 0; x < 100; x++)
   {
-    test_true(client);
+    ASSERT_TRUE(client);
     size_t result_length;
     gearman_return_t rc;
     char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394_55, 
@@ -1226,14 +1226,14 @@ static test_return_t regression_833394_test(void *object)
                                                test_literal_param("this should be echo'ed"),
                                                &result_length, &rc);
     ASSERT_EQ(GEARMAN_SUCCESS, rc);
-    test_true(job_result);
+    ASSERT_TRUE(job_result);
     ASSERT_EQ(test_literal_param_size("this should be echo'ed"), result_length);
     free(job_result);
   }
 
   for (size_t x= 0; x < 100; x++)
   {
-    test_true(client);
+    ASSERT_TRUE(client);
     size_t result_length;
     gearman_return_t rc;
     char *job_result= (char*)gearman_client_do(client, REGRESSION_FUNCTION_833394_65, 
@@ -1241,7 +1241,7 @@ static test_return_t regression_833394_test(void *object)
                                                test_literal_param("this should be echo'ed"),
                                                &result_length, &rc);
     ASSERT_EQ(GEARMAN_SUCCESS, rc);
-    test_true(job_result);
+    ASSERT_TRUE(job_result);
     ASSERT_EQ(test_literal_param_size("this should be echo'ed"), result_length);
     free(job_result);
   }
@@ -1382,7 +1382,7 @@ static test_return_t gearman_client_options_TEST(void *)
 
 static test_return_t __SETUP(client_test_st* test, const gearman_function_t& echo_react_fn)
 {
-  test_true(test);
+  ASSERT_TRUE(test);
 
   test->set_worker_name(WORKER_FUNCTION_NAME);
 
@@ -1428,7 +1428,7 @@ static test_return_t default_v2_SETUP(void *object)
 static test_return_t GEARMAN_CLIENT_GENERATE_UNIQUE_SETUP(void *object)
 {
   client_test_st* test= (client_test_st *)object;
-  test_true(test);
+  ASSERT_TRUE(test);
 
   ASSERT_EQ(TEST_SUCCESS, default_v2_SETUP(object));
 
@@ -2061,12 +2061,12 @@ static test_return_t default_v1_SETUP(void *object)
 static test_return_t pre_free_tasks(void *object)
 {
   client_test_st *test= (client_test_st *)object;
-  test_true(test);
+  ASSERT_TRUE(test);
 
   ASSERT_EQ(TEST_SUCCESS, default_v2_SETUP(object));
 
   gearman_client_add_options(test->client(), GEARMAN_CLIENT_FREE_TASKS);
-  test_true(gearman_client_has_option(test->client(), GEARMAN_CLIENT_FREE_TASKS));
+  ASSERT_TRUE(gearman_client_has_option(test->client(), GEARMAN_CLIENT_FREE_TASKS));
 
   return TEST_SUCCESS;
 }
@@ -2074,7 +2074,7 @@ static test_return_t pre_free_tasks(void *object)
 static test_return_t namespace_v1_SETUP(void *object)
 {
   client_test_st *test= (client_test_st *)object;
-  test_true(test);
+  ASSERT_TRUE(test);
 
   test->session_namespace(NAMESPACE_KEY);
   ASSERT_EQ(TEST_SUCCESS, default_v1_SETUP(object));
@@ -2085,7 +2085,7 @@ static test_return_t namespace_v1_SETUP(void *object)
 static test_return_t namespace_v2_SETUP(void *object)
 {
   client_test_st *test= (client_test_st *)object;
-  test_true(test);
+  ASSERT_TRUE(test);
 
   test->session_namespace(NAMESPACE_KEY);
   ASSERT_EQ(TEST_SUCCESS, default_v2_SETUP(object));
@@ -2096,7 +2096,7 @@ static test_return_t namespace_v2_SETUP(void *object)
 static test_return_t pre_logging(void *object)
 {
   client_test_st *test= (client_test_st *)object;
-  test_true(test);
+  ASSERT_TRUE(test);
 
   test->clear_clone();
   test_null(test->client()->impl()->universal.con_list);

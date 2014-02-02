@@ -197,7 +197,7 @@ static test_return_t gearadmin_shutdown_test(void* object)
   ASSERT_EQ(EXIT_SUCCESS, exec_cmdline("bin/gearadmin", args, true));
 
   Server *server= context->servers.pop_server();
-  test_true(server);
+  ASSERT_TRUE(server);
   
   // We will now quiet down the false error about it not being able to restart
   server->out_of_ban_killed(true);
@@ -394,7 +394,7 @@ static test_return_t init_SETUP(void* object)
   cli::Context *context= (cli::Context*)object;
 
   context->port(libtest::get_free_port());
-  test_true(server_startup(context->servers, "gearmand", context->port(), NULL));
+  ASSERT_TRUE(server_startup(context->servers, "gearmand", context->port(), NULL));
 
   // Echo function
   gearman_function_t echo_react_fn_v2= gearman_function_create(echo_or_react_worker_v2);
@@ -419,7 +419,7 @@ static test_return_t server_SETUP(void *object)
   cli::Context *context= (cli::Context*)object;
 
   in_port_t new_port= libtest::get_free_port();
-  test_true(server_startup(context->servers, "gearmand", new_port, NULL));
+  ASSERT_TRUE(server_startup(context->servers, "gearmand", new_port, NULL));
 
   return TEST_SUCCESS;
 }

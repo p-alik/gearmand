@@ -55,7 +55,7 @@ test_return_t gearman_client_do_job_handle_no_active_task(void *object)
   assert(client);
 
   const char *job_handle= gearman_client_do_job_handle(client);
-  test_true(job_handle);
+  ASSERT_TRUE(job_handle);
   test_zero(job_handle[0]);
 
   return TEST_SUCCESS;
@@ -75,8 +75,8 @@ test_return_t gearman_client_do_job_handle_follow_do(void *object)
 				value_length, &job_length, &rc);
 
   ASSERT_EQ(rc, GEARMAN_SUCCESS);
-  test_true(gearman_client_do_job_handle(client));
-  test_truth(job_result);
+  ASSERT_TRUE(gearman_client_do_job_handle(client));
+  ASSERT_TRUE(job_result);
   ASSERT_EQ(value_length, job_length);
 
   test_memcmp(value, job_result, value_length);

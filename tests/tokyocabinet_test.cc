@@ -90,7 +90,7 @@ static test_return_t collection_init(void *object)
   Context *test= (Context *)object;
   assert(test);
 
-  test_truth(test->initialize(argv));
+  ASSERT_TRUE(test->initialize(argv));
 
   return TEST_SUCCESS;
 }
@@ -98,7 +98,7 @@ static test_return_t collection_init(void *object)
 static test_return_t lp_1054377_TEST(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
   server_startup_st &servers= test->_servers;
 
   unlink("var/tmp/gearman.tcb");
@@ -112,7 +112,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
 
     {
       libgearman::Worker worker(first_port);
@@ -139,7 +139,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
 
     {
       libgearman::Worker worker(first_port);

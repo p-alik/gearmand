@@ -143,28 +143,8 @@ do \
   } \
 } while (0)
 
-#define test_truth(A) \
-do \
-{ \
-  if (! (A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion \"%s\" failed, in %s\n", __FILE__, __LINE__, #A, __func__);\
-    libtest::create_core(); \
-    return TEST_FAILURE; \
-  } \
-} while (0)
-
-#define test_true(A) \
-do \
-{ \
-  if (! (A)) { \
-    fprintf(stderr, "\n%s:%d: Assertion \"%s\" failed, in %s\n", __FILE__, __LINE__, #A, __func__);\
-    libtest::create_core(); \
-    return TEST_FAILURE; \
-  } \
-} while (0)
-
-#define test_true_got(A, B) test_true(A);
-#define test_true_hint(A, B) test_true(A);
+#define test_true_got(A, B) ASSERT_TRUE(A);
+#define test_true_hint(A, B) ASSERT_TRUE(A);
 
 #define test_compare_hint(A, B, C) test_compare(A, B);
 #define test_compare_got(A, B, C) test_compare(A, B);

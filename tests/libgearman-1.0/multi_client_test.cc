@@ -72,19 +72,19 @@ static const char *server_argv[]= { "--exceptions", 0 };
 static test_return_t multi_client_test(void *object)
 {
   multi_client_test_st *test_client= (multi_client_test_st*)object;
-  test_truth(test_client);
+  ASSERT_TRUE(test_client);
 
   server_startup_st& server_container= test_client->server_container();
 
   // make a client that connects to both servers.
   gearman_client_st *client_to_both= test_client->connected_to_both_client();
-  test_truth(client_to_both);
+  ASSERT_TRUE(client_to_both);
 
   (void)gearman_client_set_context(client_to_both, const_cast<char *>("nothing"));
   gearman_string_t value= { test_literal_param("background_test") };
 
   const char *worker_function= (const char *)gearman_client_context(client_to_both);
-  test_truth(worker_function);
+  ASSERT_TRUE(worker_function);
 
   // queue up first job
   const char* unique_1= "unique_1";
@@ -98,13 +98,13 @@ static test_return_t multi_client_test(void *object)
 
     test_compare(GEARMAN_SUCCESS,
                  (ret= gearman_client_job_status(client_to_both, job_handle, &is_known, NULL, NULL, NULL)));
-    test_true(is_known);
+    ASSERT_TRUE(is_known);
   }
 
   // all OK. now shut down the gearmand server 1
   in_port_t gearmand_port_1= test_client->port(0);
   in_port_t gearmand_port_2= test_client->port(1);
-  test_true(server_container.shutdown(0));
+  ASSERT_TRUE(server_container.shutdown(0));
 
   // Try to queue up a job again
   const char* unique_2= "unique_2";
@@ -131,13 +131,13 @@ static test_return_t multi_client_test(void *object)
     gearman_status_t unique_3_status= gearman_client_unique_status(client_to_2, unique_3, strlen(unique_3));
     test_compare(GEARMAN_SUCCESS,
                  gearman_status_return(unique_3_status));
-    test_true(gearman_status_is_known(unique_3_status));
+    ASSERT_TRUE(gearman_status_is_known(unique_3_status));
   }
 
   // Bring server 1 back up
   server_container.shutdown();
-  test_true(server_startup(server_container, "gearmand", gearmand_port_1, server_argv));
-  test_true(server_startup(server_container, "gearmand", gearmand_port_2, server_argv));
+  ASSERT_TRUE(server_startup(server_container, "gearmand", gearmand_port_1, server_argv));
+  ASSERT_TRUE(server_startup(server_container, "gearmand", gearmand_port_2, server_argv));
 
   // Try adding in a new job.
   const char* unique_4= "unique_4";
@@ -149,7 +149,7 @@ static test_return_t multi_client_test(void *object)
     gearman_status_t unique_4_status= gearman_client_unique_status(client_to_both, unique_4, strlen(unique_4));
     test_compare(GEARMAN_SUCCESS,
                  gearman_status_return(unique_4_status));
-    test_true(gearman_status_is_known(unique_4_status));
+    ASSERT_TRUE(gearman_status_is_known(unique_4_status));
   }
 
   return TEST_SUCCESS;

@@ -53,14 +53,14 @@ using namespace libtest;
 test_return_t gearman_execute_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_true(worker_function);
+  ASSERT_TRUE(worker_function);
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
 
-  test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0));
+  ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0));
   ASSERT_EQ(test_literal_param_size("test load"), gearman_result_size(gearman_task_result(task)));
   test_false(gearman_task_is_known(task));
   test_false(gearman_task_is_running(task));
@@ -73,14 +73,14 @@ test_return_t gearman_execute_test(void *object)
 test_return_t gearman_execute_NULL_workload_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_true(worker_function);
+  ASSERT_TRUE(worker_function);
 
   gearman_task_attr_t task_attr= gearman_task_attr_init_background(GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
-  test_true(task= gearman_execute(client, 
+  ASSERT_TRUE(task= gearman_execute(client, 
                                   test_string_make_from_cstr(worker_function),
                                   NULL, 0, // unique
                                   &task_attr, // gearman_task_attr_t 
@@ -94,12 +94,12 @@ test_return_t gearman_execute_NULL_workload_TEST(void *object)
 test_return_t gearman_execute_NULL_attr_NULL_workload_TEST(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
-  test_true(client);
+  ASSERT_TRUE(client);
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_true(worker_function);
+  ASSERT_TRUE(worker_function);
 
   gearman_task_st *task;
-  test_true(task= gearman_execute(client, 
+  ASSERT_TRUE(task= gearman_execute(client, 
                                   test_string_make_from_cstr(worker_function),
                                   NULL, 0, // unique
                                   NULL, // gearman_task_attr_t 
@@ -119,7 +119,7 @@ test_return_t gearman_execute_fail_test(void *object)
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("fail"));
 
-  test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0));
+  ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0));
   ASSERT_EQ(GEARMAN_WORK_FAIL, gearman_task_return(task));
   test_false(gearman_task_is_known(task));
   test_false(gearman_task_is_running(task));
@@ -134,7 +134,7 @@ test_return_t gearman_execute_timeout_test(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
   assert(worker_function);
-  test_truth(client);
+  ASSERT_TRUE(client);
 
   gearman_client_set_timeout(client, 4);
 
@@ -142,7 +142,7 @@ test_return_t gearman_execute_timeout_test(void *object)
   // not exist.
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-  test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0));
+  ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, NULL, &value, 0));
   gearman_task_free(task);
 
   return TEST_SUCCESS;
@@ -152,18 +152,18 @@ test_return_t gearman_execute_epoch_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
   const char *worker_function= (const char *)gearman_client_context(client);
-  test_true(worker_function);
+  ASSERT_TRUE(worker_function);
 
   gearman_task_attr_t task_attr= gearman_task_attr_init_epoch(time(NULL) +5, GEARMAN_JOB_PRIORITY_NORMAL);
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-  test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), 
+  ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), 
                                   NULL, 0, // unique
                                   &task_attr, &value, 0));
-  test_truth(task);
-  test_truth(gearman_task_job_handle(task));
-  test_true(gearman_task_is_known(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_job_handle(task));
+  ASSERT_TRUE(gearman_task_is_known(task));
   test_false(gearman_task_is_running(task));
   gearman_task_free(task);
 
@@ -180,10 +180,10 @@ test_return_t gearman_execute_epoch_check_job_handle_test(void *object)
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-  test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &task_attr, &value, 0));
+  ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &task_attr, &value, 0));
 
-  test_truth(task);
-  test_truth(gearman_task_job_handle(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_job_handle(task));
 
   gearman_return_t rc;
   bool is_known;
@@ -219,13 +219,13 @@ test_return_t gearman_execute_bg_test(void *object)
 
   gearman_task_st *task;
   gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-  test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), test_literal_param("my id"), &task_attr, &value, 0));
+  ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), test_literal_param("my id"), &task_attr, &value, 0));
 
   // Lets make sure we have a task
-  test_truth(task);
-  test_truth(gearman_task_job_handle(task));
+  ASSERT_TRUE(task);
+  ASSERT_TRUE(gearman_task_job_handle(task));
 
-  test_true(gearman_success(gearman_client_run_tasks(client)));
+  ASSERT_TRUE(gearman_success(gearman_client_run_tasks(client)));
 
   gearman_task_free(task);
 
@@ -244,11 +244,11 @@ test_return_t gearman_execute_multile_bg_test(void *object)
 
     gearman_task_st *task;
     gearman_argument_t value= gearman_argument_make(0, 0, test_literal_param("test load"));
-    test_true(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &task_attr, &value, 0));
+    ASSERT_TRUE(task= gearman_execute(client, test_string_make_from_cstr(worker_function), NULL, 0, &task_attr, &value, 0));
     
     // Lets make sure we have a task
-    test_truth(task);
-    test_truth(gearman_task_job_handle(task));
+    ASSERT_TRUE(task);
+    ASSERT_TRUE(gearman_task_job_handle(task));
   }
 
   ASSERT_EQ(GEARMAN_SUCCESS,

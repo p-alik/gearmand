@@ -82,13 +82,13 @@ static test_return_t collection_init(void *object)
                        sizeof(drizzled_server_string),
                        "--libdrizzle-port=%d",
                        int(drizzled_port));
-  test_true(length > 0);
+  ASSERT_TRUE(length > 0);
   const char *argv[]= {
     drizzled_server_string,
     "--queue-type=libdrizzle",
     0 };
 
-  test_truth(test->initialize(argv));
+  ASSERT_TRUE(test->initialize(argv));
 
   return TEST_SUCCESS;
 }

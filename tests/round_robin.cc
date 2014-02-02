@@ -91,7 +91,7 @@ static gearman_return_t append_function_WORKER(gearman_job_st* job, void *contex
 static test_return_t queue_add(void *object)
 {
   Context *context= (Context *)object;
-  test_truth(context);
+  ASSERT_TRUE(context);
 
   libgearman::Client client(context->port());
   char job_handle[GEARMAN_JOB_HANDLE_SIZE];
@@ -124,14 +124,14 @@ static test_return_t queue_add(void *object)
 static test_return_t queue_worker(void *object)
 {
   Context *context= (Context *)object;
-  test_truth(context);
+  ASSERT_TRUE(context);
 
   libgearman::Worker worker(context->port());
 
   char buffer[11];
   memset(buffer, 0, sizeof(buffer));
 
-  test_truth(context->run_worker);
+  ASSERT_TRUE(context->run_worker);
 
   gearman_function_t append_function_FN= gearman_function_create(append_function_WORKER);
 

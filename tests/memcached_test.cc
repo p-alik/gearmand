@@ -87,22 +87,22 @@ static test_return_t gearmand_basic_option_test(void *)
 static test_return_t lp_1054377_TEST(void *object)
 {
   Context *test= (Context *)object;
-  test_truth(test);
+  ASSERT_TRUE(test);
   server_startup_st &servers= test->_servers;
 
   memcached_port= libtest::get_free_port();
-  test_true(server_startup(servers, "memcached", memcached_port, NULL));
+  ASSERT_TRUE(server_startup(servers, "memcached", memcached_port, NULL));
 
   char memcached_server_string[1024];
   int length= snprintf(memcached_server_string, 
                        sizeof(memcached_server_string),
                        "--libmemcached-servers=localhost:%d",
                        int(memcached_port));
-  test_true(size_t(length) < sizeof(memcached_server_string));
+  ASSERT_TRUE(size_t(length) < sizeof(memcached_server_string));
 
 #if defined(HAVE_LIBMEMCACHED) && HAVE_LIBMEMCACHED
 # if defined(HAVE_LIBMEMCACHED_UTIL_H) && HAVE_LIBMEMCACHED_UTIL_H
-  test_true(libmemcached_util_ping("localhost", memcached_port, NULL));
+  ASSERT_TRUE(libmemcached_util_ping("localhost", memcached_port, NULL));
 # endif
 #endif
 
@@ -116,7 +116,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
 #if 0
     libtest::Server* server= servers.pop_server();
 #endif
@@ -148,7 +148,7 @@ static test_return_t lp_1054377_TEST(void *object)
   {
     in_port_t first_port= libtest::get_free_port();
 
-    test_true(server_startup(servers, "gearmand", first_port, argv));
+    ASSERT_TRUE(server_startup(servers, "gearmand", first_port, argv));
 
     {
       libgearman::Worker worker(first_port);
@@ -197,20 +197,20 @@ static test_return_t collection_init(void *object)
   assert(test);
 
   memcached_port= libtest::get_free_port();
-  test_true(server_startup(test->_servers, "memcached", memcached_port, NULL));
+  ASSERT_TRUE(server_startup(test->_servers, "memcached", memcached_port, NULL));
 
   char memcached_server_string[1024];
   int length= snprintf(memcached_server_string, 
                        sizeof(memcached_server_string),
                        "--libmemcached-servers=localhost:%d",
                        int(memcached_port));
-  test_true(size_t(length) < sizeof(memcached_server_string));
+  ASSERT_TRUE(size_t(length) < sizeof(memcached_server_string));
   const char *argv[]= {
     memcached_server_string,
     "--queue-type=libmemcached",
     0 };
 
-  test_truth(test->initialize(argv));
+  ASSERT_TRUE(test->initialize(argv));
 
   return TEST_SUCCESS;
 }

@@ -77,8 +77,8 @@ static test_return_t single_cycle(void* object)
 
   gearman_function_t success_function= gearman_function_create(success_fn);
   worker_handle_st *worker= test_worker_start(context->port, NULL, "success", success_function, NULL, gearman_worker_options_t());
-  test_true(worker);
-  test_true(worker->shutdown());
+  ASSERT_TRUE(worker);
+  ASSERT_TRUE(worker->shutdown());
   delete worker;
 
   return TEST_SUCCESS;

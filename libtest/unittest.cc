@@ -70,13 +70,13 @@ static test_return_t getenv_TEST(void *)
 
 static test_return_t LIBTOOL_COMMAND_test(void *)
 {
-  test_true(getenv("LIBTOOL_COMMAND"));
+  ASSERT_TRUE(getenv("LIBTOOL_COMMAND"));
   return TEST_SUCCESS;
 }
 
 static test_return_t VALGRIND_COMMAND_test(void *)
 {
-  test_true(getenv("VALGRIND_COMMAND"));
+  ASSERT_TRUE(getenv("VALGRIND_COMMAND"));
   return TEST_SUCCESS;
 }
 
@@ -95,13 +95,13 @@ static test_return_t VALGRIND_CHECK_TEST(void *)
 
 static test_return_t HELGRIND_COMMAND_test(void *)
 {
-  test_true(getenv("HELGRIND_COMMAND"));
+  ASSERT_TRUE(getenv("HELGRIND_COMMAND"));
   return TEST_SUCCESS;
 }
 
 static test_return_t GDB_COMMAND_test(void *)
 {
-  test_true(getenv("GDB_COMMAND"));
+  ASSERT_TRUE(getenv("GDB_COMMAND"));
   return TEST_SUCCESS;
 }
 
@@ -317,7 +317,7 @@ static test_return_t local_test(void *)
 {
   if (getenv("LIBTEST_LOCAL"))
   {
-    test_true(test_is_local());
+    ASSERT_TRUE(test_is_local());
   }
   else
   {
@@ -346,7 +346,7 @@ static test_return_t local_not_test(void *)
   test_false(test_is_local());
 
   ASSERT_EQ(0, setenv("LIBTEST_LOCAL", "1", 1));
-  test_true(test_is_local());
+  ASSERT_TRUE(test_is_local());
 
   if (temp.empty())
   {
@@ -395,7 +395,7 @@ static test_return_t var_drizzle_exists_test(void *)
 static test_return_t var_tmp_test(void *)
 {
   FILE *file= fopen("var/tmp/junk", "w+");
-  test_true(file);
+  ASSERT_TRUE(file);
   fclose(file);
   return TEST_SUCCESS;
 }
@@ -403,7 +403,7 @@ static test_return_t var_tmp_test(void *)
 static test_return_t var_run_test(void *)
 {
   FILE *file= fopen("var/run/junk", "w+");
-  test_true(file);
+  ASSERT_TRUE(file);
   fclose(file);
   return TEST_SUCCESS;
 }
@@ -411,7 +411,7 @@ static test_return_t var_run_test(void *)
 static test_return_t var_log_test(void *)
 {
   FILE *file= fopen("var/log/junk", "w+");
-  test_true(file);
+  ASSERT_TRUE(file);
   fclose(file);
   return TEST_SUCCESS;
 }
@@ -419,32 +419,32 @@ static test_return_t var_log_test(void *)
 static test_return_t var_drizzle_test(void *)
 {
   FILE *file= fopen("var/drizzle/junk", "w+");
-  test_true(file);
+  ASSERT_TRUE(file);
   fclose(file);
   return TEST_SUCCESS;
 }
 
 static test_return_t var_tmp_rm_test(void *)
 {
-  test_true(unlink("var/tmp/junk") == 0);
+  ASSERT_TRUE(unlink("var/tmp/junk") == 0);
   return TEST_SUCCESS;
 }
 
 static test_return_t var_run_rm_test(void *)
 {
-  test_true(unlink("var/run/junk") == 0);
+  ASSERT_TRUE(unlink("var/run/junk") == 0);
   return TEST_SUCCESS;
 }
 
 static test_return_t var_log_rm_test(void *)
 {
-  test_true(unlink("var/log/junk") == 0);
+  ASSERT_TRUE(unlink("var/log/junk") == 0);
   return TEST_SUCCESS;
 }
 
 static test_return_t var_drizzle_rm_test(void *)
 {
-  test_true(unlink("var/drizzle/junk") == 0);
+  ASSERT_TRUE(unlink("var/drizzle/junk") == 0);
   return TEST_SUCCESS;
 }
 
@@ -478,10 +478,10 @@ static test_return_t _compare_gearman_return_t_test(void *)
 static test_return_t drizzled_cycle_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers and servers->validate());
+  ASSERT_TRUE(servers and servers->validate());
 
 #if defined(HAVE_GEARMAND_BINARY) && HAVE_GEARMAND_BINARY
-  test_true(has_drizzled());
+  ASSERT_TRUE(has_drizzled());
 #endif
 
   test_skip(true, has_drizzled());
@@ -494,7 +494,7 @@ static test_return_t drizzled_cycle_test(void *object)
 static test_return_t gearmand_cycle_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers and servers->validate());
+  ASSERT_TRUE(servers and servers->validate());
 
   test_skip(true, has_gearmand());
   test_skip(true, server_startup(*servers, "gearmand", get_free_port(), NULL));
@@ -529,7 +529,7 @@ static test_return_t test_skip_false_TEST(void*)
 static test_return_t server_startup_fail_TEST(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers);
+  ASSERT_TRUE(servers);
 
   fatal::disable();
   ASSERT_EQ(servers->start_server(testing_service, LIBTEST_FAIL_PORT, NULL), true);
@@ -541,18 +541,18 @@ static test_return_t server_startup_fail_TEST(void *object)
 static test_return_t server_startup_TEST(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers);
+  ASSERT_TRUE(servers);
 
   ASSERT_EQ(servers->start_server(testing_service, get_free_port(), NULL), true);
 
-  test_true(servers->last());
+  ASSERT_TRUE(servers->last());
   pid_t last_pid= servers->last()->pid();
 
   ASSERT_EQ(servers->last()->pid(), last_pid);
-  test_true(last_pid > 1);
+  ASSERT_TRUE(last_pid > 1);
   ASSERT_EQ(kill(last_pid, 0), 0);
 
-  test_true(servers->shutdown());
+  ASSERT_TRUE(servers->shutdown());
 #if 0
   ASSERT_EQ(servers->last()->pid(), -1);
   ASSERT_EQ(kill(last_pid, 0), -1);
@@ -564,9 +564,9 @@ static test_return_t server_startup_TEST(void *object)
 static test_return_t socket_server_startup_TEST(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers);
+  ASSERT_TRUE(servers);
 
-  test_true(servers->start_socket_server(testing_service, get_free_port(), NULL));
+  ASSERT_TRUE(servers->start_socket_server(testing_service, get_free_port(), NULL));
 
   return TEST_SUCCESS;
 }
@@ -575,7 +575,7 @@ static test_return_t socket_server_startup_TEST(void *object)
 static test_return_t memcached_sasl_test(void *object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers);
+  ASSERT_TRUE(servers);
 
   test_skip(false, bool(getenv("LOG_COMPILER")));
 
@@ -583,8 +583,8 @@ static test_return_t memcached_sasl_test(void *object)
   {
     if (HAVE_LIBMEMCACHED)
     {
-      test_true(has_memcached_sasl());
-      test_true(server_startup(*servers, "memcached-sasl", get_free_port(), NULL));
+      ASSERT_TRUE(has_memcached_sasl());
+      ASSERT_TRUE(server_startup(*servers, "memcached-sasl", get_free_port(), NULL));
 
       return TEST_SUCCESS;
     }
@@ -725,7 +725,7 @@ static test_return_t vchar_t_compare_neg_TEST(void *)
   libtest::vchar_t response2;
   libtest::make_vector(response, test_literal_param("fubar\n"));
   libtest::make_vector(response2, test_literal_param(__func__));
-  test_true(response != response2);
+  ASSERT_TRUE(response != response2);
 
   return TEST_SUCCESS;
 }
@@ -904,9 +904,9 @@ static test_return_t gdb_abort_services_appliction_TEST(void *)
 static test_return_t get_free_port_TEST(void *)
 {
   in_port_t ret_port;
-  test_true((ret_port= get_free_port()));
-  test_true(get_free_port() != default_port());
-  test_true(get_free_port() != get_free_port());
+  ASSERT_TRUE((ret_port= get_free_port()));
+  ASSERT_TRUE(get_free_port() != default_port());
+  ASSERT_TRUE(get_free_port() != get_free_port());
 
   return TEST_SUCCESS;
 }
@@ -919,7 +919,7 @@ static test_return_t fatal_TEST(void *)
 
 static test_return_t number_of_cpus_TEST(void *)
 {
-  test_true(number_of_cpus() >= 1);
+  ASSERT_TRUE(number_of_cpus() >= 1);
 
   return TEST_SUCCESS;
 }
@@ -1059,7 +1059,7 @@ test_st gearmand_tests[] ={
 static test_return_t clear_servers(void* object)
 {
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers);
+  ASSERT_TRUE(servers);
   servers->clear();
 
   testing_service.clear();
@@ -1076,7 +1076,7 @@ static test_return_t check_for_memcached(void* object)
   test_skip(true, has_memcached());
 
   server_startup_st *servers= (server_startup_st*)object;
-  test_true(servers);
+  ASSERT_TRUE(servers);
   servers->clear();
 
   testing_service= "memcached";

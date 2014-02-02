@@ -67,9 +67,9 @@ test_return_t regression_bug_783141_test(void *)
 
   { // Try with one bad host
     gearman_client_st *client= gearman_client_create(NULL);
-    test_truth(client);
+    ASSERT_TRUE(client);
 
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
+    ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
 
     gearman_return_t ret;
     gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
@@ -77,7 +77,7 @@ test_return_t regression_bug_783141_test(void *)
                                                    test_literal_param("dog"),
                                                    &ret);
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
-    test_truth(task);
+    ASSERT_TRUE(task);
 
     gearman_return_t local_ret= gearman_client_run_tasks(client);
     ASSERT_EQ(local_ret, GEARMAN_COULD_NOT_CONNECT);
@@ -90,11 +90,11 @@ test_return_t regression_bug_783141_test(void *)
 
   { // Try with three bad hosts
     gearman_client_st *client= gearman_client_create(NULL);
-    test_truth(client);
+    ASSERT_TRUE(client);
 
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.252", 0)));
-    test_truth(gearman_success(gearman_client_add_server(client, "10.0.2.251", 0)));
+    ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
+    ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.252", 0)));
+    ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.251", 0)));
 
     gearman_return_t ret;
     gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
@@ -102,7 +102,7 @@ test_return_t regression_bug_783141_test(void *)
                                                    test_literal_param("dog"),
                                                    &ret);
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
-    test_truth(task);
+    ASSERT_TRUE(task);
 
     gearman_return_t local_ret= gearman_client_run_tasks(client);
     ASSERT_EQ(local_ret, GEARMAN_COULD_NOT_CONNECT);
@@ -126,74 +126,74 @@ test_return_t regression_bug_372074_test(void *)
   {
     gearman_packet_st packet;
     gearman_connection_st *con_ptr;
-    test_truth(con_ptr= gearman_connection_create(universal, NULL, default_port()));
+    ASSERT_TRUE(con_ptr= gearman_connection_create(universal, NULL, default_port()));
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                           GEARMAN_COMMAND_SET_CLIENT_ID,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
     args[0]= "reverse";
     args_size[0]= strlen("reverse");
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                           GEARMAN_COMMAND_CANT_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
     delete con_ptr;
 
-    test_truth(con_ptr= gearman_connection_create(universal, NULL, default_port()));
+    ASSERT_TRUE(con_ptr= gearman_connection_create(universal, NULL, default_port()));
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                           GEARMAN_COMMAND_SET_CLIENT_ID,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
     args[0]= "digest";
     args_size[0]= strlen("digest");
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                           GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
     args[0]= "reverse";
     args_size[0]= strlen("reverse");
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                           GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
-    test_truth(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
+    ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST,
                                                           GEARMAN_COMMAND_RESET_ABILITIES,
                                                           NULL, NULL, 0)));
 
-    test_truth(gearman_success(con_ptr->send_packet(packet, true)));
+    ASSERT_TRUE(gearman_success(con_ptr->send_packet(packet, true)));
 
     gearman_packet_free(&packet);
 
@@ -209,7 +209,7 @@ test_return_t regression_768317_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
 
-  test_true(client);
+  ASSERT_TRUE(client);
   size_t result_length;
   gearman_return_t rc;
   char *job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
@@ -225,7 +225,7 @@ test_return_t regression_768317_test(void *object)
                                        test_literal_param("10"),
                                        &result_length, &rc);
   ASSERT_EQ(rc, GEARMAN_SUCCESS);
-  test_truth(job_result);
+  ASSERT_TRUE(job_result);
   long count= strtol(job_result, (char **)NULL, 10);
   ASSERT_EQ(10L, count);
   free(job_result);
@@ -251,7 +251,7 @@ test_return_t regression_768317_test(void *object)
                                          test_literal_param("10"),
                                          &result_length, &rc);
     ASSERT_EQ(rc, GEARMAN_SUCCESS);
-    test_truth(job_result);
+    ASSERT_TRUE(job_result);
     count= atol(job_result);
     ASSERT_EQ(34L, count);
     free(job_result);
