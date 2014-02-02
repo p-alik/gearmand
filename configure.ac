@@ -350,6 +350,7 @@ echo "   * cyassl found:              $have_cyassl"
 echo "   * openssl found:             $have_openssl"
 echo "   * make -j:                   $enable_jobserver"
 echo "   * VCS checkout:              $ac_cv_vcs_checkout"
+echo "   * sphinx-build:              $SPHINXBUILD"
 echo ""
 echo "---"
 
