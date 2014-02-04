@@ -41,7 +41,7 @@ gearmand_hostile_gearmand_SOURCES=
 
 gearmand_hostile_gearmand_CXXFLAGS+= $(gearmand_gearmand_CXXFLAGS)
 EXTRA_gearmand_hostile_gearmand_DEPENDENCIES+= $(EXTRA_gearmand_gearmand_DEPENDENCIES)
-gearmand_hostile_gearmand_LDADD+= @DL_LIB@
+gearmand_hostile_gearmand_LDADD+= @lt_cv_dlopen_libs@
 gearmand_hostile_gearmand_LDADD+= libgearman-server/libgearman-server.la
 if TARGET_HOSTILE
 gearmand_hostile_gearmand_LDADD+= libhostile/libhostile.la

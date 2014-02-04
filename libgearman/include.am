@@ -74,13 +74,13 @@ noinst_HEADERS+= \
 
 noinst_LTLIBRARIES+= libgearman/libgearman-vector.la
 libgearman_libgearman_vector_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
-libgearman_libgearman_vector_la_LIBADD= @DL_LIB@
+libgearman_libgearman_vector_la_LIBADD= @lt_cv_dlopen_libs@
 libgearman_libgearman_vector_la_SOURCES= libgearman/vector.cc
 libgearman_libgearman_vector_la_SOURCES+= libgearman/backtrace.cc
 
 noinst_LTLIBRARIES+= libgearman/libgearman-result.la
 libgearman_libgearman_result_la_CXXFLAGS= -DBUILDING_LIBGEARMAN
-libgearman_libgearman_result_la_LIBADD= @DL_LIB@
+libgearman_libgearman_result_la_LIBADD= @lt_cv_dlopen_libs@
 libgearman_libgearman_result_la_SOURCES= libgearman/vector.cc
 libgearman_libgearman_result_la_SOURCES+= libgearman/result.cc
 libgearman_libgearman_result_la_SOURCES+= libgearman/backtrace.cc
@@ -152,7 +152,7 @@ libgearman_libgearman_la_LDFLAGS+= @OPENSSL_LDFLAGS@
 endif
 endif
 endif
-libgearman_libgearman_la_LIBADD+= @DL_LIB@
+libgearman_libgearman_la_LIBADD+= @lt_cv_dlopen_libs@
 libgearman_libgearman_la_LIBADD+= @LIBUUID_LIB@
 libgearman_libgearman_la_LIBADD+= libhashkit/libhashkit.la
 

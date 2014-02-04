@@ -41,6 +41,60 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+
+namespace {
+
+  std::string& escape4XML(std::string const& arg, std::string& escaped_string)
+  {
+    escaped_string.clear();
+
+    escaped_string+= '"';
+    for (std::string::const_iterator x= arg.begin(), end= arg.end(); x != end; ++x)
+    {
+      unsigned char c= *x;
+      if (c == '&')
+      {
+        escaped_string+= "&amp;";
+      }
+      else if (c == '>')
+      {
+        escaped_string+= "&gt;";
+      }
+      else if (c == '<')
+      {
+        escaped_string+= "&lt;";
+      }
+      else if (c == '\'')
+      {
+        escaped_string+= "&apos;";  break;
+      }
+      else if (c == '"')
+      {
+        escaped_string+= "&quot;";
+      }
+      else if (c == ' ')
+      {
+        escaped_string+= ' ';
+      }
+      else if (isalnum(c))
+      {
+        escaped_string+= c;
+      }
+      else 
+      {
+        char const* const hexdig= "0123456789ABCDEF";
+        escaped_string+= "&#x";
+        escaped_string+= hexdig[c >> 4];
+        escaped_string+= hexdig[c & 0xF];
+        escaped_string+= ';';
+      }
+    }
+    escaped_string+= '"';
+
+    return escaped_string;
+  }
+
+}
   
 namespace libtest {
 
@@ -111,7 +165,8 @@ void Legacy::report(const libtest::TestCase* test, size_t) const
 Junit::Junit(const Framework* frame_, std::ostream& output_):
   Formatter(frame_, output_)
 {
-  _output << "<testsuites name=\"" << name() << "\">" << std::endl;
+  std::string escaped_string;
+  _output << "<testsuites name=" << escape4XML(name(), escaped_string) << ">" << std::endl;
 }
 
 Junit::~Junit()
@@ -121,9 +176,11 @@ Junit::~Junit()
 
 void Junit::report(const libtest::TestCase* test, size_t) const
 {
-  _output << "\t\t<testcase name=\"" 
-    << test->name() 
-    << "\" time=\"" 
+  std::string escaped_string;
+
+  _output << "\t\t<testcase name=" 
+    << escape4XML(test->name(), escaped_string)
+    << " time=\"" 
     << test->timer()
     << "\">" 
     << std::endl;
@@ -146,7 +203,14 @@ void Junit::report(const libtest::TestCase* test, size_t) const
 
 void Junit::plan(const Collection* collection)
 {
-  _output << "\t<testsuite name=\"" << collection->name() << "\"  classname=\"\" package=\"\">" << std::endl;
+  std::string escaped_string;
+
+  _output << "\t<testsuite name=" 
+    << escape4XML(collection->name(), escaped_string)
+    << ">" << std::endl;
+#if 0
+    << "\"  classname=\"\" package=\"\">" << std::endl;
+#endif
 }
 
 void Junit::complete()

@@ -92,7 +92,7 @@ libgearman_server_libgearman_server_la_LIBADD+= @LIBEVENT_LIB@
 libgearman_server_libgearman_server_la_LIBADD+= @PTHREAD_LIBS@
 libgearman_server_libgearman_server_la_LIBADD+= @BOOST_PROGRAM_OPTIONS_LIB@
 libgearman_server_libgearman_server_la_LIBADD+= @LIBM@
-libgearman_server_libgearman_server_la_LIBADD+= @DL_LIB@
+libgearman_server_libgearman_server_la_LIBADD+= @lt_cv_dlopen_libs@
 libgearman_server_libgearman_server_la_LIBADD+= @RT_LIB@
 if ENABLE_SSL
 if ENABLE_CYASSL

@@ -19,7 +19,7 @@ t_hostile_gearmand_CXXFLAGS+= -DHAVE_LIBHOSTILE=1
 t_hostile_gearmand_CFLAGS+= -DHAVE_LIBHOSTILE=1
 t_hostile_gearmand_LDADD+= libhostile/libhostile.la
 if HOST_LINUX
-t_hostile_gearmand_LDADD+= @DL_LIB@
+t_hostile_gearmand_LDADD+= @lt_cv_dlopen_libs@
 t_hostile_gearmand_LDADD+= @RT_LIB@
 endif
 
@@ -50,7 +50,7 @@ t_hostile_libgearman_CXXFLAGS+= -DSERVER_TARGET="\"gearmand\""
 t_hostile_libgearman_CFLAGS+= -DSERVER_TARGET="\"gearmand\""
 t_hostile_libgearman_LDADD+= libhostile/libhostile.la
 if HOST_LINUX
-t_hostile_libgearman_LDADD+= @DL_LIB@
+t_hostile_libgearman_LDADD+= @lt_cv_dlopen_libs@
 t_hostile_libgearman_LDADD+= @RT_LIB@
 endif
 
