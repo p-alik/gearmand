@@ -47,6 +47,8 @@ LT_INIT([dlopen])
 LT_LANG([C++])
 LT_LIB_M
 
+AC_SUBST([lt_cv_dlopen_libs])
+
 AC_PROG_CC_C99
 AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible compiler found])])
 
@@ -112,7 +114,6 @@ AX_ENABLE_LIBHIREDIS
 # Checks for programs.
 AC_CHECK_PROGS([DPKG_GENSYMBOLS],[dpkg-gensymbols])
 AC_CHECK_PROGS([OPENSSL],[openssl])
-AC_CHECK_PROGS([PERL],[perl])
 AC_CHECK_PROGS([VALGRIND],['valgrind'])
 AC_CHECK_PROGS([WINE],['wine'])
 AC_PATH_PROG([GPERF],['gperf'],[])
@@ -224,9 +225,6 @@ AC_CHECK_FUNCS([getcwd])
 AC_CHECK_FUNCS([strstr])
 AC_CHECK_FUNC([setsockopt],[],[AC_CHECK_LIB([socket],[setsockopt])])
 AC_CHECK_FUNC([bind],[],[AC_CHECK_LIB([bind],[bind])])
-
-# Check for the ability to call dlopen (used in libhostile)
-AX_DLOPEN
 
 # Check for -lrt
 AC_CHECK_LIB([rt],[clock_gettime],
