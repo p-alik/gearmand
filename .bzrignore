@@ -86,6 +86,7 @@ scripts/gearmand-init
 scripts/gearmand.xml
 scripts/smf_install.sh
 stamp-h1
+support/gearmand.init
 support/gearmand.pc
 support/gearmand.spec
 t/1077917

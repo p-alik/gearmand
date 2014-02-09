@@ -1,5 +1,7 @@
+# configure.ac -*- autoconf -*- vim: filetype=config
+#
 # Gearman server and library
-# Copyright (C) 2011-2013 Data Differential, http://datadifferential.com/
+# Copyright (C) 2011-2014 Data Differential, http://datadifferential.com/
 # Copyright (C) 2008 Brian Aker, Eric Day, Monty Taylor
 # All rights reserved.
 #
@@ -116,6 +118,9 @@ AC_CHECK_PROGS([DPKG_GENSYMBOLS],[dpkg-gensymbols])
 AC_CHECK_PROGS([OPENSSL],[openssl])
 AC_CHECK_PROGS([VALGRIND],['valgrind'])
 AC_CHECK_PROGS([WINE],['wine'])
+AC_CHECK_PROGS([RPMBUILD],[rpmbuild --nocheck])
+AC_CHECK_PROGS([RPMDEV_SETUPTREE],[rpmdev-setuptree])
+AC_CHECK_PROGS([RPM],[rpm])
 AC_PATH_PROG([GPERF],['gperf'],[])
 AS_IF([test -z "$GPERF"],
       [AC_MSG_ERROR([could not find gperf])]])
@@ -299,6 +304,8 @@ CHECK_FOR_PTHREAD_AND_SASL
 
 AX_ENDIAN
 AX_HEX_VERSION([LIBGEARMAN],[$VERSION])
+AC_SUBST([RPM_RELEASE],[1])
+
 AX_HARDEN_COMPILER_FLAGS
 
 AM_CONDITIONAL([TARGET_MINGW],[test "x${MINGW}" = "xtrue"])
@@ -313,9 +320,9 @@ AC_CONFIG_FILES([Makefile
                  docs/conf.py
                  libgearman-1.0/version.h
                  scripts/gearmand
-                 scripts/gearmand-init
                  scripts/gearmand.xml
                  scripts/smf_install.sh
+                 support/gearmand.init
                  support/gearmand.pc
                  support/gearmand.spec])
 
