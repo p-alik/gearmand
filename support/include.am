@@ -2,10 +2,9 @@
 # included from Top Level Makefile.am
 # All paths should be given relative to the root
 
-EXTRA_DIST += \
-	      support/gearmand.init \
-	      support/gearmand.pc \
-	      support/gearmand.spec
+EXTRA_DIST+= support/gearmand.init
+EXTRA_DIST+= support/gearmand.pc
+EXTRA_DIST+= support/gearmand.spec
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = support/gearmand.pc

@@ -1,9 +1,13 @@
-# -*-Makefile-*-
+# vim:ft=make
 #
 _bootstrap_Makefile := $(wildcard [M]akefile)
 _bootstrap_config-status := $(wildcard config.status)
 
 ALL_RECURSIVE_TARGETS=
+
+ifeq ($(.DEFAULT_GOAL),Makefile)
+  @rm Makefile
+endif
 
 ifneq ($(_bootstrap_Makefile),)
   include Makefile

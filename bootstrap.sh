@@ -1010,14 +1010,16 @@ make_rpm ()
 {
   if command_exists 'rpmbuild'; then
     if [ -f 'rpm.am' -o -d 'rpm' ]; then
-      mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
-      mkdir -p ~/rpmbuild/RPMS/{i386,i486,i586,i686,noarch,athlon}
-
       run_configure_if_required
-      make_target 'rpm'
+      make_target 'dist-rpm'
 
       if $jenkins_build_environment; then
-        make_target 'clean'
+        mkdir artifacts
+        mv *gz *rpm artifacts
+
+        make_target 'maintainer-clean'
+        mv artifacts/* .
+        rmdir artifacts
       fi
 
     fi

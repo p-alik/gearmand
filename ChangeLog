@@ -1,4 +1,4 @@
-1.1.12
+1.1.12 Sun Feb  9 04:27:38 PST 2014
 * GEARMAN_SERVERS environmental variable for libgearman to pick up servers to
 communicate with. This means that any driver now linked with libgearman will
 be able to handle multiple servers.
