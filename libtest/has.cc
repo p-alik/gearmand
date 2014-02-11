@@ -114,8 +114,7 @@ bool has_gearmand()
 
 bool has_drizzled()
 {
-#if defined(DRIZZLED_BINARY) && defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY
-  if (HAVE_DRIZZLED_BINARY)
+#if defined(DRIZZLED_BINARY) && defined(HAVE_DRIZZLED_BINARY) && HAVE_DRIZZLED_BINARY && defined(HAVE_LIBMYSQL_BUILD) && HAVE_LIBMYSQL_BUILD
   {
     if (access(DRIZZLED_BINARY, X_OK) == 0)
     {
@@ -129,8 +128,7 @@ bool has_drizzled()
 
 bool has_mysqld()
 {
-#if defined(MYSQLD_BINARY) && defined(HAVE_MYSQLD_BUILD) && HAVE_MYSQLD_BUILD
-  if (HAVE_MYSQLD_BUILD)
+#if defined(MYSQLD_BINARY) && defined(HAVE_MYSQLD_BUILD) && HAVE_MYSQLD_BUILD && defined(HAVE_LIBMYSQL_BUILD) && HAVE_LIBMYSQL_BUILD
   {
     if (access(MYSQLD_BINARY, X_OK) == 0)
     {
