@@ -1013,17 +1013,11 @@ make_rpm ()
       run_configure_if_required
       make_target 'dist-rpm'
 
-      if $jenkins_build_environment; then
-        mkdir artifacts
-        mv *gz *rpm artifacts
-
-        make_target 'maintainer-clean'
-        mv artifacts/* .
-        rmdir artifacts
-      fi
-
+      return $?
     fi
   fi
+
+  return 1
 }
 
 make_maintainer_clean ()
