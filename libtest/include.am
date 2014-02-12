@@ -17,6 +17,8 @@ PTRCHECK_COMMAND= $(LIBTOOL_COMMAND) valgrind --tool=exp-ptrcheck --error-exitco
 PAHOLE_COMMAND= $(LIBTOOL_COMMAND) --mode=execute pahole
 VALGRIND_SUPRESSION= $(LIBTOOL_COMMAND) valgrind --leak-check=full --show-reachable=yes --error-limit=no --gen-suppressions=all --log-file=minimalraw.log
 
+TMP_DIR := tmp_chroot/etc tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
+
 export LIBTOOL_COMMAND
 export VALGRIND_COMMAND
 export HELGRIND_COMMAND
@@ -49,7 +51,7 @@ BUILT_SOURCES+= libtest/version.h
 
 .PHONY: clean-libtest-check
 clean-libtest-check:
-	-rm -rf tmp_chroot
+	-rm -rf $(TMP_DIR)
 
 noinst_HEADERS+= libtest/client.hpp
 noinst_HEADERS+= libtest/formatter.hpp
@@ -173,7 +175,6 @@ libtest_libtest_la_LIBADD+= @PTHREAD_LIBS@
 libtest_libtest_la_LIBADD+= $(CURL_LIBS)
 libtest_libtest_la_LIBADD+= @RT_LIB@
 
-EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest_tmp_dir
 EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest/abort
 EXTRA_libtest_libtest_la_DEPENDENCIES+= libtest/wait
 
@@ -189,10 +190,7 @@ if BUILDING_GEARMAN
 libtest_libtest_la_SOURCES+= libtest/blobslap_worker.cc
 endif
 
-TMP_DIR := tmp_chroot/etc tmp_chroot/var/log tmp_chroot/var/tmp tmp_chroot/var/run tmp_chroot/var/drizzle
-
-.PHONY: libtest_tmp_dir
-libtest_tmp_dir: | $(TMP_DIR)
+BUILT_SOURCES+= $(TMP_DIR)
 
 $(TMP_DIR):
 	@$(mkdir_p) $(TMP_DIR)
