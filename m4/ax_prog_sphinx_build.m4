@@ -41,6 +41,14 @@ AC_DEFUN([AX_PROG_SPHINX_BUILD],
                       rm -f version_file
                ])
 
+         INC_SPHINXBUILD='
+ifneq ($(filter $(SPHINX_TARGETS), $(MAKECMDGOALS)), )
+.NOTPARALLEL:
+endif
+'
+          AC_SUBST([INC_SPHINXBUILD])
+          AM_SUBST_NOTMAKE([INC_SPHINXBUILD])
+
          AS_IF([test -n "${SPHINXBUILD}"],
                [AC_SUBST([SPHINXBUILD])
                ifelse([$1], , :, [$1])],

@@ -18,9 +18,12 @@ ALLSPHINXOPTS   = -c $(abs_top_builddir)/docs $(PAPEROPT_$(PAPER)) $(SPHINXOPTS)
 clean-docs-check:
 	-rm -rf $(abs_top_builddir)/docs/_build $(abs_top_builddir)/docs/doctrees $(abs_top_builddir)/man/.doctrees
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
+SPHINX_TARGETS= help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text mandocs changes linkcheck doctest
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text mandocs changes linkcheck doctest
 
-man: $(top_builddir)/docs/conf.py
+@INC_SPHINXBUILD@
+
+mandocs: $(top_builddir)/docs/conf.py
 	@PYTHONPATH=$(SPHINX_BUILDDIR)  $(SPHINXBUILD) -b man $(ALLSPHINXOPTS) ${abs_top_builddir}/man
 
 install-html-local: html-local
