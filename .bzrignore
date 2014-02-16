@@ -20,11 +20,11 @@ bin/gearman
 build-aux
 cmd*xml
 config*
-docs/conf.py
-docs/libgearman/examples/gearman_client_do_background_example
-docs/libgearman/examples/gearman_client_do_example
-docs/libgearman/examples/gearman_execute_example
-docs/libgearman/examples/gearman_execute_partition
+docs/source/conf.py
+docs/source/libgearman/examples/gearman_client_do_background_example
+docs/source/libgearman/examples/gearman_client_do_example
+docs/source/libgearman/examples/gearman_execute_example
+docs/source/libgearman/examples/gearman_execute_partition
 examples/echo_client
 examples/echo_worker
 examples/reverse_client

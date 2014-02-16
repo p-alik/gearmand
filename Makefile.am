@@ -29,6 +29,10 @@ TESTS=
 XFAIL_TESTS=
 dist_man_MANS=
 
+if IS_VCS_CHECKOUT
+SUBDIRS= docs
+endif
+
 #includes additional rules from aminclude.am
 @INC_AMINCLUDE@
 DISTCLEANFILES+= aminclude.am
@@ -39,7 +43,6 @@ include libhostile/include.am
 include libhashkit-1.0/include.am
 
 include docs/examples.mk
-include docs/include.am
 include man/include.am
 include libgearmancore/include.am
 include libhashkit/include.am
@@ -87,13 +90,11 @@ configmake.h: Makefile
 	  mv $@-t $@ ; \
 	  fi
 
-clean-local: clean-libtest-check clean-docs-check clean-rpm
+clean-local: clean-libtest-check clean-rpm
 
 maintainer-clean-local:
 	find . -type f -name '*~' -exec rm -f '{}' \;
-	-rm -f man/*.1
-	-rm -f man/*.3
-	-rm -f man/*.8
+	-$(RM) $(dist_man_MANS)
 	-rm Makefile.in
 	-rm aclocal.m4
 	-rm build-aux/config.guess

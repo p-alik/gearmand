@@ -317,7 +317,7 @@ AS_IF([test "x$enable_shared" = "xyes"],
 AM_CONDITIONAL([SHARED_ENABLED],[test "x$enable_shared" = "xyes"])
 
 AC_CONFIG_FILES([Makefile
-                 docs/conf.py
+                 docs/source/conf.py
                  libgearman-1.0/version.h
                  scripts/gearmand
                  scripts/gearmand.xml

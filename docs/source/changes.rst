@@ -5,4 +5,4 @@
 Changelog
 *********
 
-.. include:: ../ChangeLog
+.. include:: ../../ChangeLog
