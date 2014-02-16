@@ -49,7 +49,7 @@ BUILT_SOURCES+= libtest/version.h
 
 .PHONY: clean-libtest-check
 clean-libtest-check:
-	-rm -rf tmp_chroot
+	-rm -rf $(TMP_DIR)
 
 noinst_HEADERS+= libtest/client.hpp
 noinst_HEADERS+= libtest/formatter.hpp
