@@ -7,3 +7,4 @@ script:
   - ./bootstrap.sh -a
   - ./configure
   - make
+  - make test
