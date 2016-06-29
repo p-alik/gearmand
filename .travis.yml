@@ -1,0 +1,9 @@
+language: cpp
+compiler:
+  - clang
+  - gcc
+# Build steps
+script:
+  - ./bootstrap.sh -a
+  - ./configure
+  - make
