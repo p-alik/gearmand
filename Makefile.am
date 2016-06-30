@@ -129,4 +129,4 @@ merge-clean:
 	@find ./ | $(GREP) \.BASE | xargs rm -f
 	@find ./ | $(GREP) \~$$ | xargs rm -f
 	@echo "Files that need to be either removed or checked in:"
-	@bzr unknowns
+	@git clean -n

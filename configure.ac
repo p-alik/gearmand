@@ -9,7 +9,7 @@
 # the COPYING file in this directory for full text.
 
 m4_include([version.m4])
-AC_REVISION([m4_esyscmd_s([bzr revno])])
+AC_REVISION([m4_esyscmd_s([git describe --always])])
 AC_PREREQ([2.63])
 AC_INIT([gearmand],VERSION_NUMBER,[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 
