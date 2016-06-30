@@ -22,6 +22,7 @@ bin/gearman
 build-aux
 cmd*xml
 config*
+docs/build
 docs/source/conf.py
 docs/source/libgearman/examples/gearman_client_do_background_example
 docs/source/libgearman/examples/gearman_client_do_example
