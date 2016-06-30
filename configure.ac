@@ -13,11 +13,12 @@ AC_REVISION([m4_esyscmd_s([git describe --always])])
 AC_PREREQ([2.63])
 AC_INIT([gearmand],VERSION_NUMBER,[https://bugs.launchpad.net/gearmand],[gearmand],[http://gearman.info/])
 
+AC_CONFIG_AUX_DIR([build-aux])
+
 # Setup the compilers early on
 AC_PROG_CC([cc gcc clang])
 AC_PROG_CXX([c++ g++ clang++])
 
-AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
