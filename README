@@ -56,14 +56,14 @@ Enjoy!
 Contributing
 ------------
 
-If you are getting this code from https://launchpad.net/gearmand
+If you are getting this code from https://github.com/gearman/gearmand
 then continue reading. Otherwise these directions are not for you
 (well maybe...).
 
-To obtain code from https://launchpad.net/gearmand you will need to
+To obtain code from Github you will need to
 issue the following command:
 
-bzr branch lp:gearmand
+git clone https://github.com/gearman/gearmand
 
 Once the tree is branched you will need to build the "configure"
 script. You can do this by running the script:

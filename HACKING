@@ -1,11 +1,12 @@
 Hi!
 
 You can obtain the latest source tree for Gearman by issuing the following command:
-bzr clone lp:gearmand
 
-You will need to have bzr installed in order for this to work (http://bazaar.canonical.com/en/).
+git clone https://github.com/gearman/gearmand
 
-If you are building from source control (i.e. bzr) you should setup your environment via:
+You will need to have git installed in order for this to work.
+
+If you are building from source control (i.e. git) you should setup your environment via:
 ./bootstrap.sh autoreconf
 
 This will build the files you will need in order to run "./configure".
