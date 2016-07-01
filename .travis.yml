@@ -51,6 +51,6 @@ before_install:
 
 script:
   - ./bootstrap.sh -a
-  - ./configure
+  - ./configure --enable-code-coverage
   - make
   - make test
