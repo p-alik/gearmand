@@ -48,9 +48,12 @@ before_install:
   - sudo apt-get install -y uuid-dev
   - sudo apt-get install -y python-sphinx
   - sudo apt-get install -y lcov
+  - pip install --user cpp-coveralls
 
 script:
   - ./bootstrap.sh -a
-  - ./configure --enable-code-coverage
-  - make
-  - make test
+  - ./configure --enable-code-coverage && make && make check
+
+after_success:
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
+
