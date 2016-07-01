@@ -133,6 +133,9 @@ AX_PROG_SPHINX_BUILD(,[AC_MSG_WARN([sphinx-build version 1.0 or greater is requi
 AX_WITH_PROG([LCOV],[lcov])
 AX_WITH_PROG([LCOV_GENHTML],[genhtml])
 
+# Code coverage
+AX_CODE_COVERAGE
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -356,6 +359,7 @@ echo "   * openssl found:             $have_openssl"
 echo "   * make -j:                   $enable_jobserver"
 echo "   * VCS checkout:              $ac_cv_vcs_checkout"
 echo "   * sphinx-build:              $SPHINXBUILD"
+echo "   * code-coverage:             $enable_code_coverage"
 echo ""
 echo "---"
 
