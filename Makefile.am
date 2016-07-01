@@ -67,6 +67,13 @@ XFAIL_TESTS += $(bin_PROGRAMS)
 EXTRA_DIST+= HACKING
 EXTRA_DIST+= scripts/README.solaris
 
+# Code coverage
+@CODE_COVERAGE_RULES@
+CODE_COVERAGE_DIRECTORY = $(top_builddir)/gdata
+CODE_COVERAGE_LCOV_OPTIONS = --base-directory $(abs_top_srcdir)
+EXTRA_DIST+= m4/ax_code_coverage.m4
+# / Code coverage
+
 test: check
 
 BUILT_SOURCES+= configmake.h
