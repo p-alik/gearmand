@@ -178,6 +178,13 @@ SUBMIT_JOB_LOW, SUBMIT_JOB_LOW_BG
     always take precedence, and jobs submitted with the normal versions
     take precedence over the LOW versions.
 
+    The unique ID can be used by the server to reduce queue length. If a
+    job with the same Unique ID has already been submitted, the server
+    may attach this request to the already existing job. This includes
+    jobs already in progress, in which case non-background jobs will be
+    sent the same result as background jobs. This is known commonly as
+    "coalescing".
+
     Arguments:
     - NULL byte terminated function name.
     - NULL byte terminated unique ID.
