@@ -294,7 +294,7 @@ public:
     {
       gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad request line: %.*s", (uint32_t)request_size, request);
       set_response(gearmand::protocol::httpd::HTTP_NOT_FOUND);
-      ret_ptr= GEARMAND_SUCCESS;
+      ret_ptr= GEARMAND_INVALID_PACKET;
       return 0;
     }
 
@@ -330,7 +330,7 @@ public:
       {
         gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "bad method: %.*s", (uint32_t)method_size, method_str);
         set_response(gearmand::protocol::httpd::HTTP_METHOD_NOT_ALLOWED);
-        ret_ptr= GEARMAND_SUCCESS;
+        ret_ptr= GEARMAND_INVALID_PACKET;
         return 0;
       }
     }
