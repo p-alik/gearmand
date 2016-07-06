@@ -157,6 +157,9 @@ public:
     case GEARMAN_COMMAND_WORK_FAIL:
     case GEARMAN_COMMAND_ECHO_RES:
     case GEARMAN_COMMAND_WORK_COMPLETE:
+    {
+      ret_ptr = GEARMAND_SUCCESS;
+    }
       break;
 
     case GEARMAN_COMMAND_JOB_CREATED:
@@ -215,14 +218,13 @@ public:
                                     "HTTP/1.0 200 OK\r\n"
                                     "X-Gearman-Job-Handle: %.*s\r\n"
                                     "X-Gearman-Command: %s\r\n"
-                                    "Content-Length: %d\r\n"
+                                    "Content-Length: %" PRIu64 "\r\n"
                                     "Server: Gearman/" PACKAGE_VERSION "\r\n"
-                                    "\r\n%.*s",
+                                    "\r\n",
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1),
                                     (const char *)packet->arg[0], // Job handle
                                     gearman_strcommand(packet->command),
-                                    int(content.size()), // Content-length
-                                    int(content.size()), &content[0]);
+                                    (uint64_t)packet->data_size); // Content-length
       }
       else
       {
