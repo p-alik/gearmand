@@ -1,7 +1,6 @@
-# Use new trusty images, should yield newer compilers and packages
-sudo: required
-# dist: precise
 language: cpp
+dist: trusty
+sudo: required
 
 matrix:
   include:
@@ -11,6 +10,7 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
+            - gcc-4.9
             - g++-4.9
       env: COMPILER=g++-4.9
     - compiler: gcc
@@ -18,30 +18,17 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-          # packages:
-          #   - g++-5
-      # env: COMPILER=g++-5
-    # - compiler: clang
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-precise-3.6
-    #       packages:
-    #         - clang-3.6
-    #   env: COMPILER=clang++-3.6
-    # - compiler: clang
-    #   addons:
-    #     apt:
-    #       sources:
-    #         - ubuntu-toolchain-r-test
-    #         - llvm-toolchain-precise-3.7
-    #       packages:
-    #         - clang-3.7
-    #   env: COMPILER=clang++-3.7
+          packages:
+            - gcc-5
+            - g++-5
+      env: COMPILER=g++-5
 
 before_install:
   - sudo apt-get update -qq
+  - if [ "$COMPILER" = "g++-4.9" ]; then sudo apt-get install -qq g++-4.9; fi
+  - if [ "$COMPILER" = "g++-4.9" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - if [ "$COMPILER" = "g++-5" ]; then sudo apt-get install -qq g++-5; fi
+  - if [ "$COMPILER" = "g++-5" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - sudo apt-get install -y libboost-all-dev
   - sudo apt-get install -y gperf
   - sudo apt-get install -y libevent-dev
