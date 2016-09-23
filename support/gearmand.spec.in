@@ -5,12 +5,12 @@ Release: @RPM_RELEASE@
 License: BSD
 Group: System Environment/Libraries
 BuildRequires: bison
-URL: http://launchpad.net/gearmand
+URL: https://github.com/gearman/gearmand
 Requires: sqlite, libevent >= 1.4, boost-program-options >=  1.39
 
 Packager: Brian Aker <brian@tangent.org>
 
-Source: http://launchpad.net/gearmand/trunk/%{version}/+download/gearmand-%{version}.tar.gz
+Source: https://github.com/gearman/gearmand/archive/%{version}.tar.gz
 Source1: support/gearmand.init
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 

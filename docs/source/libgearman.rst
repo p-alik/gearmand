@@ -98,7 +98,7 @@ HOME
 
 
 To find out more information please check:
-`https://launchpad.net/libgearman <https://launchpad.net/gearmand>`_
+`https://github.com/gearman/gearmand <https://github.com/gearman/gearmand>`_
 
 
 --------
