@@ -25,6 +25,8 @@ AC_CANONICAL_HOST
 AC_ARG_PROGRAM
 AC_USE_SYSTEM_EXTENSIONS
 
+AX_GENERATE_CHANGELOG
+
 AM_INIT_AUTOMAKE([1.11 color-tests -Wno-portability subdir-objects foreign tar-ustar])
 
 AC_CONFIG_HEADERS([gear_config.h:gear_config.in])dnl Keep filename to 8.3 for MS-DOS.
