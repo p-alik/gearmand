@@ -60,6 +60,10 @@ include support/include.am
 include m4/include.am
 include rpm/include.mk
 
+@GENERATE_CHANGELOG_RULES@
+CHANGELOG_GIT_FLAGS = --date=short --pretty=tformat:"%+D - %ad %s" --no-merges
+dist-hook: dist-ChangeLog
+
 TESTS += $(bin_PROGRAMS)
 TESTS += $(check_PROGRAMS)
 XFAIL_TESTS += $(bin_PROGRAMS)
