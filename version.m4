@@ -1,1 +1,1 @@
-m4_define([VERSION_NUMBER], [1.1.12])
+m4_define([VERSION_NUMBER], m4_esyscmd_s([git describe --always]))
