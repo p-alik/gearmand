@@ -9,7 +9,7 @@ and Coding Style sections.
 Getting Started
 ---------------
 
-You can grab a released version of Gearman from http://launchpad.net/gearmand/. If you want to work on the latest code, please read the file HACKING.
+You can grab a released version of Gearman from https://github.com/gearman/gearmand/. If you want to work on the latest code, please read the file HACKING.
 
 To build, you can follow the normal:
 
@@ -76,11 +76,11 @@ make install"
 
 For a tarball release do a "make dist" and for an RPM type "make rpm".
 
-For patches please create a branch on launchpad and propose it to be
+For patches please create a branch on github and propose it to be
 merged into the trunk. You can find out more information on how to
-do this at the launchpad help site:
+do this at the github help site:
 
-https://help.launchpad.net/
+https://help.github.com/articles/creating-a-pull-request/
 
 
 Thanks and keep hacking!

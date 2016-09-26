@@ -6,7 +6,7 @@ Installing
 Compile and install from tarball
 --------------------------------
 
-Download the latest tarball from the download page on Launchpad (https://launchpad.net/gearmand). 
+Download the latest tarball from the download page on Github (https://github.com/gearman/gearmand). 
 
 Once downloaded, run::
    tar xzf gearmand-X.Y.tar.gz
