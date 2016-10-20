@@ -2,6 +2,18 @@
 # included from Top Level Makefile.am
 # All paths should be given relative to the root
 
+EXTRA_DIST+= docs/Makefile
+EXTRA_DIST+= docs/make.bat
+EXTRA_DIST+= docs/source/conf.py*
+EXTRA_DIST+= docs/source/*.rst
+EXTRA_DIST+= docs/source/cc-symbol.png
+EXTRA_DIST+= docs/source/gearmand/*.rst
+EXTRA_DIST+= docs/source/gearmand/queues/*.rst
+EXTRA_DIST+= docs/source/libgearman/*.rst
+EXTRA_DIST+= docs/source/libgearman/errors/*.rst
+EXTRA_DIST+= docs/source/bin/*.rst
+EXTRA_DIST+= docs/source/build/*.rst
+EXTRA_DIST+= docs/source/protocol/*.rst
 
 noinst_PROGRAMS+= docs/source/libgearman/examples/gearman_client_do_background_example
 noinst_PROGRAMS+= docs/source/libgearman/examples/gearman_client_do_example
