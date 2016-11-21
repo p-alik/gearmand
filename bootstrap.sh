@@ -191,6 +191,9 @@ set_VENDOR_DISTRIBUTION ()
     opensuse)
       VENDOR_DISTRIBUTION='opensuse'
       ;;
+    freebsd)
+      VENDOR_DISTRIBUTION='freebsd'
+      ;;
     *)
       die "attempt to set an invalid VENDOR_DISTRIBUTION=$dist"
       ;;
@@ -262,6 +265,9 @@ set_VENDOR_RELEASE ()
     opensuse)
       VENDOR_RELEASE="$release"
       ;;
+    freebsd)
+      VENDOR_RELEASE="$release"
+      ;;
     unknown)
       die "attempt to set VENDOR_RELEASE without setting VENDOR_DISTRIBUTION"
       ;;
@@ -310,6 +316,9 @@ set_VENDOR ()
       ;;
     suse)
       VENDOR='suse'
+      ;;
+    freebsd)
+      VENDOR='freebsd'
       ;;
     *)
       die "An attempt was made to set an invalid VENDOR=$vendor"
@@ -376,6 +385,10 @@ determine_target_platform ()
   elif [[ -f '/etc/lsb-release' ]]; then 
     source '/etc/lsb-release'
     set_VENDOR 'canonical' $DISTRIB_ID $DISTRIB_CODENAME
+  elif [[ -x '/bin/freebsd-version' ]]; then
+    _ID="freebsd"
+    local _VERSION="$(/bin/freebsd-version -u | cut -f 1 -d -)"
+    set_VENDOR $_ID $_ID $_VERSION
   fi
 
   rebuild_host_os
