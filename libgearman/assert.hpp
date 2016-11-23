@@ -48,11 +48,14 @@
 # define assert_vmsg(__expr, __mesg, ...) (void)(__expr); (void)(__mesg);
 #else
 
-# ifdef _WIN32
-#  include <malloc.h>
-# else
-#  include <alloca.h>
-# endif
+#ifdef _WIN32
+# include <malloc.h>
+#else
+#ifndef __FreeBSD__
+// FreeBSD (other BSD too) does not have alloca.h as it is included in stdlib.h
+# include <alloca.h>
+#endif
+#endif
 
 # ifdef __cplusplus
 #  include <cstdarg>
