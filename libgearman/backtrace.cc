@@ -66,7 +66,7 @@ void custom_backtrace(void)
 #ifdef HAVE_EXECINFO_H
   void *backtrace_buffer[MAX_DEPTH +1];
 
-  int stack_frames= backtrace(backtrace_buffer, MAX_DEPTH);
+  int stack_frames= (int)backtrace(backtrace_buffer, MAX_DEPTH);
   fprintf(stderr, "\nBegin stack trace, frames found: %d\n", stack_frames);
   if (stack_frames)
   {
