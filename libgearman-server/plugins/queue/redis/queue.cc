@@ -284,9 +284,10 @@ static gearmand_error_t _hiredis_done(gearman_server_st *, void *context,
   return GEARMAND_SUCCESS;
 }
 
-
+#ifndef __FreeBSD__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
 static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context,
                                                 gearman_queue_add_fn *add_fn,
                                                 void *add_context)
@@ -360,7 +361,10 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
 
   return GEARMAND_SUCCESS;
 }
+
+#ifndef __FreeBSD__
 #pragma GCC diagnostic pop
 #pragma GCC diagnostic pop
+#endif
 
 #endif // defined(HAVE_HIREDIS) && HAVE_HIREDIS
