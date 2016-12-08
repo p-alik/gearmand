@@ -415,6 +415,15 @@ void gearman_worker_set_timeout(gearman_worker_st *worker, int timeout)
   }
 }
 
+void gearman_worker_set_ssl(gearman_worker_st *worker_shell, bool ssl,
+    const char *ca_file, const char *certificate, const char *key_file)
+{
+  if (worker_shell && worker_shell->impl())
+  {
+    gearman_universal_set_ssl(worker_shell->impl()->universal, ssl, ca_file, certificate, key_file);
+  }
+}
+
 void *gearman_worker_context(const gearman_worker_st *worker)
 {
   if (worker and worker->impl())

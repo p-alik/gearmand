@@ -134,6 +134,7 @@ public:
 
   void enable_ssl()
   { 
+    return;
     if (getenv("GEARMAND_CA_CERTIFICATE"))
     {
       gearman_worker_add_options(_worker, GEARMAN_WORKER_SSL);

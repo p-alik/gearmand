@@ -393,6 +393,10 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
         case SSL_ERROR_SSL:
         case SSL_ERROR_ZERO_RETURN:
         default:
+          if (ERR_peek_last_error())
+          {
+            cyassl_error = ERR_peek_last_error();
+          }
           char cyassl_error_buffer[SSL_ERROR_SIZE]= { 0 };
           ERR_error_string_n(cyassl_error, cyassl_error_buffer, sizeof(cyassl_error_buffer));
           return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s(%d)", 
@@ -418,9 +422,9 @@ namespace protocol {
 Gear::Gear() :
   Plugin("Gear"),
   _port(GEARMAN_DEFAULT_TCP_PORT_STRING),
-  _ssl_ca_file(GEARMAND_CA_CERTIFICATE),
-  _ssl_certificate(GEARMAND_SERVER_PEM),
-  _ssl_key(GEARMAND_SERVER_KEY),
+  _ssl_ca_file(""),
+  _ssl_certificate(""),
+  _ssl_key(""),
   opt_ssl(false)
   {
     command_line_options().add_options()
@@ -477,19 +481,40 @@ gearmand_error_t Gear::start(gearmand_st *gearmand)
 
   if (opt_ssl)
   {
-    if (getenv("GEARMAND_CA_CERTIFICATE"))
+    if (_ssl_ca_file.empty())
     {
-      _ssl_ca_file= getenv("GEARMAND_CA_CERTIFICATE");
+      if (getenv("GEARMAND_CA_CERTIFICATE"))
+      {
+        _ssl_ca_file= getenv("GEARMAND_CA_CERTIFICATE");
+      }
+      else
+      {
+        _ssl_ca_file= GEARMAND_CA_CERTIFICATE;
+      }
     }
 
-    if (getenv("GEARMAND_SERVER_PEM"))
+    if (_ssl_certificate.empty())
     {
-      _ssl_certificate= getenv("GEARMAND_SERVER_PEM");
+      if (getenv("GEARMAND_SERVER_PEM"))
+      {
+        _ssl_certificate= getenv("GEARMAND_SERVER_PEM");
+      }
+      else
+      {
+        _ssl_certificate= GEARMAND_SERVER_PEM;
+      }
     }
 
-    if (getenv("GEARMAND_SERVER_KEY"))
+    if (_ssl_key.empty())
     {
-      _ssl_key= getenv("GEARMAND_SERVER_KEY");
+      if (getenv("GEARMAND_SERVER_KEY"))
+      {
+        _ssl_key= getenv("GEARMAND_SERVER_KEY");
+      }
+      else
+      {
+        _ssl_key= GEARMAND_SERVER_KEY;
+      }
     }
 
     gearmand->init_ssl();
@@ -511,6 +536,12 @@ gearmand_error_t Gear::start(gearmand_st *gearmand)
       gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "SSL_CTX_use_PrivateKey_file() cannot obtain certificate %s", _ssl_key.c_str());
     }
     gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Loading certificate key : %s", _ssl_key.c_str());
+
+    if (SSL_CTX_check_private_key(gearmand->ctx_ssl()) != SSL_SUCCESS)
+    {
+      gearmand_log_fatal(GEARMAN_DEFAULT_LOG_PARAM, "SSL_CTX_check_private_key() cannot check certificate %s", _ssl_key.c_str());
+    }
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "Checking certificate key : %s", _ssl_key.c_str());
 
     assert(gearmand->ctx_ssl());
   }

@@ -125,7 +125,7 @@ bool Instance::init_ssl()
   SSL_load_error_strings();
   SSL_library_init();
 
-  if ((_ctx_ssl= SSL_CTX_new(TLSv1_client_method())) == NULL)
+  if ((_ctx_ssl= SSL_CTX_new(SSLv23_client_method())) == NULL)
   {
     _last_error= "SSL_CTX_new error";
     return false;
@@ -152,6 +152,14 @@ bool Instance::init_ssl()
     std::stringstream message;
     message << "Error loading private key file " << ssl_key();
     _last_error= message.str();
+    return false;
+  }
+
+  if (SSL_CTX_check_private_key(_ctx_ssl) != SSL_SUCCESS)
+  {
+    std::stringstream message;
+    message << "Error check private key.";
+    _last_error = message.str();
     return false;
   }
 #endif // defined(HAVE_CYASSL) && HAVE_CYASSL
@@ -273,6 +281,8 @@ bool Instance::run()
             _last_error= "SSL_set_fd() failed";
             return false;
           }
+
+          SSL_set_connect_state(_ssl);
         }
 #endif
 
@@ -315,6 +325,10 @@ bool Instance::run()
               case SSL_ERROR_SSL:
               default:
                 {
+                  if (ERR_peek_last_error())
+                  {
+                    ssl_error = ERR_peek_last_error();
+                  }
                   char cyassl_error_buffer[SSL_ERROR_SIZE]= { 0 };
                   ERR_error_string_n(ssl_error, cyassl_error_buffer, sizeof(cyassl_error_buffer));
                   _last_error= cyassl_error_buffer;
@@ -398,6 +412,10 @@ bool Instance::run()
                 case SSL_ERROR_SSL:
                 default:
                   {
+                    if (ERR_peek_last_error())
+                    {
+                      ssl_error = ERR_peek_last_error();
+                    }
                     char cyassl_error_buffer[SSL_ERROR_SIZE]= { 0 };
                     ERR_error_string_n(ssl_error, cyassl_error_buffer, sizeof(cyassl_error_buffer));
                     _last_error= cyassl_error_buffer;
