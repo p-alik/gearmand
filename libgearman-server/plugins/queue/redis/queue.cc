@@ -224,7 +224,7 @@ static gearmand_error_t _hiredis_add(gearman_server_st *, void *context,
 
   if (when) // No support for EPOCH jobs
   {
-    return GEARMAND_QUEUE_ERROR;
+    return gearmand_gerror("hiredis queue does not support epoch jobs", GEARMAND_QUEUE_ERROR);
   }
 
   gearmand_log_debug(
