@@ -45,6 +45,7 @@
 #include "libgearman/vector.h" 
 #include "libgearman/assert.hpp" 
 #include "libgearman/ssl.h"
+#include <cstring>
 
 enum universal_options_t
 {
