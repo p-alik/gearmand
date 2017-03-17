@@ -125,7 +125,7 @@ bool Instance::init_ssl()
   SSL_load_error_strings();
   SSL_library_init();
 
-  if ((_ctx_ssl= SSL_CTX_new(SSLv23_client_method())) == NULL)
+  if ((_ctx_ssl= SSL_CTX_new(TLSv1_client_method())) == NULL)
   {
     _last_error= "SSL_CTX_new error";
     return false;
