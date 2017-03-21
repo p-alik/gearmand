@@ -3,7 +3,7 @@ gearmand
 
 [![Build Status](https://travis-ci.org/gearman/gearmand.png)](https://travis-ci.org/gearman/gearmand)
 
-The latest version of ```gearmand``` source code and versions 1.1.13 and later can be found at: [GitHub Repository](https://github.com/gearman/gearmand). Older versions released before 1.1.13 can be found at: [Launchpad Repository](http://launchpad.net/gearmand/)
+The latest version of ```gearmand``` source code and versions 1.1.13 and later can be found at [GitHub Repository](https://github.com/gearman/gearmand). Older versions released before 1.1.13 can be found at [Launchpad Repository](http://launchpad.net/gearmand/)
 
 You can grab the latest release distribution of Gearman from https://github.com/gearman/gearmand/releases
 
@@ -64,7 +64,7 @@ While the reverse_client returned:
 
     Result=!namraeG ,olleH
     
-There are a lot more details about gearmand at: [Getting Started](http://gearman.org/getting-started/)
+There are a lot more details about gearmand at [Getting Started](http://gearman.org/getting-started/).
 
 If you want to start writing your own client and workers, be sure to check out the [Developer API](http://gearman.info/libgearman.html) documentation.
 
