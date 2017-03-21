@@ -86,7 +86,7 @@ Please follow these instructions to clone, create a branch and generate a pull r
 
     git clone https://github.com/gearman/gearmand
 
-If you do not have access to create branches in the gearmand GitHub repository, you will probably want to fork the repository instead and clone your fork. Refer to [Contributing to Open Source on GitHub](https://guides.github.com/activities/contributing-to-open-source/#contributing).
+   If you do not have access to create branches in the gearmand GitHub repository, you will probably want to fork the repository and clone your fork instead. Refer to [Contributing to Open Source on GitHub](https://guides.github.com/activities/contributing-to-open-source/#contributing) for details.
 
 2. Next, think of a clear, descriptive branch name and then create a new branch and change to it:
 
