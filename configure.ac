@@ -252,9 +252,9 @@ AX_CHECK_OPENSSL([have_openssl=yes
                   [have_openssl=no]) 
 AM_CONDITIONAL([ENABLE_OPENSSL],[test "x${have_openssl}" = "xyes"])
 
-# Check for CyaSSL
-AX_CHECK_CYASSL([have_cyassl=yes],[have_cyassl=no]) 
-AM_CONDITIONAL([ENABLE_CYASSL],[test "x${have_cyassl}" = "xyes"])
+# Check for wolfSSL
+AX_CHECK_WOLFSSL([have_wolfssl=yes],[have_wolfssl=no]) 
+AM_CONDITIONAL([ENABLE_WOLFSSL],[test "x${have_wolfssl}" = "xyes"])
 
 AC_DEFUN([AX_ENABLE_SSL],
          [AC_PREREQ([2.63])dnl
@@ -269,7 +269,7 @@ AC_DEFUN([AX_ENABLE_SSL],
                                         ],
                                         [enable_ssl=]_SSL_ENABLE_DEFAULT)
          AS_IF([test "x${enable_ssl}" = "xyes"],
-               [AS_IF([test "x${have_cyassl}" = "xyes"],
+               [AS_IF([test "x${have_wolfssl}" = "xyes"],
                       [AC_DEFINE([HAVE_SSL],[1],[Enable SSL Support])
                         AC_DEFINE([HAVE_OPENSSL],[0],[Enable OPENSSL Support])
                       ],
@@ -283,8 +283,8 @@ AC_DEFUN([AX_ENABLE_SSL],
          ])
 
 if [ test "x${enable_ssl}" = "xyes" ]; then
-  if ! [ test "x${have_openssl}" = "xyes" ] &&  ! [ test "x${have_cyassl}" = "xyes" ]; then
-    AC_MSG_ERROR([Unable to find either openssl or cyassl])
+  if ! [ test "x${have_openssl}" = "xyes" ] &&  ! [ test "x${have_wolfssl}" = "xyes" ]; then
+    AC_MSG_ERROR([Unable to find either openssl or wolfssl])
   fi
 fi
 
@@ -362,7 +362,7 @@ echo "   * Building with libpq        $ac_cv_libpq"
 echo "   * Building with tokyocabinet $ac_enable_libtokyocabinet"
 echo "   * Building with libmysql     $found_mysql"
 echo "   * SSL enabled:               $enable_ssl"
-echo "   * cyassl found:              $have_cyassl"
+echo "   * wolfssl found:             $have_wolfssl"
 echo "   * openssl found:             $have_openssl"
 echo "   * make -j:                   $enable_jobserver"
 echo "   * VCS checkout:              $ac_cv_vcs_checkout"
