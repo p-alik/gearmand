@@ -3,7 +3,7 @@ gearmand
 
 [![Build Status](https://travis-ci.org/gearman/gearmand.png)](https://travis-ci.org/gearman/gearmand)
 
-The latest version of ```gearmand``` source code and versions 1.1.13 and later can be found at: [Github Repository](https://github.com/gearman/gearmand). Older versions released before 1.1.13 can be found at: [Launchpad Repository](http://launchpad.net/gearmand/)
+The latest version of ```gearmand``` source code and versions 1.1.13 and later can be found at [GitHub Repository](https://github.com/gearman/gearmand). Older versions released before 1.1.13 can be found at [Launchpad Repository](http://launchpad.net/gearmand/)
 
 You can grab the latest release distribution of Gearman from https://github.com/gearman/gearmand/releases
 
@@ -64,7 +64,7 @@ While the reverse_client returned:
 
     Result=!namraeG ,olleH
     
-There are a lot more details about gearmand at: [Getting Started](http://gearman.org/getting-started/)
+There are a lot more details about gearmand at [Getting Started](http://gearman.org/getting-started/).
 
 If you want to start writing your own client and workers, be sure to check out the [Developer API](http://gearman.info/libgearman.html) documentation.
 
@@ -76,27 +76,30 @@ Enjoy!
 Contributing
 ------------
 
-The current versions of geamand are maintained on our [Github Repo for gearmand](https://github.com/gearman/gearmand)
+The current versions of geamand are maintained on our [GitHub Repo for gearmand](https://github.com/gearman/gearmand)
 
-Not everyone is familiar with ```git```, so you can find more info at [Getting Started with Git](https://git-scm.com/book/en/v1/Getting-Started)
+If you are not familiar with ```git```, you can find more info at [Getting Started with Git](https://git-scm.com/book/en/v1/Getting-Started).
 
-Please follow these instructions to clone, create a branch and generate a pull request on that branch. More details on using github to do this can be found in []()
+Please follow these instructions to clone, create a branch and generate a pull request on that branch. More details on using GitHub can be found at [GitHub Help](https://help.github.com/).
 
-1. clone the github repository into your local file system:
+1. Clone the GitHub repository to your local file system:
 
     git clone https://github.com/gearman/gearmand
 
+   If you do not have access to create branches in the gearmand GitHub repository, you will probably want to fork the repository and clone your fork instead. Refer to [Contributing to Open Source on GitHub](https://guides.github.com/activities/contributing-to-open-source/#contributing) for details.
+
 2. Next, think of a clear, descriptive branch name and then create a new branch and change to it:
 
+    cd gearmand
     git checkout -b DESCRIPTIVE_BRANCH_NAME
    
 3. Once the tree is branched you will need to generate the "configure" script for autoconfigure.
 
     ./bootstrap.sh -a
     
-4. Finally! you are ready to run tests, make changes to the code and generate a pull request on your branch so we can consider your changes.
+4. Finally, you are ready to run tests, make changes to the code, commit and push them to GitHub, and generate a pull request on your branch so we can consider your changes.
 
-You can learn more about how to Create a Pull Request](https://help.github.com/articles/creating-a-pull-request/) and [Create a Pull Request from a Fork](https://help.github.com/articles/creating-a-pull-request-from-a-fork/)
+You can learn more about how to [Create a Pull Request](https://help.github.com/articles/creating-a-pull-request/) and [Create a Pull Request from a Fork](https://help.github.com/articles/creating-a-pull-request-from-a-fork/).
 
 
 But Wait! There's More!
@@ -108,7 +111,7 @@ To generate a tarball distribution of your code:
 
     make dist
     
-Or to gerate an RPM distribution use:
+Or to generate an RPM distribution use:
 
     make rpm
     
