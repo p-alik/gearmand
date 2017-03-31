@@ -67,7 +67,7 @@ using namespace gearmand;
 /**
  * Default values.
  */
-#define GEARMAND_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX "gear_"
+static constexpr const char GEARMAND_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX[] = "gear_";
 
 namespace gearmand { namespace plugins { namespace queue { class Libmemcached;  }}}
 
