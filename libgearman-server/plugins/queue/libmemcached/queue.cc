@@ -78,9 +78,9 @@ class LibmemcachedQueue : public gearmand::queue::Context
 {
 public:
   LibmemcachedQueue(plugins::queue::Libmemcached*, memcached_server_st* servers) :
-    memc_(NULL)
+    memc_(nullptr)
   { 
-    memc_= memcached_create(NULL);
+    memc_= memcached_create(nullptr);
 
     memcached_server_push(memc_, servers);
   }
@@ -93,7 +93,7 @@ public:
   ~LibmemcachedQueue()
   {
     memcached_free(memc_);
-    memc_= NULL;
+    memc_= nullptr;
   }
 
   gearmand_error_t add(gearman_server_st *server,
@@ -150,7 +150,7 @@ gearmand_error_t Libmemcached::initialize()
   gearmand_info("Initializing libmemcached module");
 
   memcached_server_st *servers= memcached_servers_parse(server_list.c_str());
-  if (servers == NULL)
+  if (!servers)
   {
     return gearmand_gerror("memcached_servers_parse", GEARMAND_QUEUE_ERROR);
   }
@@ -254,15 +254,15 @@ class Replay
 public:
   Replay(gearman_server_st* server_arg, memcached_st* _memc) :
     server_(server_arg),
-    memc_(NULL)
+    memc_(nullptr)
   {
-    memc_= memcached_clone(NULL, _memc);
+    memc_= memcached_clone(nullptr, _memc);
   }
 
   ~Replay()
   {
     memcached_free(memc_);
-    memc_= NULL;
+    memc_= nullptr;
   }
 
   bool init()
@@ -302,7 +302,7 @@ static memcached_return callback_loader(const memcached_st*,
   const char* function= key +strlen(GEARMAND_QUEUE_LIBMEMCACHED_DEFAULT_PREFIX);
 
   const char* unique= index(function, '-');
-  if (unique == NULL)
+  if (!unique)
   {
     gearmand_debug("memcached key was malformed was not found");
     return MEMCACHED_SUCCESS;
@@ -319,7 +319,7 @@ static memcached_return callback_loader(const memcached_st*,
 
   /* need to make a copy here ... gearman_server_job_free will free it later */
   char* data= (char*)malloc(memcached_result_length(result));
-  if (data == NULL)
+  if (!data)
   {
     gearmand_perror(errno, "malloc");
     return MEMCACHED_MEMORY_ALLOCATION_FAILURE;
@@ -330,7 +330,7 @@ static memcached_return callback_loader(const memcached_st*,
 
   /* Currently not looking at failure cases */
   LibmemcachedQueue::replay_add(replay->server(),
-                                NULL,
+                                nullptr,
                                 unique, unique_size,
                                 function, function_len,
                                 data, memcached_result_length(result),
@@ -374,7 +374,7 @@ gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 
   gearmand_debug("libmemcached replay start");
 
-  memcached_st* local_clone= memcached_clone(NULL, memc_);
+  memcached_st* local_clone= memcached_clone(nullptr, memc_);
 
   if (local_clone)
   {
@@ -389,7 +389,7 @@ gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
       gearmand_debug("libmemcached failed to init() Replay");
     }
     memcached_free(local_clone);
-    local_clone= NULL;
+    local_clone= nullptr;
   }
   gearmand_debug("libmemcached replay stop");
 
