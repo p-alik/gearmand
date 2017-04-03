@@ -207,7 +207,7 @@ gearmand_error_t LibmemcachedQueue::add(gearman_server_st *server,
                                       (const char *)function_name, (int)unique_size,
                                       (const char *)unique);
 
-  memcached_return rc= memcached_set(memc_, (const char *)key, key_length,
+  memcached_return_t rc= memcached_set(memc_, (const char *)key, key_length,
                                      (const char *)data, data_size, 0, (uint32_t)priority);
 
   if (rc != MEMCACHED_SUCCESS)
@@ -240,7 +240,7 @@ gearmand_error_t LibmemcachedQueue::done(gearman_server_st*,
                                       (const char *)unique);
 
   /* For the moment we will assume it happened */
-  memcached_return rc= memcached_delete(memc_, (const char *)key, key_length, 0);
+  memcached_return_t rc= memcached_delete(memc_, (const char *)key, key_length, 0);
   if (rc != MEMCACHED_SUCCESS)
   {
     return gearmand_gerror(memcached_last_error_message(memc_), GEARMAND_QUEUE_ERROR);
@@ -286,7 +286,7 @@ private:
   memcached_st* memc_;
 };
 
-static memcached_return callback_loader(const memcached_st*,
+static memcached_return_t callback_loader(const memcached_st*,
                                         memcached_result_st* result,
                                         void *context)
 {
@@ -341,7 +341,7 @@ static memcached_return callback_loader(const memcached_st*,
 }
 
 /* Grab the object and load it into the loader */
-static memcached_return callback_for_key(const memcached_st*,
+static memcached_return_t callback_for_key(const memcached_st*,
                                          const char *key, size_t key_length,
                                          void *context)
 {
