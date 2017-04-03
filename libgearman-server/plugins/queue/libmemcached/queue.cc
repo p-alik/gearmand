@@ -77,7 +77,7 @@ namespace queue {
 class LibmemcachedQueue : public gearmand::queue::Context 
 {
 public:
-  LibmemcachedQueue(plugins::queue::Libmemcached*, memcached_server_st* servers) :
+  LibmemcachedQueue(memcached_server_st* servers):
     memc_(nullptr)
   { 
     memc_= memcached_create(nullptr);
@@ -155,7 +155,7 @@ gearmand_error_t Libmemcached::initialize()
     return gearmand_gerror("memcached_servers_parse", GEARMAND_QUEUE_ERROR);
   }
 
-  gearmand::queue::LibmemcachedQueue* exec_queue= new gearmand::queue::LibmemcachedQueue(this, servers);
+  gearmand::queue::LibmemcachedQueue* exec_queue= new gearmand::queue::LibmemcachedQueue(servers);
   if (exec_queue and exec_queue->init())
   {
     gearman_server_set_queue(Gearmand()->server, exec_queue);
