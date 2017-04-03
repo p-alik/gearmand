@@ -346,7 +346,7 @@ static memcached_return_t callback_for_key(const memcached_st*,
                                          void *context)
 {
   Replay* replay= (Replay*)context;
-  memcached_execute_function callbacks[1];
+  memcached_execute_fn callbacks[1];
   char *passable[1];
 
   callbacks[0]= (memcached_execute_fn)&callback_loader;
