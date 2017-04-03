@@ -312,8 +312,6 @@ static memcached_return_t callback_loader(const memcached_st*,
   unique++;
   size_t unique_size= strlen(unique);
 
-  assert(unique);
-  assert(unique_size);
   assert(function);
   assert(function_len);
 
