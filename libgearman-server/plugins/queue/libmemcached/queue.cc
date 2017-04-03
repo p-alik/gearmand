@@ -368,7 +368,7 @@ static memcached_return_t callback_for_key(const memcached_st*,
 */
 gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 {
-  memcached_dump_func callbacks[1];
+  memcached_dump_fn callbacks[1];
 
   callbacks[0]= (memcached_dump_fn)&callback_for_key;
 
