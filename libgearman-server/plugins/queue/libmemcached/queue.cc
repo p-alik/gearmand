@@ -344,10 +344,10 @@ static memcached_return_t callback_for_key(const memcached_st*,
                                          void *context)
 {
   Replay* replay= (Replay*)context;
-  memcached_execute_fn callbacks[1];
+  memcached_execute_fn callbacks{(memcached_execute_fn)&callback_loader};
   char *passable[1];
 
-  callbacks[0]= (memcached_execute_fn)&callback_loader;
+
 
   passable[0]= (char *)key;
   if (memcached_success(memcached_mget(replay->memc(), passable, &key_length, 1)))
@@ -356,7 +356,7 @@ static memcached_return_t callback_for_key(const memcached_st*,
   }
 
   /* Just void errors for the moment, since other treads might have picked up the object. */
-  (void)memcached_fetch_execute(replay->memc(), callbacks, replay, 1);
+  (void)memcached_fetch_execute(replay->memc(), &callbacks, replay, 1);
 
   return MEMCACHED_SUCCESS;
 }
@@ -366,9 +366,7 @@ static memcached_return_t callback_for_key(const memcached_st*,
 */
 gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 {
-  memcached_dump_fn callbacks[1];
-
-  callbacks[0]= (memcached_dump_fn)&callback_for_key;
+  memcached_dump_fn callbacks{(memcached_dump_fn)&callback_for_key};
 
   gearmand_debug("libmemcached replay start");
 
@@ -380,7 +378,7 @@ gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 
     if (replay_exec.init())
     {
-      (void)memcached_dump(local_clone, callbacks, (void *)&replay_exec, 1);
+      (void)memcached_dump(local_clone, &callbacks, (void *)&replay_exec, 1);
     }
     else
     {
