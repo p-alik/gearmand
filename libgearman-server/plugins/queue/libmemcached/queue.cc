@@ -155,7 +155,7 @@ gearmand_error_t Libmemcached::initialize()
     return gearmand_gerror("memcached_servers_parse", GEARMAND_QUEUE_ERROR);
   }
 
-  gearmand::queue::LibmemcachedQueue* exec_queue= new gearmand::queue::LibmemcachedQueue(servers);
+  gearmand::queue::LibmemcachedQueue* exec_queue = new gearmand::queue::LibmemcachedQueue { servers };
   if (exec_queue and exec_queue->init())
   {
     gearman_server_set_queue(Gearmand()->server, exec_queue);
@@ -170,7 +170,7 @@ gearmand_error_t Libmemcached::initialize()
 
 void initialize_libmemcached()
 {
-  static Libmemcached local_instance;
+  static Libmemcached local_instance {};
 }
 
 } // namespace queue
