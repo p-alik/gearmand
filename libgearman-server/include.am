@@ -95,9 +95,9 @@ libgearman_server_libgearman_server_la_LIBADD+= @LIBM@
 libgearman_server_libgearman_server_la_LIBADD+= @lt_cv_dlopen_libs@
 libgearman_server_libgearman_server_la_LIBADD+= @RT_LIB@
 if ENABLE_SSL
-if ENABLE_CYASSL
-libgearman_server_libgearman_server_la_LIBADD+= @CYASSL_LIB@
-libgearman_server_libgearman_server_la_LDFLAGS+= @CYASSL_LDFLAGS@
+if ENABLE_WOLFSSL
+libgearman_server_libgearman_server_la_LIBADD+= @WOLFSSL_LIB@
+libgearman_server_libgearman_server_la_LDFLAGS+= @WOLFSSL_LDFLAGS@
 else
 if ENABLE_OPENSSL
 libgearman_server_libgearman_server_la_LIBADD+= @OPENSSL_LIBS@
