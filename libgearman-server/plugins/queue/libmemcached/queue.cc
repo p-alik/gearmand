@@ -41,17 +41,9 @@
  * @brief libmemcached Queue Storage Definitions
  */
 
-#include "gear_config.h"
-
-#include <libgearman-server/common.h>
-
-#include <libgearman-server/plugins/queue/base.h>
 #include <libgearman-server/plugins/queue/libmemcached/queue.h>
-#include <libmemcached/memcached.h>
 
-#include "libgearman-server/log.h"
-
-#include <cerrno>
+#if defined(GEARMAND_PLUGINS_QUEUE_LIBMEMCACHED_H)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -393,3 +385,4 @@ gearmand_error_t LibmemcachedQueue::replay(gearman_server_st *server)
 } // gearmand
 
 #pragma GCC diagnostic pop
+#endif // defined(GEARMAND_PLUGINS_QUEUE_LIBMEMCACHED_H)
