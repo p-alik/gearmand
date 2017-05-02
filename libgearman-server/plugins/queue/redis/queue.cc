@@ -124,16 +124,39 @@ bool gearmand::plugins::queue::Hiredis::hmset(vchar_t key, const void *data, siz
 bool gearmand::plugins::queue::Hiredis::fetch(char *key, gearmand::plugins::queue::redis_record_t &req)
 {
   redisContext * context = this->redis();
-  redisReply * reply= (redisReply*)redisCommand(context, "HGETALL %s", key);
+  redisReply * reply = (redisReply*)redisCommand(context, "HGETALL %s", key);
   if (reply == nullptr)
     return false;
 
-  // 2 x (key + value)
-  assert(reply->elements == 4);
+  //FIXME remove workaround
+  if(reply->type == REDIS_REPLY_ERROR) {
+    // workaround to ensure gearmand upgrade.
+    // gearmand <=1.1.15 stores data in string, not in hash.
+    gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, "redis replies for HGETALL: %s", reply->str);
 
-  std::string s{reply->element[1]->str};
-  req.data = s;
-  req.priority = (uint32_t)std::stoi(reply->element[3]->str);
+    reply = (redisReply*)redisCommand(context, "TYPE %s", key);
+    if (reply == nullptr)
+      return false;
+
+    if(strcmp(reply->str, "string") != 0) {
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "unexpected type of the value stored in key: %s", reply->str);
+      return false;
+    }
+
+    reply = (redisReply*)redisCommand(context, "GET %s", key);
+    if (reply == nullptr)
+      return false;
+
+    std::string s{reply->str};
+    req.data = s;
+    req.priority = GEARMAN_JOB_PRIORITY_NORMAL;
+  } else {
+    // 2 x (key + value)
+    assert(reply->elements == 4);
+    std::string s{reply->element[1]->str};
+    req.data = s;
+    req.priority = (uint32_t)std::stoi(reply->element[3]->str);
+  }
 
   freeReplyObject(reply);
 
