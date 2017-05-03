@@ -164,11 +164,15 @@ public:
 
     case GEARMAN_COMMAND_JOB_CREATED:
       {
-        gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
-                           "Sending HTTP told to ignore packet: gearmand_command_t:%s", 
-                           gearman_strcommand(packet->command));
-        ret_ptr= GEARMAND_IGNORE_PACKET;
-        return 0;
+        if(this->_background) {
+          ret_ptr = GEARMAND_SUCCESS;
+        } else {
+          gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
+                             "Sending HTTP told to ignore packet: gearmand_command_t:%s",
+                             gearman_strcommand(packet->command));
+          ret_ptr= GEARMAND_IGNORE_PACKET;
+          return 0;
+        }
       }
     }
 
