@@ -856,10 +856,10 @@ static void _listen_event(int event_fd, short events __attribute__ ((unused)), v
     switch (local_error)
     {
     case EINTR:
+    case EMFILE:
       return;
 
     case ECONNABORTED:
-    case EMFILE:
       gearmand_perror(local_error, "accept");
       return;
 
