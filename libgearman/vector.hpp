@@ -66,15 +66,15 @@ struct gearman_vector_st {
   } options;
 
   gearman_vector_st() :
-    end(NULL),
-    string(NULL),
+    end(nullptr),
+    string(nullptr),
     current_size(0)
   {
   }
 
   gearman_vector_st(const gearman_vector_st& copy) :
-    end(NULL),
-    string(NULL),
+    end(nullptr),
+    string(nullptr),
     current_size(0)
   {
     store(copy);
@@ -142,7 +142,7 @@ struct gearman_vector_st {
       return string;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   bool store(const gearman_vector_st&);
