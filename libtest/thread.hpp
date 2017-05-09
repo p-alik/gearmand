@@ -56,7 +56,8 @@ public:
   {
     if ((_err= pthread_mutex_destroy(&_mutex)))
     {
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_cond_destroy: %s", strerror(_err));
+      libtest::stream::make_cerr(LIBYATL_DEFAULT_PARAM) << "pthread_cond_destroy: " << strerror(_err);
+      abort();
     }
   }
 
@@ -89,7 +90,8 @@ public:
     int err;
     if ((err= pthread_mutex_unlock(_mutex.handle())))
     {
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_mutex_unlock: %s", strerror(err));
+      libtest::stream::make_cerr(LIBYATL_DEFAULT_PARAM) << "pthread_mutex_unlock: " << strerror(err);
+      abort();
     }
   }
 
@@ -129,7 +131,8 @@ public:
     int err;
     if ((err= pthread_cond_destroy(&_cond)))
     {
-      throw libtest::fatal(LIBYATL_DEFAULT_PARAM, "pthread_cond_destroy: %s", strerror(err));
+      libtest::stream::make_cerr(LIBYATL_DEFAULT_PARAM) << "pthread_cond_destroy: " << strerror(err);
+      abort();
     }
   }
 
