@@ -59,6 +59,8 @@ public:
 
   gearman_server_options_st(const gearman_server_options_st&);
 
+  gearman_server_options_st& operator=(const gearman_server_options_st&) = delete;
+
   const gearman_vector_st& option() const
   {
     return _option;
