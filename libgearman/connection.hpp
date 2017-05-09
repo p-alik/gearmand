@@ -155,6 +155,8 @@ public:
 
   ~gearman_connection_st();
 
+  gearman_connection_st& operator=(const gearman_connection_st&) = delete;
+
 private:
   void set_host( const char *host, const char* service);
   void set_host( const char *host, const in_port_t port);
