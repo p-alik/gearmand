@@ -84,6 +84,8 @@ struct gearman_vector_st {
 
   ~gearman_vector_st();
 
+  gearman_vector_st& operator=(const gearman_vector_st&) = delete;
+
   bool resize(const size_t);
   bool reserve(const size_t);
 
