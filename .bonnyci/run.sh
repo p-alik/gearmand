@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eux
+sudo apt-get update
 sudo apt-get install -y \
     automake \
     build-essential \
