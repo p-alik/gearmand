@@ -132,7 +132,7 @@ bool gearmand::plugins::queue::Hiredis::fetch(char *key, gearmand::plugins::queu
   if(reply->type == REDIS_REPLY_ERROR) {
     // workaround to ensure gearmand upgrade.
     // gearmand <=1.1.15 stores data in string, not in hash.
-    gearmand_log_warning(GEARMAN_DEFAULT_LOG_PARAM, "redis replies for HGETALL: %s", reply->str);
+    gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "redis replies for HGETALL: %s", reply->str);
 
     reply = (redisReply*)redisCommand(context, "TYPE %s", key);
     if (reply == nullptr)
