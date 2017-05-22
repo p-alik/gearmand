@@ -66,14 +66,14 @@ test_return_t regression_bug_783141_test(void *)
 #endif  
 
   { // Try with one bad host
-    gearman_client_st *client= gearman_client_create(NULL);
+    gearman_client_st *client= gearman_client_create(nullptr);
     ASSERT_TRUE(client);
 
     ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
 
-    gearman_return_t ret;
-    gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
-                                                   "does not exist", NULL,
+    gearman_return_t ret{};
+    gearman_task_st *task= gearman_client_add_task(client, nullptr, nullptr,
+                                                   "does not exist", nullptr,
                                                    test_literal_param("dog"),
                                                    &ret);
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
@@ -89,16 +89,16 @@ test_return_t regression_bug_783141_test(void *)
   }
 
   { // Try with three bad hosts
-    gearman_client_st *client= gearman_client_create(NULL);
+    gearman_client_st *client= gearman_client_create(nullptr);
     ASSERT_TRUE(client);
 
     ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.253", 0)));
     ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.252", 0)));
     ASSERT_TRUE(gearman_success(gearman_client_add_server(client, "10.0.2.251", 0)));
 
-    gearman_return_t ret;
-    gearman_task_st *task= gearman_client_add_task(client, NULL, NULL,
-                                                   "does not exist", NULL,
+    gearman_return_t ret{};
+    gearman_task_st *task= gearman_client_add_task(client, nullptr, nullptr,
+                                                   "does not exist", nullptr,
                                                    test_literal_param("dog"),
                                                    &ret);
     ASSERT_EQ(ret, GEARMAN_SUCCESS);
@@ -118,15 +118,15 @@ test_return_t regression_bug_783141_test(void *)
 
 test_return_t regression_bug_372074_test(void *)
 {
-  gearman_universal_st universal;
+  gearman_universal_st universal{};
   const void *args[1];
   size_t args_size[1];
 
   for (uint32_t x= 0; x < 2; x++)
   {
-    gearman_packet_st packet;
-    gearman_connection_st *con_ptr;
-    ASSERT_TRUE(con_ptr= gearman_connection_create(universal, NULL, default_port()));
+    gearman_packet_st packet{};
+    gearman_connection_st *con_ptr{};
+    ASSERT_TRUE(con_ptr= gearman_connection_create(universal, nullptr, default_port()));
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -140,6 +140,7 @@ test_return_t regression_bug_372074_test(void *)
 
     args[0]= "reverse";
     args_size[0]= strlen("reverse");
+
     ASSERT_TRUE(gearman_success(gearman_packet_create_args(universal, packet, GEARMAN_MAGIC_REQUEST, GEARMAN_COMMAND_CAN_DO,
                                                           args, args_size, 1)));
 
@@ -157,7 +158,7 @@ test_return_t regression_bug_372074_test(void *)
 
     delete con_ptr;
 
-    ASSERT_TRUE(con_ptr= gearman_connection_create(universal, NULL, default_port()));
+    ASSERT_TRUE(con_ptr= gearman_connection_create(universal, nullptr, default_port()));
 
     args[0]= "testUnregisterFunction";
     args_size[0]= strlen("testUnregisterFunction");
@@ -210,10 +211,10 @@ test_return_t regression_768317_test(void *object)
   gearman_client_st *client= (gearman_client_st *)object;
 
   ASSERT_TRUE(client);
-  size_t result_length;
-  gearman_return_t rc;
+  size_t result_length{};
+  gearman_return_t rc{};
   char *job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                             NULL, 
+                                             nullptr,
                                              test_literal_param("reset"),
                                              &result_length, &rc);
   ASSERT_EQ(rc, GEARMAN_SUCCESS);
@@ -221,33 +222,33 @@ test_return_t regression_768317_test(void *object)
 
   // Check to see that the task ran just once
   job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                       NULL, 
+                                       nullptr,
                                        test_literal_param("10"),
                                        &result_length, &rc);
   ASSERT_EQ(rc, GEARMAN_SUCCESS);
   ASSERT_TRUE(job_result);
-  long count= strtol(job_result, (char **)NULL, 10);
+  long count= strtol(job_result, (char **)nullptr, 10);
   ASSERT_EQ(10L, count);
   free(job_result);
 
   // Check to see that the task ran just once out of the bg queue
   {
-    gearman_job_handle_t job_handle;
+    gearman_job_handle_t job_handle{};
     rc= gearman_client_do_background(client,
                                      "increment_reset_worker",
-                                     NULL,
+                                     nullptr,
                                      test_literal_param("14"),
                                      job_handle);
     ASSERT_EQ(rc, GEARMAN_SUCCESS);
 
-    bool is_known;
+    bool is_known{};
     do {
-      rc= gearman_client_job_status(client, job_handle, &is_known, NULL, NULL, NULL);
+      rc= gearman_client_job_status(client, job_handle, &is_known, nullptr, nullptr, nullptr);
     }  while (gearman_continue(rc) or is_known);
     ASSERT_EQ(rc, GEARMAN_SUCCESS);
 
     job_result= (char*)gearman_client_do(client, "increment_reset_worker", 
-                                         NULL, 
+                                         nullptr,
                                          test_literal_param("10"),
                                          &result_length, &rc);
     ASSERT_EQ(rc, GEARMAN_SUCCESS);
