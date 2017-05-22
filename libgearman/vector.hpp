@@ -60,22 +60,22 @@ struct gearman_vector_st {
     bool is_allocated;
     bool is_initialized;
     Options() :
-      is_allocated(false),
-      is_initialized(true)
+      is_allocated{false},
+      is_initialized{true}
     { }
   } options;
 
   gearman_vector_st() :
-    end(nullptr),
-    string(nullptr),
-    current_size(0)
+    end{nullptr},
+    string{nullptr},
+    current_size{0}
   {
   }
 
   gearman_vector_st(const gearman_vector_st& copy) :
-    end(nullptr),
-    string(nullptr),
-    current_size(0)
+    end{nullptr},
+    string{nullptr},
+    current_size{0}
   {
     store(copy);
   }
