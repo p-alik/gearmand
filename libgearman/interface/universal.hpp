@@ -70,10 +70,10 @@ struct gearman_universal_st : public error_st
     bool _ssl;
 
     Options() :
-      dont_track_packets(false),
-      non_blocking(false),
-      no_new_data(false),
-      _ssl(false)
+      dont_track_packets{false},
+      non_blocking{false},
+      no_new_data{false},
+      _ssl{false}
     { }
   } options;
   gearman_verbose_t verbose;
@@ -127,14 +127,14 @@ struct gearman_universal_st : public error_st
 
   const char *error() const
   {
-    if (_error.error() == NULL)
+    if (_error.error() == nullptr)
     {
       if (_error.error_code() != GEARMAN_SUCCESS)
       {
         return gearman_strerror(_error.error_code());
       }
 
-      return NULL;
+      return nullptr;
     }
 
     return _error.error();
@@ -172,23 +172,23 @@ struct gearman_universal_st : public error_st
 
   gearman_return_t option(const universal_options_t& option_, bool value);
 
-  gearman_universal_st(const universal_options_t *options_= NULL) :
+  gearman_universal_st(const universal_options_t *options_= nullptr) :
     verbose(GEARMAN_VERBOSE_NEVER),
     con_count(0),
     packet_count(0),
     pfds_size(0),
     sending(0),
-    timeout(-1),
-    con_list(NULL),
-    server_options_list(NULL),
-    packet_list(NULL),
-    pfds(NULL),
-    log_fn(NULL),
-    log_context(NULL),
+    timeout{-1},
+    con_list(nullptr),
+    server_options_list(nullptr),
+    packet_list(nullptr),
+    pfds(nullptr),
+    log_fn(nullptr),
+    log_context(nullptr),
     allocator(gearman_default_allocator()),
-    _identifier(NULL),
-    _namespace(NULL),
-    _ctx_ssl(NULL)
+    _identifier(nullptr),
+    _namespace(nullptr),
+    _ctx_ssl(nullptr)
   {
     wakeup_fd[0]= INVALID_SOCKET;
     wakeup_fd[1]= INVALID_SOCKET;
@@ -244,7 +244,7 @@ public:
   {
     if (ssl())
     {
-      if (_ctx_ssl == NULL)
+      if (!_ctx_ssl)
       {
         if (init_ssl() == false)
         {
@@ -256,7 +256,7 @@ public:
       return _ctx_ssl;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   ~gearman_universal_st();
