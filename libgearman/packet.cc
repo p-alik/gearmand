@@ -215,11 +215,7 @@ gearman_return_t gearman_packet_create_args(gearman_universal_st& universal,
                                             const size_t args_size[],
                                             size_t args_count)
 {
-  if (gearman_packet_create(universal, packet) == NULL)
-  {
-    assert(universal.error_code());
-    return universal.error_code();
-  }
+  gearman_packet_create(universal, packet);
 
   packet.magic= magic;
   packet.command= command;
