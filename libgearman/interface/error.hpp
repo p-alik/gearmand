@@ -42,14 +42,14 @@
 struct error_st {
   error_st():
     _rc(GEARMAN_SUCCESS),
-    _last_errno(0)
+    _last_errno{0}
   {
     _last_error[0]= 0;
   }
 
   error_st(gearman_return_t rc_):
     _rc(rc_),
-    _last_errno(0)
+    _last_errno{0}
   {
     _last_error[0]= 0;
   }
@@ -93,7 +93,7 @@ struct error_st {
       return _last_error;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   const char* error(const char * __restrict, ...);
