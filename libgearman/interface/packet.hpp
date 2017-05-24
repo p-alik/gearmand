@@ -86,7 +86,10 @@ struct gearman_packet_st
     next{nullptr},
     prev{nullptr},
     args{nullptr},
-    data{nullptr}
+    data{nullptr},
+    arg{},
+    arg_size{},
+    args_buffer{}
   {
   }
 
