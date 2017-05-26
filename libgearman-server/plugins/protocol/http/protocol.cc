@@ -193,7 +193,7 @@ public:
                                     "Server: Gearman/" PACKAGE_VERSION "\r\n"
                                     "Content-Length: 0\r\n"
                                     "\r\n",
-                                    int(response()), gearmand::protocol::httpd::response(response()));
+                                    unsigned(response()), gearmand::protocol::httpd::response(response()));
       }
       else if (method() == gearmand::protocol::httpd::HEAD)
       {
