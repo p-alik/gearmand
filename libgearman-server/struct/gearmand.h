@@ -74,7 +74,7 @@ struct gearmand_st
 
     void keepalive_idle(int keepalive_idle_)
     {
-      _keepalive= true;
+      keepalive(1);
       _keepalive_idle= keepalive_idle_;
     }
 
@@ -85,7 +85,7 @@ struct gearmand_st
 
     void keepalive_interval(int keepalive_interval_)
     {
-      _keepalive= true;
+      keepalive(1);
       _keepalive_interval= keepalive_interval_;
     }
 
@@ -96,7 +96,7 @@ struct gearmand_st
 
     void keepalive_count(int keepalive_count_)
     {
-      _keepalive= true;
+      keepalive(1);
       _keepalive_count= keepalive_count_;
     }
 
