@@ -76,7 +76,10 @@ struct gearmand_packet_st
     next(NULL),
     prev(NULL),
     args(0),
-    data(0)
+    data(0),
+    arg{},
+    arg_size{},
+    args_buffer{}
   {
   }
   void reset(enum gearman_magic_t, gearman_command_t);
