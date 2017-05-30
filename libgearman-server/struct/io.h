@@ -44,11 +44,11 @@
 struct gearmand_io_st
 {
   struct {
-    bool ready;
-    bool packet_in_use;
-    bool external_fd;
-    bool ignore_lost_connection;
-    bool close_after_flush;
+    bool ready{};
+    bool packet_in_use{};
+    bool external_fd{};
+    bool ignore_lost_connection{};
+    bool close_after_flush{};
   } options;
   enum {
     GEARMAND_CON_UNIVERSAL_INVALID,
@@ -66,10 +66,10 @@ struct gearmand_io_st
     GEARMAND_CON_RECV_UNIVERSAL_READ,
     GEARMAND_CON_RECV_STATE_READ_DATA
   } recv_state;
-  short events;
-  short revents;
+  short events{};
+  short revents{};
   private:
-  int _fd;
+  int _fd{};
 
   public:
   gearmand_error_t set_fd(const int fd_)
@@ -99,29 +99,34 @@ struct gearmand_io_st
     revents= 0;
   }
 
-  uint32_t created_id;
-  uint32_t created_id_next;
-  size_t send_buffer_size;
-  size_t send_data_size;
-  size_t send_data_offset;
-  size_t recv_buffer_size;
-  size_t recv_data_size;
-  size_t recv_data_offset;
-  gearmand_connection_list_st *universal;
-  gearmand_io_st *next;
-  gearmand_io_st *prev;
-  gearmand_io_st *ready_next;
-  gearmand_io_st *ready_prev;
-  gearmand_con_st *context;
-  char *send_buffer_ptr;
-  gearmand_packet_st *recv_packet;
-  char *recv_buffer_ptr;
-  gearmand_packet_st packet;
-  gearman_server_con_st *root;
+  uint32_t created_id{};
+  uint32_t created_id_next{};
+  size_t send_buffer_size{};
+  size_t send_data_size{};
+  size_t send_data_offset{};
+  size_t recv_buffer_size{};
+  size_t recv_data_size{};
+  size_t recv_data_offset{};
+  gearmand_connection_list_st *universal{nullptr};
+  gearmand_io_st *next{nullptr};
+  gearmand_io_st *prev{nullptr};
+  gearmand_io_st *ready_next{nullptr};
+  gearmand_io_st *ready_prev{nullptr};
+  gearmand_con_st *context{nullptr};
+  char *send_buffer_ptr{nullptr};
+  gearmand_packet_st *recv_packet{nullptr};
+  char *recv_buffer_ptr{nullptr};
+  gearmand_packet_st packet{};
+  gearman_server_con_st *root{nullptr};
   char send_buffer[GEARMAND_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAND_RECV_BUFFER_SIZE];
 
-  gearmand_io_st() { }
+  gearmand_io_st() {
+    this->options = {};
+    this->_state = GEARMAND_CON_UNIVERSAL_INVALID;
+    this->send_state = GEARMAND_CON_SEND_STATE_NONE;
+    this->recv_state = GEARMAND_CON_RECV_UNIVERSAL_NONE;
+  }
 
   const char* host() const;
   const char* port() const;
