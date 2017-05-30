@@ -50,10 +50,10 @@ struct gearmand_st
   class SocketOpt {
   public:
     SocketOpt():
-      _keepalive(false),
-      _keepalive_idle(-1),
-      _keepalive_interval(-1),
-      _keepalive_count(-1)
+        _keepalive{false},
+      _keepalive_idle{-1},
+      _keepalive_interval{-1},
+      _keepalive_count{-1}
     {
     }
 
@@ -142,25 +142,27 @@ struct gearmand_st
               int backlog_,
               const gearmand_verbose_t verbose_,
               bool exceptions_) :
-    verbose(verbose_),
-    ret(GEARMAND_SUCCESS),
-    backlog(backlog_),
-    is_listen_event(false),
-    is_wakeup_event(false),
-    _exceptions(exceptions_),
-    timeout(-1),
-    threads(threads_),
-    thread_count(0),
-    free_dcon_count(0),
-    max_thread_free_dcon_count(0),
-    host(NULL),
-    log_fn(NULL),
-    log_context(NULL),
-    base(NULL),
-    thread_list(NULL),
-    thread_add_next(NULL),
-    free_dcon_list(NULL),
-    _ctx_ssl(NULL)
+    verbose{verbose_},
+    ret{GEARMAND_SUCCESS},
+    backlog{backlog_},
+    is_listen_event {false},
+    is_wakeup_event{false},
+    _exceptions{exceptions_},
+    timeout{-1},
+    threads{threads_},
+    thread_count{0},
+    free_dcon_count{0},
+    max_thread_free_dcon_count{0},
+    host{nullptr},
+    log_fn{nullptr},
+    log_context{nullptr},
+    base{nullptr},
+    thread_list{nullptr},
+    thread_add_next{nullptr},
+    free_dcon_list{nullptr},
+    server{},
+    _port_list{},
+    _ctx_ssl{}
   {
     if (host_)
     {
