@@ -160,19 +160,24 @@ namespace {
 }
 
 gearmand_thread_st::gearmand_thread_st(gearmand_st& gearmand_):
-  is_thread_lock(false),
-  is_wakeup_event(false),
-  count(0),
-  dcon_count(0),
-  dcon_add_count(0),
-  free_dcon_count(0),
-  _gearmand(gearmand_),
-  next(NULL),
-  prev(NULL),
-  base(NULL),
-  dcon_list(NULL),
-  dcon_add_list(NULL),
-  free_dcon_list(0)
+  is_thread_lock{false},
+  is_wakeup_event{false},
+  count{0},
+  dcon_count{0},
+  dcon_add_count{0},
+  free_dcon_count{0},
+  wakeup_fd{},
+  _gearmand{gearmand_},
+  next{nullptr},
+  prev{nullptr},
+  base{nullptr},
+  dcon_list{nullptr},
+  dcon_add_list{nullptr},
+  free_dcon_list{nullptr},
+  server_thread{},
+  id{},
+  lock{}
+  //TODO uniform initialisation doesn't help with wakeup_event
 {
 }
 
