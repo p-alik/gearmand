@@ -79,13 +79,13 @@ static __attribute__((noreturn)) void* current_epoch_handler(void*)
     {
       if (fds[1].revents)
       {
-        pthread_exit(NULL);
+        pthread_exit(nullptr);
       }
       gettimeofday(&current_epoch, NULL);
     }
   }
 
-  pthread_exit(NULL);
+  pthread_exit(nullptr);
 }
 
 namespace libgearman {
