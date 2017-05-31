@@ -63,8 +63,8 @@ enum queue_version_t {
 namespace gearmand { namespace queue { class Context; } }
 
 struct Queue_st {
-  struct queue_st* functions;
-  gearmand::queue::Context* object;
+  struct queue_st* functions{};
+  gearmand::queue::Context* object{};
 };
 
 struct gearman_server_st
@@ -81,36 +81,36 @@ struct gearman_server_st
   struct State {
     bool queue_startup;
   } state;
-  bool shutdown;
-  bool shutdown_graceful;
-  bool proc_wakeup;
-  bool proc_shutdown;
-  uint32_t job_retries; // Set maximum job retry count.
-  uint8_t worker_wakeup; // Set maximum number of workers to wake up per job.
-  uint32_t job_handle_count;
-  uint32_t thread_count;
-  uint32_t function_count;
-  uint32_t job_count;
-  uint32_t unique_count;
-  uint32_t free_packet_count;
-  uint32_t free_job_count;
-  uint32_t free_client_count;
-  uint32_t free_worker_count;
-  gearman_server_thread_st *thread_list;
-  gearman_server_function_st **function_hash;
-  gearman_server_packet_st *free_packet_list;
-  gearman_server_job_st *free_job_list;
-  gearman_server_client_st *free_client_list;
-  gearman_server_worker_st *free_worker_list;
-  enum queue_version_t queue_version;
-  struct Queue_st queue;
-  pthread_mutex_t proc_lock;
-  pthread_cond_t proc_cond;
-  pthread_t proc_id;
+  bool shutdown{};
+  bool shutdown_graceful{};
+  bool proc_wakeup{};
+  bool proc_shutdown{};
+  uint32_t job_retries{}; // Set maximum job retry count.
+  uint8_t worker_wakeup{}; // Set maximum number of workers to wake up per job.
+  uint32_t job_handle_count{};
+  uint32_t thread_count{};
+  uint32_t function_count{};
+  uint32_t job_count{};
+  uint32_t unique_count{};
+  uint32_t free_packet_count{};
+  uint32_t free_job_count{};
+  uint32_t free_client_count{};
+  uint32_t free_worker_count{};
+  gearman_server_thread_st *thread_list{nullptr};
+  gearman_server_function_st **function_hash{nullptr};
+  gearman_server_packet_st *free_packet_list{nullptr};
+  gearman_server_job_st *free_job_list{nullptr};
+  gearman_server_client_st *free_client_list{nullptr};
+  gearman_server_worker_st *free_worker_list{nullptr};
+  enum queue_version_t queue_version{};
+  struct Queue_st queue{};
+  pthread_mutex_t proc_lock{};
+  pthread_cond_t proc_cond{};
+  pthread_t proc_id{};
   char job_handle_prefix[GEARMAND_JOB_HANDLE_SIZE];
-  uint32_t hashtable_buckets;
-  gearman_server_job_st **job_hash;
-  gearman_server_job_st **unique_hash;
+  uint32_t hashtable_buckets{};
+  gearman_server_job_st **job_hash{nullptr};
+  gearman_server_job_st **unique_hash{nullptr};
 
   gearman_server_st()
   {
