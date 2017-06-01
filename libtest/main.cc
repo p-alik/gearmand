@@ -248,17 +248,17 @@ int main(int argc, char *argv[], char* environ_[])
     }
   }
 
-  if ((bool(getenv("YATL_WILDCARD"))))
+  if (getenv("YATL_WILDCARD"))
   {
     wildcard= getenv("YATL_WILDCARD");
   }
 
-  if ((bool(getenv("YATL_RUN_MASSIVE_TESTS"))) or opt_massive)
+  if (getenv("YATL_RUN_MASSIVE_TESTS"))
   {
     opt_massive= true;
   }
 
-  if ((bool(getenv("YATL_SSL"))) or opt_ssl)
+  if (getenv("YATL_SSL"))
   {
     opt_ssl= true;
   }
