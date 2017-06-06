@@ -84,7 +84,7 @@ redisContext* gearmand::plugins::queue::Hiredis::redis()
  */
 bool gearmand::plugins::queue::Hiredis::hmset(vchar_t key, const void *data, size_t data_size, uint32_t priority) {
   redisContext* context = this->redis();
-  int argc = 6;
+  const size_t argc = 6;
   std::string _priority = std::to_string((uint32_t)priority);
 
   const size_t argvlen[argc] = {
