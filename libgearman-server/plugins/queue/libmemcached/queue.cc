@@ -202,9 +202,9 @@ gearmand_error_t LibmemcachedQueue::add(gearman_server_st *server,
   memcached_return_t rc= memcached_set(memc_, (const char *)key, key_length,
                                      (const char *)data, data_size, 0, (uint32_t)priority);
 
-  if (rc != MEMCACHED_SUCCESS)
+  if (!memcached_success(rc))
   {
-    return gearmand_gerror(memcached_last_error_message(memc_), GEARMAND_QUEUE_ERROR);
+    return gearmand_gerror(memcached_strerror(memc_, rc), GEARMAND_QUEUE_ERROR);
   }
 
   return GEARMAND_SUCCESS;
@@ -233,9 +233,9 @@ gearmand_error_t LibmemcachedQueue::done(gearman_server_st*,
 
   /* For the moment we will assume it happened */
   memcached_return_t rc= memcached_delete(memc_, (const char *)key, key_length, 0);
-  if (rc != MEMCACHED_SUCCESS)
+  if (!memcached_success(rc))
   {
-    return gearmand_gerror(memcached_last_error_message(memc_), GEARMAND_QUEUE_ERROR);
+    return gearmand_gerror(memcached_strerror(memc_, rc), GEARMAND_QUEUE_ERROR);
   }
 
   return GEARMAND_SUCCESS;
