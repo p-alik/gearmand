@@ -235,7 +235,8 @@ gearmand_error_t LibmemcachedQueue::done(gearman_server_st*,
   memcached_return_t rc= memcached_delete(memc_, (const char *)key, key_length, 0);
   if (!memcached_success(rc))
   {
-    return gearmand_gerror(memcached_strerror(memc_, rc), GEARMAND_QUEUE_ERROR);
+    if(rc != MEMCACHED_NOTFOUND)
+      return gearmand_gerror(memcached_strerror(memc_, rc), GEARMAND_QUEUE_ERROR);
   }
 
   return GEARMAND_SUCCESS;
