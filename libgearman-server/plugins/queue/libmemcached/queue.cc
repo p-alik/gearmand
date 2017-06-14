@@ -338,10 +338,10 @@ static memcached_return_t callback_for_key(const memcached_st*,
   Replay* replay= (Replay*)context;
   memcached_execute_fn callbacks{(memcached_execute_fn)&callback_loader};
   char *passable{(char *)key};
-
-  if (memcached_success(memcached_mget(replay->memc(), &passable, &key_length, 1)))
+  memcached_return_t rc = memcached_mget(replay->memc(), &passable, &key_length, 1);
+  if (memcached_success(rc))
   {
-    gearmand_debug(memcached_last_error_message(replay->memc()));
+    gearmand_debug(memcached_strerror(replay->memc(), rc));
   }
 
   /* Just void errors for the moment, since other treads might have picked up the object. */
