@@ -169,7 +169,7 @@ static void gearmand_log(const char *position, const char *func /* func */,
     (void)gettimeofday(&current_epoch, NULL);
   }
 
-  if ((gmtime_r(&current_epoch.tv_sec, &current_tm) == NULL))
+  if ((localtime_r(&current_epoch.tv_sec, &current_tm) == NULL))
   {
     memset(&current_epoch, 0, sizeof(current_epoch));
   }
