@@ -153,9 +153,19 @@ bool gearmand::plugins::queue::Hiredis::fetch(char *key, gearmand::plugins::queu
   } else {
     // 2 x (key + value)
     assert(reply->elements == 4);
-    std::string s{reply->element[1]->str};
-    req.data = s;
-    req.priority = (uint32_t)std::stoi(reply->element[3]->str);
+    auto fk = reply->element[0]->str;
+    if(strcmp(fk, "data") == 0) {
+      std::string s{reply->element[1]->str};
+      req.data = s;
+      req.priority = (uint32_t)std::stoi(reply->element[3]->str);
+    } else if (strcmp(fk, "priority") == 0) {
+      std::string s{reply->element[3]->str};
+      req.data = s;
+      req.priority = (uint32_t)std::stoi(reply->element[1]->str);
+    } else {
+      gearmand_log_error(GEARMAN_DEFAULT_LOG_PARAM, "unexpected key %s", fk);
+      return false;
+    }
   }
 
   freeReplyObject(reply);
