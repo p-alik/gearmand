@@ -466,11 +466,14 @@ setup_gdb_command ()
 {
   GDB_TMPFILE=$(mktemp /tmp/gdb.XXXXXXXXXX)
   echo 'set logging overwrite on' > "$GDB_TMPFILE"
-  echo 'set logging on' >> "$GDB_TMPFILE"
-  echo 'set environment LIBTEST_IN_GDB=1' >> "$GDB_TMPFILE"
-  echo 'run' >> "$GDB_TMPFILE"
-  echo 'thread apply all bt' >> "$GDB_TMPFILE"
-  echo 'quit' >> "$GDB_TMPFILE"
+  {
+  echo 'set logging on'
+  echo 'set environment LIBTEST_IN_GDB=1'
+  echo 'run'
+  echo 'thread apply all bt'
+  echo 'quit'
+  } >> "$GDB_TMPFILE"
+
   GDB_COMMAND="gdb -f -batch -x $GDB_TMPFILE"
 }
 
