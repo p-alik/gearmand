@@ -1203,7 +1203,7 @@ parse_command_line_options ()
   shift $((OPTIND-1))
 
   if [ -n "$1" ]; then
-    OPT_TARGET="$@"
+    OPT_TARGET="$*"
   fi
 }
 
