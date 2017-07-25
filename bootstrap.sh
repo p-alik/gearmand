@@ -836,8 +836,9 @@ make_universe ()
   make_for_clang_analyzer
 
   use_banner 'mingw'
-  check_mingw
-  if [ $? -eq 0 ]; then
+
+  if !  check_mingw
+  then
     make_for_mingw
   fi
 
