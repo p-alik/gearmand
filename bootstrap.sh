@@ -58,9 +58,9 @@ use_banner ()
 
 command_not_found_handle ()
 {
-  warn "$@: command not found"
+  warn "$*" ": command not found"
 
-  #if $DEBUG; then 
+  #if $DEBUG; then
     echo ""
     echo "Stack trace:"
     local frame=0
@@ -74,19 +74,19 @@ command_not_found_handle ()
 }
 
 error ()
-{ 
-  echo "$BASH_SOURCE:$BASH_LINENO: $@" >&2
+{
+  echo "$BASH_SOURCE:$BASH_LINENO: " "$*" >&2
 }
 
 die ()
-{ 
-  echo "$BASH_SOURCE:$BASH_LINENO: $@" >&2
-  exit 1; 
+{
+  echo "$BASH_SOURCE:$BASH_LINENO: " "$*" >&2
+  exit 1;
 }
 
 warn ()
-{ 
-  echo "$BASH_SOURCE:$BASH_LINENO: $@"
+{
+  echo "$BASH_SOURCE:$BASH_LINENO: " "$*"
   #echo "$BASH_SOURCE:$BASH_LINENO: $@" >&1
 }
 
@@ -1109,7 +1109,7 @@ run_autoreconf ()
 run ()
 {
   if $verbose; then
-    echo "\`$@' $ARGS"
+    echo "\`$*'" "$ARGS"
   fi
 
   if [ -z "$1" ]; then
