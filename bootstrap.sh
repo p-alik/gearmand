@@ -236,7 +236,7 @@ set_VENDOR_RELEASE ()
           VENDOR_RELEASE='mavericks'
           ;;
         *)
-          echo $release
+          echo "$release"
           VENDOR_RELEASE='unknown'
           ;;
       esac
@@ -389,7 +389,7 @@ determine_target_platform ()
     set_VENDOR "$_ID" "$_ID" "$_VERSION_ID"
   elif [[ -f '/etc/lsb-release' ]]; then
     source '/etc/lsb-release'
-    set_VENDOR 'canonical' $DISTRIB_ID $DISTRIB_CODENAME
+    set_VENDOR 'canonical' "$DISTRIB_ID" "$DISTRIB_CODENAME"
   fi
 
   rebuild_host_os
@@ -444,11 +444,11 @@ run_configure ()
   case $HOST_OS in
     rhel-5*)
       command_exists 'gcc44' || die "Could not locate gcc44"
-      run CC=gcc44 CXX=gcc44 $top_srcdir/configure "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=gcc44 CXX=gcc44 configure $BUILD_CONFIGURE_ARG"
+      run CC=gcc44 CXX=gcc44 "$top_srcdir/configure" "$BUILD_CONFIGURE_ARG" || die "Cannot execute CC=gcc44 CXX=gcc44 configure $BUILD_CONFIGURE_ARG"
       ret=$?
       ;;
     *)
-      run $CONFIGURE "$BUILD_CONFIGURE_ARG"
+      run "$CONFIGURE" "$BUILD_CONFIGURE_ARG"
       ret=$?
       ;;
   esac
@@ -619,7 +619,7 @@ make_install_system ()
 
   make_target 'uninstall'
 
-  rm -r -f $INSTALL_LOCATION
+  rm -r -f "$INSTALL_LOCATION"
   make 'distclean'
 
   if [ -f 'Makefile' ]; then
@@ -1108,7 +1108,7 @@ run_autoreconf ()
   fi
 
   if $use_libtool; then
-    assert $BOOTSTRAP_LIBTOOLIZE
+    assert "$BOOTSTRAP_LIBTOOLIZE"
     if $jenkins_build_environment; then
       run "$BOOTSTRAP_LIBTOOLIZE" '--copy' '--install' || die "Cannot execute $BOOTSTRAP_LIBTOOLIZE"
     else
@@ -1279,7 +1279,7 @@ autoreconf_setup ()
 
   if $use_libtool; then
     if [[ -n "$LIBTOOLIZE" ]]; then
-      BOOTSTRAP_LIBTOOLIZE="$(type -p $LIBTOOLIZE)"
+      BOOTSTRAP_LIBTOOLIZE=$(type -p "$LIBTOOLIZE")
 
       if [[ -z "$BOOTSTRAP_LIBTOOLIZE" ]]; then
         echo "Couldn't find user supplied libtoolize, it is required"
@@ -1573,7 +1573,7 @@ execute_job ()
   do
     # If we are running inside of Jenkins, we want to only run some of the possible tests
     if $jenkins_build_environment; then
-      check_make_target $target
+      check_make_target "$target"
       ret=$?
       if [ $ret -ne 0 ]; then
         warn "Unknown BOOTSTRAP_TARGET option: $target"
@@ -1800,7 +1800,7 @@ merge ()
 
   if [[ "$VCS_CHECKOUT" == 'bzr' ]]; then
     if test -n "$BRANCH_TO_MERGE"; then
-      bzr merge $BRANCH_TO_MERGE
+      bzr merge "$BRANCH_TO_MERGE"
       bzr commit --message="Merge $BRANCH_TO_MERGE Build: $BUILD_TAG" --unchanged
     fi
 
