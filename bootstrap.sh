@@ -716,7 +716,7 @@ make_for_mingw ()
   fi
 
   # Make sure it is clean
-  if [ -f Makefile -o -f configure ]; then
+  if [ -f Makefile ] || [ -f configure ]; then
     make_maintainer_clean
   fi
 
@@ -743,7 +743,7 @@ make_for_clang ()
   fi
 
   # Make sure it is clean
-  if [ -f Makefile -o -f configure ]; then
+  if [ -f Makefile ] || [ -f configure ]; then
     make_maintainer_clean
   fi
 
@@ -775,7 +775,7 @@ make_for_clang_analyzer ()
   fi
 
   # Make sure it is clean
-  if [ -f Makefile -o -f configure ]; then
+  if [ -f Makefile ] || [ -f configure ]; then
     make_maintainer_clean
   fi
 
@@ -998,7 +998,7 @@ make_distcheck ()
 make_rpm ()
 {
   if command_exists 'rpmbuild'; then
-    if [ -f 'rpm.am' -o -d 'rpm' ]; then
+    if [ -f 'rpm.am' ] || [ -d 'rpm' ]; then
       run_configure_if_required
       make_target 'dist-rpm'
 
