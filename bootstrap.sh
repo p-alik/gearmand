@@ -583,7 +583,7 @@ make_install_system ()
   save_BUILD
   PREFIX_ARG="--prefix=$INSTALL_LOCATION"
 
-  if [ ! -d $INSTALL_LOCATION ] ; then
+  if [ ! -d "$INSTALL_LOCATION" ] ; then
     die "ASSERT temp directory not found '$INSTALL_LOCATION'"
   fi
 
@@ -1520,10 +1520,10 @@ execute_job ()
     return 1
   fi
 
-  if $print_setup_opt -o  $debug; then
-    echo 
+  if $print_setup_opt -o  "$debug"; then
+    echo
     print_setup
-    echo 
+    echo
 
     # Exit if all we were looking for were the currently used options
     if $print_setup_opt; then
