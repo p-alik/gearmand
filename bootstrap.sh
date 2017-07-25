@@ -349,7 +349,7 @@ set_VENDOR ()
 determine_target_platform ()
 {
   UNAME_MACHINE_ARCH="$(uname -m 2>/dev/null)" || UNAME_MACHINE_ARCH=unknown
-  UNAME_KERNEL="$(uname -s 2>/dev/null)"  || UNAME_SYSTEM=unknown
+  UNAME_KERNEL="$(uname -s 2>/dev/null)"  || UNAME_KERNEL=unknown
   UNAME_KERNEL_RELEASE="$(uname -r 2>/dev/null)" || UNAME_KERNEL_RELEASE=unknown
 
   if [[ -x '/usr/bin/sw_vers' ]]; then
@@ -817,6 +817,7 @@ make_for_clang_analyzer ()
   export CC CXX
   CONFIGURE='scan-build ./configure'
   CONFIGURE_ARGS='--enable-debug'
+  export CONFIGURE_ARGS
 
   run_configure
 
@@ -1588,7 +1589,6 @@ execute_job ()
       use_banner $target
     fi
 
-    local snapshot_run=false
     local valgrind_run=false
 
     case $target in
@@ -1647,7 +1647,6 @@ execute_job ()
         ;;
       'snapshot')
         make_for_snapshot
-        snapshot_run=true
         check_snapshot
         ;;
       'rpm')
@@ -1712,10 +1711,6 @@ main ()
   local OLD_PREFIX=
   local OLD_MAKE=
   local OLD_LOG_COMPILER=
-
-  # If we call autoreconf on the platform or not
-  local AUTORECONF_REBUILD_HOST=false
-  local AUTORECONF_REBUILD=false
 
   local -r top_srcdir="$(pwd)"
 
