@@ -97,7 +97,7 @@ nassert ()
   param_value="$(eval "expr \"$param_name\" ")"
 
   if [ -n "$param_value" ]; then
-    echo "$bash_source:$bash_lineno: assert($param_name) had value of "$param_value"" >&2
+    echo "$BASH_SOURCE:$BASH_LINENO: assert($param_name) had value of $param_value" >&2
     exit 1
   fi
 }
@@ -109,7 +109,7 @@ assert ()
   param_value="$(eval "expr \"$param_name\" ")"
 
   if [ -z "$param_value" ]; then
-    echo "$bash_source:$bash_lineno: assert($param_name)" >&2
+    echo "$BASH_SOURCE:$BASH_LINENO: assert($param_name)" >&2
     exit 1
   fi
 }
