@@ -75,19 +75,19 @@ command_not_found_handle ()
 
 error ()
 {
-  echo "$BASH_SOURCE:$BASH_LINENO: " "$*" >&2
+  echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: " "$*" >&2
 }
 
 die ()
 {
-  echo "$BASH_SOURCE:$BASH_LINENO: " "$*" >&2
+  echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: " "$*" >&2
   exit 1;
 }
 
 warn ()
 {
-  echo "$BASH_SOURCE:$BASH_LINENO: " "$*"
-  #echo "$BASH_SOURCE:$BASH_LINENO: $@" >&1
+  echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: " "$*"
+  #echo "$BASH_SOURCE:${BASH_LINENO[0]}: $@" >&1
 }
 
 nassert ()
@@ -97,7 +97,7 @@ nassert ()
   param_value="$(eval "expr \"$param_name\" ")"
 
   if [ -n "$param_value" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($param_name) had value of $param_value" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($param_name) had value of $param_value" >&2
     exit 1
   fi
 }
@@ -109,7 +109,7 @@ assert ()
   param_value="$(eval "expr \"$param_name\" ")"
 
   if [ -z "$param_value" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($param_name)" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($param_name)" >&2
     exit 1
   fi
 }
@@ -117,7 +117,7 @@ assert ()
 assert_file ()
 {
   if [ ! -f "$1" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($1) does not exist: $2" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($1) does not exist: $2" >&2
     exit 1; 
   fi
 }
@@ -125,7 +125,7 @@ assert_file ()
 assert_no_file ()
 {
   if [ -f "$1" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($1) file exists: $2" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($1) file exists: $2" >&2
     exit 1;
   fi
 }
@@ -133,7 +133,7 @@ assert_no_file ()
 assert_no_directory ()
 {
   if [ -d "$1" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($1) directory exists: $2" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($1) directory exists: $2" >&2
     exit 1;
   fi
 }
@@ -141,12 +141,12 @@ assert_no_directory ()
 assert_exec_file ()
 {
   if [ ! -f "$1" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($1) does not exist: $2" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($1) does not exist: $2" >&2
     exit 1;
   fi
 
   if [ ! -x "$1" ]; then
-    echo "$BASH_SOURCE:$BASH_LINENO: assert($1) exists but is not executable: $2" >&2
+    echo "${BASH_SOURCE[0]}:${BASH_LINENO[0]}: assert($1) exists but is not executable: $2" >&2
     exit 1;
   fi
 }
