@@ -93,7 +93,8 @@ warn ()
 nassert ()
 {
   local param_name=\$"$1"
-  local param_value="$(eval "expr \"$param_name\" ")"
+  local param_value
+  param_value="$(eval "expr \"$param_name\" ")"
 
   if [ -n "$param_value" ]; then
     echo "$bash_source:$bash_lineno: assert($param_name) had value of "$param_value"" >&2
@@ -104,7 +105,8 @@ nassert ()
 assert ()
 {
   local param_name=\$"$1"
-  local param_value="$(eval "expr \"$param_name\" ")"
+  local param_value
+  param_value="$(eval "expr \"$param_name\" ")"
 
   if [ -z "$param_value" ]; then
     echo "$bash_source:$bash_lineno: assert($param_name)" >&2
@@ -168,7 +170,8 @@ rebuild_host_os ()
 #  values: darwin,fedora,rhel,ubuntu,debian,opensuse
 set_VENDOR_DISTRIBUTION ()
 {
-  local dist="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  local dist
+  dist="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
   case "$dist" in
     darwin)
       VENDOR_DISTRIBUTION='darwin'
@@ -200,7 +203,8 @@ set_VENDOR_DISTRIBUTION ()
 # Validate a Vendor's release name/number 
 set_VENDOR_RELEASE ()
 {
-  local release="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  local release
+  release="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 
   if $verbose; then 
     echo "VENDOR_DISTRIBUTION:$VENDOR_DISTRIBUTION"
@@ -275,7 +279,8 @@ set_VENDOR_RELEASE ()
 #  Valid values are: apple, redhat, centos, canonical, oracle, suse
 set_VENDOR ()
 {
-  local vendor="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  local vendor
+  vendor="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 
   case $vendor in
     apple)
@@ -347,33 +352,42 @@ determine_target_platform ()
   UNAME_KERNEL="$(uname -s 2>/dev/null)"  || UNAME_SYSTEM=unknown
   UNAME_KERNEL_RELEASE="$(uname -r 2>/dev/null)" || UNAME_KERNEL_RELEASE=unknown
 
-  if [[ -x '/usr/bin/sw_vers' ]]; then 
-    local _VERSION="$(/usr/bin/sw_vers -productVersion)"
-    set_VENDOR 'apple' 'darwin' $_VERSION
+  if [[ -x '/usr/bin/sw_vers' ]]; then
+    local _VERSION
+    _VERSION="$(/usr/bin/sw_vers -productVersion)"
+    set_VENDOR 'apple' 'darwin' "$_VERSION"
   elif [[ $(uname) == 'Darwin' ]]; then
     set_VENDOR 'apple' 'darwin' 'mountain'
-  elif [[ -f '/etc/fedora-release' ]]; then 
-    local fedora_version="$(awk ' { print $3 } ' < /etc/fedora-release)"
-    set_VENDOR 'redhat' 'fedora' $fedora_version
+  elif [[ -f '/etc/fedora-release' ]]; then
+    local fedora_version
+    fedora_version="$(awk ' { print $3 } ' < /etc/fedora-release)"
+    set_VENDOR 'redhat' 'fedora' "$fedora_version"
   elif [[ -f '/etc/centos-release' ]]; then
-    local centos_version="$(awk ' { print $7 } ' < /etc/centos-release)"
-    set_VENDOR 'centos' 'rhel' $centos_version
+    local centos_version
+    centos_version="$(awk ' { print $7 } ' < /etc/centos-release)"
+    set_VENDOR 'centos' 'rhel' "$centos_version"
   elif [[ -f '/etc/SuSE-release' ]]; then
-    local suse_distribution="$(head -1 /etc/SuSE-release | awk ' { print $1 } ')"
-    local suse_version="$(head -1 /etc/SuSE-release | awk ' { print $2 } ')"
-    set_VENDOR 'suse' $suse_distribution $suse_version
+    local suse_distribution
+    suse_distribution="$(head -1 /etc/SuSE-release | awk ' { print $1 } ')"
+    local suse_version
+    suse_version="$(head -1 /etc/SuSE-release | awk ' { print $2 } ')"
+    set_VENDOR 'suse' "$suse_distribution" "$suse_version"
   elif [[ -f '/etc/redhat-release' ]]; then
-    local rhel_version="$(awk ' { print $7 } ' < /etc/redhat-release)"
-    local _vendor="$(rpm -qf /etc/redhat-release)"
-    set_VENDOR $_vendor 'rhel' $rhel_version
-  elif [[ -f '/etc/os-release' ]]; then 
+    local rhel_version
+    rhel_version="$(awk ' { print $7 } ' < /etc/redhat-release)"
+    local _vendor
+    _vendor="$(rpm -qf /etc/redhat-release)"
+    set_VENDOR "$_vendor" 'rhel' "$rhel_version"
+  elif [[ -f '/etc/os-release' ]]; then
     source '/etc/os-release'
-    set_VENDOR $ID $ID $VERSION_ID
-  elif [[ -x '/usr/bin/lsb_release' ]]; then 
-    local _ID="$(/usr/bin/lsb_release -s -i)"
-    local _VERSION="$(/usr/bin/lsb_release -s -r)"
-    set_VENDOR $_ID $_ID $_VERSION_ID
-  elif [[ -f '/etc/lsb-release' ]]; then 
+    set_VENDOR "$ID" "$ID" "$VERSION_ID"
+  elif [[ -x '/usr/bin/lsb_release' ]]; then
+    local _ID
+    _ID="$(/usr/bin/lsb_release -s -i)"
+    local _VERSION
+    _VERSION="$(/usr/bin/lsb_release -s -r)"
+    set_VENDOR "$_ID" "$_ID" "$_VERSION_ID"
+  elif [[ -f '/etc/lsb-release' ]]; then
     source '/etc/lsb-release'
     set_VENDOR 'canonical' $DISTRIB_ID $DISTRIB_CODENAME
   fi
@@ -587,7 +601,8 @@ make_valgrind ()
 
 make_install_system ()
 {
-  local INSTALL_LOCATION="$(mktemp -d /tmp/XXXXXXXXXX)"
+  local INSTALL_LOCATION
+  INSTALL_LOCATION="$(mktemp -d /tmp/XXXXXXXXXX)"
 
   save_BUILD
   PREFIX_ARG="--prefix=$INSTALL_LOCATION"
@@ -1798,7 +1813,8 @@ merge ()
 enable_debug ()
 {
   if ! $debug; then
-    local caller_loc="$(caller)"
+    local caller_loc
+    caller_loc="$(caller)"
     if [[ -n "$1" ]]; then
       echo "$caller_loc Enabling debug: $1"
     else
