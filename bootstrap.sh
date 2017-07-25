@@ -355,6 +355,7 @@ determine_target_platform ()
     _vendor="$(rpm -qf /etc/redhat-release)"
     set_VENDOR "$_vendor" 'rhel' "$rhel_version"
   elif [[ -f '/etc/os-release' ]]; then
+    # shellcheck disable=SC1091
     source '/etc/os-release'
     set_VENDOR "$ID" "$ID" "$VERSION_ID"
   elif [[ -x '/usr/bin/lsb_release' ]]; then
@@ -364,6 +365,7 @@ determine_target_platform ()
     _VERSION="$(/usr/bin/lsb_release -s -r)"
     set_VENDOR "$_ID" "$_ID" "$_VERSION_ID"
   elif [[ -f '/etc/lsb-release' ]]; then
+    # shellcheck disable=SC1091
     source '/etc/lsb-release'
     set_VENDOR 'canonical' "$DISTRIB_ID" "$DISTRIB_CODENAME"
   fi
@@ -1865,6 +1867,7 @@ bootstrap ()
   BOOTSTRAP_SNAPSHOT_CHECK=
 
   if [ -f '.bootstrap' ]; then
+    # shellcheck disable=SC1091
     source '.bootstrap'
   fi
 
