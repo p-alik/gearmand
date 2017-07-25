@@ -243,9 +243,6 @@ set_VENDOR_RELEASE ()
       ;;
     fedora)
       VENDOR_RELEASE="$release"
-      if [[ "x$VENDOR_RELEASE" == '18' ]]; then
-        VENDOR_RELEASE='sphericalcow'
-      fi
       ;;
     rhel)
       VENDOR_RELEASE="$release"
