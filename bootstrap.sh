@@ -323,27 +323,6 @@ set_VENDOR ()
 
   set_VENDOR_DISTRIBUTION "$2"
   set_VENDOR_RELEASE "$3"
-
-  # Set which vendor/versions we trust for autoreconf
-  case $VENDOR_DISTRIBUTION in
-    fedora)
-      if [[ "x$VENDOR_RELEASE" == 'x18' ]]; then
-        AUTORECONF_REBUILD_HOST=true
-      elif [[ "x$VENDOR_RELEASE" == 'xsphericalcow' ]]; then
-        AUTORECONF_REBUILD_HOST=true
-      elif [[ "x$VENDOR_RELEASE" == 'x19' ]]; then
-        AUTORECONF_REBUILD_HOST=true
-      fi
-      ;;
-    canonical)
-      if [[ "x$VENDOR_RELEASE" == 'xprecise' ]]; then
-        AUTORECONF_REBUILD_HOST=true
-      elif [[ "x$VENDOR_RELEASE" == 'xquantal' ]]; then
-        AUTORECONF_REBUILD_HOST=true
-      fi
-      ;;
-  esac
-
 }
 
 determine_target_platform ()
