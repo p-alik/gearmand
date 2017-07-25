@@ -206,7 +206,7 @@ set_VENDOR_RELEASE ()
   local release
   release="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 
-  if $verbose; then 
+  if $verbose; then
     echo "VENDOR_DISTRIBUTION:$VENDOR_DISTRIBUTION"
     echo "VENDOR_RELEASE:$release"
   fi
@@ -389,7 +389,7 @@ run_configure ()
   fi
 
   # Arguments for configure
-  local BUILD_CONFIGURE_ARG='' 
+  local BUILD_CONFIGURE_ARG=''
 
   # If debug is set we enable both debug and asssert, otherwise we see if this is a VCS checkout and if so enable assert
   # Set ENV ASSERT in order to enable assert.
