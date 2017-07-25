@@ -388,12 +388,6 @@ run_configure ()
     die "$CONFIGURE does not exist"
   fi
 
-  local BUILD_DIR="$1"
-  if [[ -n "$BUILD_DIR" ]]; then
-    rm -r -f $BUILD_DIR
-    mkdir -p $BUILD_DIR
-  fi
-
   # Arguments for configure
   local BUILD_CONFIGURE_ARG='' 
 
