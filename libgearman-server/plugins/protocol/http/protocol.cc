@@ -276,7 +276,7 @@ public:
                 gearmand_error_t& ret_ptr)
   {
     const char *unique= "-";
-    size_t unique_size= 2;
+    size_t unique_size= 1;
     gearman_job_priority_t priority= GEARMAN_JOB_PRIORITY_NORMAL;
 
     gearmand_info("Receiving HTTP response");
