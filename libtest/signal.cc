@@ -87,7 +87,7 @@ shutdown_t SignalThread::get_shutdown()
 
 void SignalThread::post()
 {
-  sem_post(&lock);
+  sem_post(lock);
 }
 
 void SignalThread::test()
@@ -131,7 +131,7 @@ SignalThread::~SignalThread()
     pthread_join(thread, &retval);
   }
 #endif
-  sem_destroy(&lock);
+  sem_close(lock);
 
   unblock();
 }
@@ -265,7 +265,7 @@ bool SignalThread::setup()
     return false;
   }
 
-  sem_wait(&lock);
+  sem_wait(lock);
 
   return true;
 }
