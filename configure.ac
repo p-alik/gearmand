@@ -175,6 +175,8 @@ AC_CHECK_HEADERS_ONCE([syslog.h])
 AC_CHECK_HEADERS_ONCE([unistd.h])
 AC_CHECK_HEADERS_ONCE([winsock2.h])
 AC_CHECK_HEADERS_ONCE([libmemcached-1.0/types/return.h])
+AC_CHECK_DECL([htonll],[AC_DEFINE([HAVE_HTONLL],[1],
+              [Define to 1 if you have htonll.])])
 
 AM_CONDITIONAL([BUILD_WIN32_WRAPPERS],[test "x$ac_cv_header_winsock2_h" = "xyes"])
 AS_IF([test "x$ac_cv_header_winsock2_h" = "xyes"],

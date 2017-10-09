@@ -37,6 +37,10 @@
 #include "libtest/yatlcon.h"
 #include <libtest/common.h>
 
+#include <fcntl.h>
+#include <semaphore.h>
+#include <unistd.h>
+
 #include <csignal>
 
 #include <libtest/signal.h>
@@ -210,7 +214,8 @@ SignalThread::SignalThread() :
 
   sigaddset(&set, SIGUSR2);
 
-  sem_init(&lock, 0, 0);
+  strcpy(lock_name, "/XXXXXXXX");
+  mktemp(lock_name);
 
   sigemptyset(&original_set);
   pthread_sigmask(SIG_BLOCK, NULL, &original_set);
@@ -220,6 +225,12 @@ SignalThread::SignalThread() :
 bool SignalThread::setup()
 {
   set_shutdown(SHUTDOWN_RUNNING);
+  lock = sem_open(lock_name, O_CREAT|O_EXCL);
+  if (lock == SEM_FAILED)
+  {
+    Error << strerror(errno) << " when opening lock.";
+  }
+
 
   if (sigismember(&original_set, SIGQUIT))
   {

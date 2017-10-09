@@ -203,7 +203,8 @@ SignalThread::SignalThread(bool exit_on_signal_arg) :
   sigaddset(&set, SIGTERM);
   sigaddset(&set, SIGUSR2);
 
-  sem_init(&lock, 0, 0);
+  strcpy(lock_name, "/XXXXXXXXX");
+  mktemp(lock_name);
 }
 
 
@@ -224,7 +225,12 @@ bool SignalThread::setup()
     return false;
   }
 
-  sem_wait(&lock);
+  lock = sem_open(lock_name, 0, 0);
+  if (lock == SEM_FAILED) {
+    std::cerr << "WARNING: sem_open failed(" << strerror(errno) << ")" << std::endl;
+  } else {
+    sem_wait(lock);
+  }
 
   return true;
 }

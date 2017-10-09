@@ -623,7 +623,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                           server_job->data, server_job->data_size,
                                           NULL);
       }
-      else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL and server_job->reducer)
+      else if (packet->command == GEARMAN_COMMAND_GRAB_JOB_ALL and *server_job->reducer != '\0')
       {
         gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM,
                            "Sending reduce submission, Partitioner: %.*s(%lu) Reducer: %.*s(%lu) Unique: %.*s(%lu) with data sized (%lu)" ,
