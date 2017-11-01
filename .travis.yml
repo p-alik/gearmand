@@ -1,5 +1,10 @@
 os:
   - linux
+branches:
+  only:
+    - master
+    - gh-pages
+
 language: cpp
 dist: trusty
 sudo: required
@@ -94,8 +99,18 @@ script:
   - ./configure --enable-ssl
   - make
   - make test
+  - rm -Rf docs/dev
+  - mv docs/build docs/dev
 
 after_failure:
   - travis_fold start "after_failure"
   - cat test-suite.log
   - travis_fold end "after_failure"
+
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GITHUB_TOKEN
+  on:
+    branch: gh-pages
+  target_branch: gh-pages
