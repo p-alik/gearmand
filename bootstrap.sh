@@ -1113,7 +1113,7 @@ run ()
 
 parse_command_line_options ()
 {
-  local SHORTOPTS=':apcmt:dvh'
+  local SHORTOPTS=':apcmt:dvho:'
 
   nassert OPT_TARGET
 
