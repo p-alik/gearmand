@@ -41,7 +41,6 @@ noinst_HEADERS+= \
 		 libgearman/allocator.hpp \
 		 libgearman/assert.hpp \
 		 libgearman/backtrace.hpp \
-		 libgearman/byteorder.h \
 		 libgearman/command.h \
 		 libgearman/common.h \
 		 libgearman/connection.hpp \
@@ -99,7 +98,6 @@ libgearman_libgearman_la_SOURCES+= \
 				  libgearman/argument.cc \
 				  libgearman/add.cc \
 				  libgearman/backtrace.cc \
-				  libgearman/byteorder.cc \
 				  libgearman/client.cc \
 				  libgearman/command.cc \
 				  libgearman/connection.cc \
