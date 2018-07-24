@@ -1013,6 +1013,9 @@ gearman_packet_st *gearman_connection_st::receiving(gearman_packet_st& packet_ar
       size_t recv_size= recv_socket(recv_buffer +recv_buffer_size, GEARMAN_RECV_BUFFER_SIZE -recv_buffer_size, ret);
       if (gearman_failed(ret))
       {
+        if (ret != GEARMAN_IO_WAIT) {
+          recv_state= GEARMAN_CON_RECV_UNIVERSAL_NONE;
+        }
         return NULL;
       }
 
