@@ -264,7 +264,7 @@ int main(int argc, char *argv[])
         std::vector<std::string> args;
         std::copy(tok.begin(), tok.end(), back_inserter(args));
 
-      	#if defined(DEBUG) && DEBUG
+        #if defined(DEBUG) && DEBUG
           for (std::vector<std::string>::iterator iter= args.begin();
                iter != args.end();
                ++iter)
