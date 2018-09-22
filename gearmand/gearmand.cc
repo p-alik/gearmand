@@ -265,12 +265,12 @@ int main(int argc, char *argv[])
         std::copy(tok.begin(), tok.end(), back_inserter(args));
 
 #if defined(DEBUG) && DEBUG
-          for (std::vector<std::string>::iterator iter= args.begin();
-               iter != args.end();
-               ++iter)
-          {
-            std::cerr << *iter << std::endl;
-          }
+        for (std::vector<std::string>::iterator iter= args.begin();
+             iter != args.end();
+             ++iter)
+        {
+          std::cerr << *iter << std::endl;
+        }
 #endif
 
         // Parse the file and store the options
