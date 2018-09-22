@@ -264,14 +264,14 @@ int main(int argc, char *argv[])
         std::vector<std::string> args;
         std::copy(tok.begin(), tok.end(), back_inserter(args));
 
-        #if defined(DEBUG) && DEBUG
+#if defined(DEBUG) && DEBUG
           for (std::vector<std::string>::iterator iter= args.begin();
                iter != args.end();
                ++iter)
           {
             std::cerr << *iter << std::endl;
           }
-        #endif
+#endif
 
         // Parse the file and store the options
         store(boost::program_options::command_line_parser(args).options(visible).run(), vm);
