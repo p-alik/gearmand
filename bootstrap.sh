@@ -191,7 +191,7 @@ set_VENDOR_DISTRIBUTION ()
     suse)
       VENDOR_DISTRIBUTION='opensuse'
       ;;
-    opensuse)
+    opensuse*)
       VENDOR_DISTRIBUTION='opensuse'
       ;;
     *)
@@ -307,7 +307,7 @@ set_VENDOR ()
     debian)
       VENDOR='debian'
       ;;
-    opensuse)
+    opensuse*)
       VENDOR='suse'
       ;;
     suse)
