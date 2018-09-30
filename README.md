@@ -96,7 +96,7 @@ Please follow these instructions to clone, create a branch, and generate a pull 
 3. Once the tree is branched you will need to generate the "configure" script for autoconfigure.
 
         ./bootstrap.sh -a
-    
+
 4. Finally, you are ready to run tests, make changes to the code, commit and push them to GitHub, and generate a pull request on your branch so we can consider your changes.
 
 You can learn more about how to [Create a Pull Request](https://help.github.com/articles/creating-a-pull-request/) and [Create a Pull Request from a Fork](https://help.github.com/articles/creating-a-pull-request-from-a-fork/).
