@@ -60,7 +60,7 @@ AS_IF([test "x${ac_cv_prog_cc_c99}" == "xno"],[AC_MSG_ERROR([No c99 compatible c
 AC_DEFUN([CHECK_CXX0X],[
           AC_LANG_PUSH([C++])
           AX_CHECK_COMPILE_FLAG([-std=c++0x],[
-                                 CXXFLAGS="$CXXFLAGS -std=c++0x"])
+                                 CXX_STD="c++0x"])
           AC_LANG_POP([C++])
           ])
 CHECK_CXX0X
@@ -338,6 +338,16 @@ AC_CONFIG_FILES([Makefile
                  support/gearmand.init
                  support/gearmand.pc
                  support/gearmand.spec])
+
+AS_IF([test "x${ax_enable_debug}" = "xyes"],
+      [AC_DEFUN([CHECK_CXX11],
+          [AC_LANG_PUSH([C++])
+          AX_CHECK_COMPILE_FLAG([-std=c++11], [CXX_STD="c++11"])
+          AC_LANG_POP([C++])
+          ])
+      CHECK_CXX11])
+
+CXXFLAGS=" $CXXFLAGS -std=$CXX_STD"
 
 AC_OUTPUT
 
