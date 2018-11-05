@@ -124,11 +124,11 @@ static gearmand_error_t __errno_to_gearmand_error_t(int local_errno)
   {
   case ENOMEM:
     error_to_report= GEARMAND_MEMORY_ALLOCATION_FAILURE;
-
+    break;
   case ECONNRESET:
   case EHOSTDOWN:
     error_to_report= GEARMAND_LOST_CONNECTION;
-
+    break;
   default:
     break;
   }
