@@ -381,6 +381,14 @@ echo "   * sphinx-build:              $SPHINXBUILD"
 echo ""
 echo "---"
 
+if [test "x${ax_enable_debug}" = "xyes"]; then
+    echo "*****"
+    echo "*"
+    echo "*  NOTE: You should execute gearmand with --threads 0 when --enable-debug is specified."
+    echo "*"
+    echo "*****"
+fi
+
 case "$host_os" in
   *freebsd*)
     echo "*****"
