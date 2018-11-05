@@ -15,7 +15,8 @@ matrix:
             - gcc-4.9
             - g++-4.9
         artifacts: true
-      env: COMPILER=g++-4.9
+      env:
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
     - compiler: gcc
       addons:
         apt:
@@ -25,9 +26,12 @@ matrix:
             - gcc-5
             - g++-5
         artifacts: true
-      env: COMPILER=g++-5
+      env:
+        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
 
 before_install:
+  - eval "${MATRIX_EVAL}"
   - . scripts/travis-$TRAVIS_OS_NAME.sh
 
 script:
