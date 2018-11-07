@@ -322,7 +322,8 @@ gearmand_error_t gearmand_port_add(gearmand_st *gearmand, const char *port,
   assert(gearmand);
   gearmand->_port_list.resize(gearmand->_port_list.size() +1);
 
-  strncpy(gearmand->_port_list.back().port, port, NI_MAXSERV);
+  memcpy(gearmand->_port_list.back().port, port, NI_MAXSERV);
+  gearmand->_port_list.back().port[NI_MAXSERV -1]= '\0';
   gearmand->_port_list.back().add_fn(function);
   gearmand->_port_list.back().remove_fn(remove_);
 
