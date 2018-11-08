@@ -93,6 +93,7 @@ use a bitmask.  For example, if you need only 10 bits, do
 In which case, the hash table should have hashsize(10) elements.
 */
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 uint32_t hashkit_jenkins(const char *key, size_t length, void *)
 {
   uint32_t a,b,c;                                          /* internal state */

@@ -100,6 +100,8 @@ _server_queue_work_data(gearman_server_job_st *server_job,
  * Public definitions
  */
 
+
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
                                             gearmand_packet_st *packet)
 {

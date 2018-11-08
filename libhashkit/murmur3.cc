@@ -70,6 +70,7 @@ static FORCE_INLINE uint64_t fmix64 ( uint64_t k )
 
 //-----------------------------------------------------------------------------
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 void MurmurHash3_x86_32 ( const void * key, int len,
                           uint32_t seed, void * out )
 {
@@ -127,6 +128,7 @@ void MurmurHash3_x86_32 ( const void * key, int len,
 
 //-----------------------------------------------------------------------------
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 void MurmurHash3_x86_128 ( const void * key, const int len,
                            uint32_t seed, void * out )
 {
@@ -233,6 +235,7 @@ void MurmurHash3_x86_128 ( const void * key, const int len,
 
 //-----------------------------------------------------------------------------
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 void MurmurHash3_x64_128 ( const void * key, const int len,
                            const uint32_t seed, void * out )
 {

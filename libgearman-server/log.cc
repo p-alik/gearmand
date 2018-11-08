@@ -116,6 +116,7 @@ gearmand_error_t gearmand_initialize_thread_logging(const char *identity)
   return GEARMAND_INVALID_ARGUMENT;
 }
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 static gearmand_error_t __errno_to_gearmand_error_t(int local_errno)
 {
   gearmand_error_t error_to_report= GEARMAND_ERRNO;

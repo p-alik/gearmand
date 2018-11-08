@@ -649,6 +649,7 @@ gearman_return_t gearman_worker_unregister_all(gearman_worker_st *worker_shell)
   return GEARMAN_INVALID_ARGUMENT;
 }
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 gearman_job_st *gearman_worker_grab_job(gearman_worker_st *worker_shell,
                                         gearman_job_st *job,
                                         gearman_return_t *ret_ptr)
@@ -1071,6 +1072,7 @@ void gearman_worker_reset_error(gearman_worker_st *worker)
   }
 }
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 gearman_return_t gearman_worker_work(gearman_worker_st *worker_shell)
 {
   if (worker_shell and worker_shell->impl())

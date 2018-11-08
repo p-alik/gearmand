@@ -158,6 +158,7 @@ bool Instance::init_ssl()
   return true;
 }
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 bool Instance::run()
 {
   if (_use_ssl)

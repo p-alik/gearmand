@@ -45,6 +45,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 gearman_return_t _client_run_task(Task *task)
 {
   // This should not be possible

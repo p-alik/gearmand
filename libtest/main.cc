@@ -63,6 +63,7 @@ using namespace libtest;
 #include <getopt.h>
 #include <unistd.h>
 
+#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
 int main(int argc, char *argv[], char* environ_[])
 {
   bool opt_massive= false;
