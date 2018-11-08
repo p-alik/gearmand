@@ -158,7 +158,9 @@ bool Instance::init_ssl()
   return true;
 }
 
-#pragma GCC diagnostic warning "-Wimplicit-fallthrough"
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic warning "-Wimplicit-fallthrough"
+#endif
 bool Instance::run()
 {
   if (_use_ssl)
