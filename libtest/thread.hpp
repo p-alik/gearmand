@@ -224,7 +224,7 @@ public:
   template <class Function,class Arg1>
     Thread(Function func, Arg1 arg):
       _joined(false),
-      _func((start_routine_fn)func),
+      _func((start_routine_fn)(void(*)())func),
       _context(arg)
     {
       int err;
