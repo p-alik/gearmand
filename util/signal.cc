@@ -109,6 +109,24 @@ void SignalThread::sighup(signal_callback_fn* arg)
   _sighup= arg;
 }
 
+std::string SignalThread::random_lock_name(std::string::size_type len = 10)
+{
+  static auto& chrs = "0123456789"
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  thread_local static std::mt19937 rg{std::random_device{}()};
+  thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
+
+  // convenient to named semaphore defination
+  // http://man7.org/linux/man-pages/man7/sem_overview.7.html
+  std::string s{"/"};
+  s.reserve(len--);
+
+  while(len--)
+    s += chrs[pick(rg)];
+  return s;
+}
 void SignalThread::sighup()
 {
   if (_sighup)
@@ -205,8 +223,10 @@ SignalThread::SignalThread(bool exit_on_signal_arg) :
   sigaddset(&set, SIGTERM);
   sigaddset(&set, SIGUSR2);
 
-  strcpy(lock_name, "/XXXXXXXXX");
-  mktemp(lock_name);
+  //FIXME should lock_name ramains in constructor or should it be defined inside of setup?
+  //  char lock_name[rln.length()+1];
+  std::string rln = random_lock_name();
+  strncpy(lock_name, rln.c_str(), sizeof(lock_name));
 }
 
 

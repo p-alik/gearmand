@@ -38,6 +38,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <random>
 
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>
@@ -70,6 +71,8 @@ class SignalThread {
   uint64_t magic_memory;
   volatile shutdown_t __shutdown;
   pthread_mutex_t shutdown_mutex;
+
+  std::string random_lock_name(std::string::size_type);
 
 public:
 
