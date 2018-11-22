@@ -39,6 +39,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <signal.h>
+#include <random>
 
 enum shutdown_t {
   SHUTDOWN_RUNNING,
@@ -57,6 +58,8 @@ class SignalThread {
   pthread_mutex_t shutdown_mutex;
   pthread_t thread;
   sigset_t original_set;
+
+  std::string random_lock_name(std::string::size_type);
 
 public:
 
