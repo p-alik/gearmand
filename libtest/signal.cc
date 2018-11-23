@@ -39,6 +39,7 @@
 
 #include <fcntl.h>
 #include <semaphore.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include <csignal>
@@ -242,7 +243,7 @@ bool SignalThread::setup()
   set_shutdown(SHUTDOWN_RUNNING);
 
   const char * lock_name = random_lock_name().c_str();
-  lock = sem_open(lock_name, O_CREAT|O_EXCL, 0660, 0);
+  lock = sem_open(lock_name, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 0);
   if (lock == SEM_FAILED)
   {
     Error << errno << ": " << strerror(errno)
