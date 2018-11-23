@@ -132,8 +132,10 @@ std::string SignalThread::random_lock_name(std::string::size_type len = 10)
   std::string s{"/"};
   s.reserve(len--);
 
-  while(len--)
+  while (len--)
+  {
     s += chrs[pick(rg)];
+  }
   return s;
 }
 
