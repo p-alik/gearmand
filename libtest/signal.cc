@@ -245,7 +245,8 @@ bool SignalThread::setup()
   lock = sem_open(lock_name, O_CREAT|O_EXCL);
   if (lock == SEM_FAILED)
   {
-    Error << strerror(errno) << " when opening lock '" << lock_name << "'.";
+    Error << errno << ": " << strerror(errno)
+          << " when opening lock '" << lock_name << "'.";
   }
 
   if (sigismember(&original_set, SIGQUIT))
