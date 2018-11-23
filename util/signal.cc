@@ -120,7 +120,7 @@ std::string SignalThread::random_lock_name(std::string::size_type len = 10)
   thread_local static std::mt19937 rg{std::random_device{}()};
   thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
 
-  // convenient to named semaphore defination
+  // convenient to named semaphore definition
   // http://man7.org/linux/man-pages/man7/sem_overview.7.html
   std::string s{"/"};
   s.reserve(len--);
