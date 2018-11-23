@@ -51,7 +51,6 @@ namespace libtest {
 
 class SignalThread {
   sigset_t set;
-  char lock_name[10];
   sem_t *lock;
   uint64_t magic_memory;
   volatile shutdown_t __shutdown;
