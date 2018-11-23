@@ -66,7 +66,6 @@ enum shutdown_t {
 class SignalThread {
   bool _exit_on_signal;
   sigset_t set;
-  char lock_name[11];
   sem_t *lock;
   uint64_t magic_memory;
   volatile shutdown_t __shutdown;

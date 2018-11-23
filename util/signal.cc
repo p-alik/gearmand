@@ -222,11 +222,6 @@ SignalThread::SignalThread(bool exit_on_signal_arg) :
   sigaddset(&set, SIGQUIT);
   sigaddset(&set, SIGTERM);
   sigaddset(&set, SIGUSR2);
-
-  //FIXME should lock_name ramains in constructor or should it be defined inside of setup?
-  //  char lock_name[rln.length()+1];
-  std::string rln = random_lock_name();
-  strncpy(lock_name, rln.c_str(), sizeof(lock_name));
 }
 
 
@@ -247,9 +242,11 @@ bool SignalThread::setup()
     return false;
   }
 
+  const char * lock_name = random_lock_name().c_str();
   lock = sem_open(lock_name, 0, 0);
   if (lock == SEM_FAILED) {
-    std::cerr << "WARNING: sem_open failed(" << strerror(errno) << ")" << std::endl;
+    std::cerr << "WARNING: sem_open failed(" << strerror(errno) << ")"
+              << " when opening lock '" << lock_name << "'." << std::endl;
   } else {
     sem_wait(lock);
   }
