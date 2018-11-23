@@ -247,7 +247,7 @@ bool SignalThread::setup()
   }
 
   const char * lock_name = random_lock_name().c_str();
-  lock = sem_open(lock_name, O_CREAT, S_IRUSR|S_IWUSR, 0);
+  lock = sem_open(lock_name, O_CREAT|O_EXCL, S_IRUSR|S_IWUSR, 0);
   if (lock == SEM_FAILED) {
     std::cerr << "WARNING: sem_open failed(" << strerror(errno) << ")"
               << " when opening lock '" << lock_name << "'." << std::endl;
