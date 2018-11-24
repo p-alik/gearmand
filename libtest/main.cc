@@ -180,6 +180,8 @@ int main(int argc, char *argv[], char* environ_[])
 
       case OPT_LIBYATL_LIST_TESTS:
         opt_list_tests= true;
+        opt_list_collection= true;
+        break;
 
       case OPT_LIBYATL_LIST_COLLECTIONS:
         opt_list_collection= true;
