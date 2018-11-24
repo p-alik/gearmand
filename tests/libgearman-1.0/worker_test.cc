@@ -80,6 +80,15 @@ static gearman_return_t exception_fn(gearman_task_st* task)
 }
 #endif
 
+std::string random_gearman_funcion_name(const char* caller = __builtin_FUNCTION()) {
+  std::string x{"_"};
+  x.reserve(GEARMAN_FUNCTION_MAX_SIZE);
+  x += caller;
+  x += std::to_string((unsigned int)random());
+
+  return x;
+}
+
 static void error_logger(const char* message, gearman_verbose_t, void*)
 {
   Error << message;
@@ -1335,18 +1344,18 @@ static test_return_t gearman_worker_add_function_test(void *)
 {
   libgearman::Worker worker;
 
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
+  auto random_fn = random_gearman_funcion_name();
+  auto function_name = random_fn.c_str();
 
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_worker_add_function(&worker, function_name,0, fail_worker, NULL));
+               gearman_worker_add_function(&worker, function_name, 0, fail_worker, NULL));
 
   ASSERT_EQ(true, gearman_worker_function_exist(&worker, test_string_make_from_array(function_name)));
 
   ASSERT_EQ(GEARMAN_SUCCESS,
                gearman_worker_unregister(&worker, function_name));
 
-  ASSERT_EQ(false, gearman_worker_function_exist(&worker, function_name, strlen(function_name)));
+  ASSERT_EQ(false, gearman_worker_function_exist(&worker, function_name, random_fn.length()));
 
   /* Make sure we have removed it */
   ASSERT_EQ(GEARMAN_NO_REGISTERED_FUNCTION, 
@@ -1460,11 +1469,10 @@ static test_return_t gearman_worker_work_with_test(int timeout, gearman_worker_o
     }
   }
 
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
+  auto function_name = random_gearman_funcion_name();
 
   ASSERT_EQ(gearman_worker_add_function(&worker,
-                                        function_name,
+                                        function_name.c_str(),
                                         0, fail_worker, NULL),
             GEARMAN_SUCCESS);
 
@@ -1489,7 +1497,7 @@ static test_return_t gearman_worker_work_with_test(int timeout, gearman_worker_o
 
   /* Make sure we have removed the worker function */
   ASSERT_EQ(GEARMAN_SUCCESS,
-            gearman_worker_unregister(&worker, function_name));
+            gearman_worker_unregister(&worker, function_name.c_str()));
 
   return TEST_SUCCESS;
 }
@@ -1550,20 +1558,17 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
 {
   libgearman::Worker worker(libtest::default_port());
 
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
-
-  char unique_name[GEARMAN_MAX_UNIQUE_SIZE];
-  snprintf(unique_name, GEARMAN_MAX_UNIQUE_SIZE, "_%s%d", __func__, int(random())); 
+  auto function_name = random_gearman_funcion_name();
+  auto unique_name = random_gearman_funcion_name();
 
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_worker_add_function(&worker, function_name, 0, no_unique_worker, NULL));
+               gearman_worker_add_function(&worker, function_name.c_str(), 0, no_unique_worker, NULL));
 
   {
     libgearman::Client client(libtest::default_port());
 
     ASSERT_EQ(GEARMAN_SUCCESS,
-              gearman_client_do_background(&client, function_name, unique_name, test_string_make_from_array(unique_name), NULL));
+              gearman_client_do_background(&client, function_name.c_str(), unique_name.c_str(), test_string_make_from_cstr(unique_name.c_str()), NULL));
   }
 
   gearman_worker_remove_options(&worker, GEARMAN_WORKER_GRAB_UNIQ);
@@ -1587,17 +1592,14 @@ static test_return_t gearman_worker_remove_options_GEARMAN_WORKER_GRAB_UNIQ(void
 
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ(void *)
 {
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
-
-  char unique_name[GEARMAN_MAX_UNIQUE_SIZE];
-  snprintf(unique_name, GEARMAN_MAX_UNIQUE_SIZE, "_%s%d", __func__, int(random())); 
+  auto function_name = random_gearman_funcion_name().c_str();
+  auto unique_name = random_gearman_funcion_name().c_str();
 
   {
     libgearman::Client client(libtest::default_port());
 
     ASSERT_EQ(gearman_client_do_background(&client, function_name, unique_name,
-                                              test_string_make_from_array(unique_name), NULL), 
+                                              test_string_make_from_array(unique_name), NULL),
                  GEARMAN_SUCCESS);
   }
 
@@ -1636,19 +1638,13 @@ static test_return_t gearman_worker_set_identifier_TEST(void *)
   return TEST_SUCCESS;
 }
 
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic warning "-Wformat-truncation"
-#endif
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work(void *)
 {
   libgearman::Worker worker(libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, second_port));
 
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
-
-  char unique_name[GEARMAN_MAX_UNIQUE_SIZE];
-  snprintf(unique_name, GEARMAN_MAX_UNIQUE_SIZE, "_%s%d", __func__, int(random())); 
+  auto function_name = random_gearman_funcion_name().c_str();
+  auto unique_name = random_gearman_funcion_name().c_str();
 
   bool success= false;
   ASSERT_EQ(GEARMAN_SUCCESS,
@@ -1763,11 +1759,10 @@ static test_return_t gearman_worker_failover_test(void *)
   // Now add a port which we do not have a server running on
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, libtest::default_port() +1));
 
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
+  auto function_name = random_gearman_funcion_name();
 
   ASSERT_EQ(GEARMAN_SUCCESS, 
-               gearman_worker_add_function(&worker, function_name, 0, fail_worker, NULL));
+               gearman_worker_add_function(&worker, function_name.c_str(), 0, fail_worker, NULL));
 
   gearman_worker_set_timeout(&worker, 400);
 
@@ -1775,7 +1770,7 @@ static test_return_t gearman_worker_failover_test(void *)
 
   /* Make sure we have remove worker function */
   ASSERT_EQ(GEARMAN_SUCCESS,
-               gearman_worker_unregister(&worker, function_name));
+               gearman_worker_unregister(&worker, function_name.c_str()));
 
   return TEST_SUCCESS;
 }
@@ -1789,8 +1784,7 @@ static test_return_t gearman_worker_set_timeout_FAILOVER_TEST(void *)
 
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, known_server_port));
 
-  char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
+  auto function_name = random_gearman_funcion_name().c_str();
 
   ASSERT_EQ(GEARMAN_SUCCESS, 
                gearman_worker_add_function(&worker, function_name, 0, fail_worker, NULL));
