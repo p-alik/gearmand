@@ -58,7 +58,7 @@ static int wakeup_fd[2];
 
 static __attribute__((noreturn)) void* current_epoch_handler(void*)
 {
-  gearmand_debug("staring up Epoch thread");
+  gearmand_debug("starting up Epoch thread");
   pollfd fds[2];
   while (true)
   {
