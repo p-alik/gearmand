@@ -42,7 +42,7 @@
 
 #include "libgearman-1.0/string.h"
 
-#define GEARMAN_VECTOR_BLOCK_SIZE 1024*4
+constexpr auto GEARMAN_VECTOR_BLOCK_SIZE = 1024 * 4;
 
 /**
   vectors are always under our control so we make some assumptions about them.
@@ -60,22 +60,22 @@ struct gearman_vector_st {
     bool is_allocated;
     bool is_initialized;
     Options() :
-      is_allocated(false),
-      is_initialized(true)
+      is_allocated{false},
+      is_initialized{true}
     { }
   } options;
 
   gearman_vector_st() :
-    end(NULL),
-    string(NULL),
-    current_size(0)
+    end{nullptr},
+    string{nullptr},
+    current_size{0}
   {
   }
 
   gearman_vector_st(const gearman_vector_st& copy) :
-    end(NULL),
-    string(NULL),
-    current_size(0)
+    end{nullptr},
+    string{nullptr},
+    current_size{0}
   {
     store(copy);
   }
@@ -83,6 +83,8 @@ struct gearman_vector_st {
   gearman_vector_st(const size_t reserve);
 
   ~gearman_vector_st();
+
+  gearman_vector_st& operator=(const gearman_vector_st&) = delete;
 
   bool resize(const size_t);
   bool reserve(const size_t);
@@ -140,7 +142,7 @@ struct gearman_vector_st {
       return string;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   bool store(const gearman_vector_st&);

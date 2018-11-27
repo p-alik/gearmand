@@ -53,9 +53,9 @@ struct gearman_packet_st
     bool free_data;
 
     Options(bool is_allocted_) :
-      is_allocated(is_allocted_),
-      complete(false),
-      free_data(false)
+      is_allocated{is_allocted_},
+      complete{false},
+      free_data{false}
     { }
   } options;
   enum gearman_magic_t magic;
@@ -76,17 +76,20 @@ struct gearman_packet_st
 #endif
 
   gearman_packet_st(bool is_allocted_= false) :
-    options(is_allocted_),
-    magic(GEARMAN_MAGIC_TEXT),
-    command(GEARMAN_COMMAND_TEXT),
-    argc(0),
-    args_size(0),
-    data_size(0),
-    universal(0),
-    next(0),
-    prev(0),
-    args(0),
-    data(0)
+    options{is_allocted_},
+    magic{GEARMAN_MAGIC_TEXT},
+    command{GEARMAN_COMMAND_TEXT},
+    argc{0},
+    args_size{0},
+    data_size{0},
+    universal{0},
+    next{nullptr},
+    prev{nullptr},
+    args{nullptr},
+    data{nullptr},
+    arg{},
+    arg_size{},
+    args_buffer{}
   {
   }
 
@@ -121,7 +124,7 @@ struct gearman_packet_st
       return (const char*)data;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   const char* value() const
@@ -131,7 +134,7 @@ struct gearman_packet_st
       return (const char*)data;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   void reset();
