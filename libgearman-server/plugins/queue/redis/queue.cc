@@ -88,11 +88,11 @@ bool gearmand::plugins::queue::Hiredis::hmset(vchar_t key, const void *data, siz
   std::string _priority = std::to_string((uint32_t)priority);
 
   const size_t argvlen[argc] = {
-    (const size_t)5,
-    (const size_t)key.size(),
-    (const size_t)4,
-    (const size_t)data_size,
-    (const size_t)8,
+    (size_t)5,
+    (size_t)key.size(),
+    (size_t)4,
+    (size_t)data_size,
+    (size_t)8,
     _priority.size()
   };
 
