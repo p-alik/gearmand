@@ -47,6 +47,11 @@
 #include <libgearman-server/plugins/queue/base.h>
 
 #include <mysql.h>
+#if !defined(MARIADB_BASE_VERSION) && !defined(MARIADB_VERSION_ID) && \
+  MYSQL_VERSION_ID >= 80001 && MYSQL_VERSION_ID != 80002
+typedef bool my_bool;
+#endif
+
 #include <errmsg.h>
 #include <cerrno>
 
