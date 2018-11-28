@@ -113,6 +113,9 @@ const char* gearmand_io_st::port() const
   return "-";
 }
 
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic warning "-Wimplicit-fallthrough"
+#endif
 static size_t _connection_read(gearman_server_con_st *con, void *data, size_t data_size, gearmand_error_t &ret)
 {
   ssize_t read_size;

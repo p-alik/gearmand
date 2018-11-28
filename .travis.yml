@@ -60,7 +60,7 @@ before_script:
 
 script:
   - ./bootstrap.sh -a
-  - ./configure
+  - ./configure --enable-ssl
   - make
   - make test
 

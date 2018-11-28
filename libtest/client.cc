@@ -329,6 +329,9 @@ bool SimpleClient::is_valid()
   return true;
 }
 
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic warning "-Wimplicit-fallthrough"
+#endif
 bool SimpleClient::message(const char* ptr, const size_t len)
 {
   if (is_valid())
@@ -442,6 +445,9 @@ bool SimpleClient::send_message(const std::string& message_, std::string& respon
   return false;
 }
 
+#if __GNUC__ >= 7
+  #pragma GCC diagnostic warning "-Wimplicit-fallthrough"
+#endif
 bool SimpleClient::response(libtest::vchar_t& response_)
 {
   response_.clear();
