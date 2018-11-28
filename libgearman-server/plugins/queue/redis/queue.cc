@@ -103,7 +103,7 @@ bool gearmand::plugins::queue::Hiredis::hmset(vchar_t key, const void *data, siz
   argv.push_back( "priority" );
   argv.push_back( _priority.c_str() );
 
-  redisReply *reply = (redisReply *)redisCommandArgv(context, argv.size(), &(argv[0]), &(argvlen[0]) );
+  redisReply *reply = (redisReply *)redisCommandArgv(context, static_cast<int>(argv.size()), &(argv[0]), &(argvlen[0]) );
   if (reply == nullptr)
       return false;
 
