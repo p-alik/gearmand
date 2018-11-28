@@ -41,26 +41,26 @@
 
 struct gearman_server_thread_st
 {
-  uint32_t con_count;
-  uint32_t io_count;
-  uint32_t proc_count;
-  uint32_t to_be_freed_count;
-  uint32_t free_con_count;
-  uint32_t free_packet_count;
-  gearmand_connection_list_st *gearman;
-  gearman_server_thread_st *next;
-  gearman_server_thread_st *prev;
-  gearman_log_server_fn *log_fn;
-  gearmand_thread_st *log_context;
-  gearman_server_thread_run_fn *run_fn;
-  void *run_fn_arg;
-  gearman_server_con_st *con_list;
-  gearman_server_con_st *io_list;
-  gearman_server_con_st *proc_list;
-  gearman_server_con_st *free_con_list;
-  gearman_server_con_st *to_be_freed_list;
-  gearman_server_packet_st *free_packet_list;
-  gearmand_connection_list_st gearmand_connection_list_static;
+  uint32_t con_count{};
+  uint32_t io_count{};
+  uint32_t proc_count{};
+  uint32_t to_be_freed_count{};
+  uint32_t free_con_count{};
+  uint32_t free_packet_count{};
+  gearmand_connection_list_st *gearman{nullptr};
+  gearman_server_thread_st *next{nullptr};
+  gearman_server_thread_st *prev{nullptr};
+  gearman_log_server_fn *log_fn{nullptr};
+  gearmand_thread_st *log_context{nullptr};
+  gearman_server_thread_run_fn *run_fn{nullptr};
+  void *run_fn_arg{nullptr};
+  gearman_server_con_st *con_list{nullptr};
+  gearman_server_con_st *io_list{nullptr};
+  gearman_server_con_st *proc_list{nullptr};
+  gearman_server_con_st *free_con_list{nullptr};
+  gearman_server_con_st *to_be_freed_list{nullptr};
+  gearman_server_packet_st *free_packet_list{nullptr};
+  gearmand_connection_list_st gearmand_connection_list_static{};
   pthread_mutex_t lock;
 
   void run(gearman_server_thread_run_fn *run_fn_, void *run_fn_arg_)

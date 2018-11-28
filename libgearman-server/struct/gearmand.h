@@ -64,7 +64,6 @@ struct gearmand_st
 
     void keepalive(int keepalive_)
     {
-      _keepalive= true;
       _keepalive= keepalive_;
     }
 
