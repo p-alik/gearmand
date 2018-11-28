@@ -6,6 +6,16 @@ sudo: required
 
 matrix:
   include:
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang-5.0
+        artifacts: true
+      env:
+        - MATRIX_EVAL="CC=clang-5.0 && CXX=clang++-5.0"
     - compiler: gcc
       addons:
         apt:
