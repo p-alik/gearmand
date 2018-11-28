@@ -347,7 +347,7 @@ bool SimpleClient::message(const char* ptr, const size_t len)
         {
           int ssl_error;
           int write_size_int= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
-	  write_size= write_size_int;
+          write_size= write_size_int;
           switch (ssl_error= SSL_get_error(_ssl, write_size_int))
           {
             case SSL_ERROR_NONE:
@@ -468,7 +468,7 @@ bool SimpleClient::response(libtest::vchar_t& response_)
         {
           int readErr;
           int read_size_int= SSL_read(_ssl, buffer, 1);
-	  read_size= read_size_int;
+          read_size= read_size_int;
           switch (readErr= SSL_get_error(_ssl, read_size_int))
           {
             case SSL_ERROR_NONE:
@@ -564,7 +564,7 @@ bool SimpleClient::response(std::string& response_)
         {
           int readErr;
           int read_size_int= SSL_read(_ssl, buffer, 1);
-	  read_size= read_size_int;
+          read_size= read_size_int;
           switch (readErr= SSL_get_error(_ssl, read_size_int))
           {
             case SSL_ERROR_NONE:
