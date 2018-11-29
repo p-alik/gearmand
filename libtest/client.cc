@@ -345,9 +345,10 @@ bool SimpleClient::message(const char* ptr, const size_t len)
 #if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          write_size= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
           int ssl_error;
-          switch (ssl_error= SSL_get_error(_ssl, write_size))
+          int write_size_int= SSL_write(_ssl, (const void*)(ptr +offset), int(len -offset));
+          write_size= write_size_int;
+          switch (ssl_error= SSL_get_error(_ssl, write_size_int))
           {
             case SSL_ERROR_NONE:
               break;
@@ -465,9 +466,10 @@ bool SimpleClient::response(libtest::vchar_t& response_)
 #if defined(HAVE_SSL) && HAVE_SSL
         if (_ssl)
         {
-          read_size= SSL_read(_ssl, buffer, 1);
           int readErr;
-          switch (readErr= SSL_get_error(_ssl, read_size))
+          int read_size_int= SSL_read(_ssl, buffer, 1);
+          read_size= read_size_int;
+          switch (readErr= SSL_get_error(_ssl, read_size_int))
           {
             case SSL_ERROR_NONE:
               break;
@@ -561,8 +563,9 @@ bool SimpleClient::response(std::string& response_)
         if (_ssl)
         {
           int readErr;
-          read_size= SSL_read(_ssl, buffer, 1);
-          switch (readErr= SSL_get_error(_ssl, read_size))
+          int read_size_int= SSL_read(_ssl, buffer, 1);
+          read_size= read_size_int;
+          switch (readErr= SSL_get_error(_ssl, read_size_int))
           {
             case SSL_ERROR_NONE:
               break;
