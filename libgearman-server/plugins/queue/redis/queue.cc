@@ -404,7 +404,7 @@ static gearmand_error_t _hiredis_replay(gearman_server_st *server, void *context
     char unique[GEARMAN_MAX_UNIQUE_SIZE];
 
     char fmt_str[100] = "";
-    int fmt_str_length= snprintf(fmt_str, sizeof(fmt_str), "%%%d[^-]-%%%d[^-]-%%%ds",
+    int fmt_str_length= snprintf(fmt_str, sizeof(fmt_str), "%%%d[^-]-%%%d[^-]-%%%d[^*]",
                                  int(queue->prefix.size()),
                                  int(GEARMAN_FUNCTION_MAX_SIZE),
                                  int(GEARMAN_MAX_UNIQUE_SIZE));
