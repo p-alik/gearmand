@@ -105,7 +105,7 @@ struct FreeFromVector
       if (ptr)
       {
         free(ptr);
-        ptr= NULL;
+        ptr= nullptr;
       }
     }
 };
@@ -116,6 +116,6 @@ struct DeleteFromVector
     void operator() ( T* ptr) const
     {
       delete ptr;
-      ptr= NULL;
+      ptr= nullptr;
     }
 };

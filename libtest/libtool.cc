@@ -61,7 +61,7 @@ const char *libtool(void)
     if (access(libtool_buffer.c_str(), R_OK | W_OK | X_OK))
     {
       Error << "Could not find libtool via access(" << libtool_buffer << ") :" << strerror(errno);
-      return NULL;
+      return nullptr;
     }
 
     snprintf(_libtool, sizeof(_libtool), "%s", libtool_buffer.c_str());

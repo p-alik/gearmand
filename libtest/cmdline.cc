@@ -62,7 +62,7 @@ using namespace libtest;
 #include <stdexcept>
 
 #ifndef __USE_GNU
-static char **environ= NULL;
+static char **environ= nullptr;
 #endif
 
 #ifndef FD_CLOEXEC
@@ -140,7 +140,7 @@ Application::Application(const std::string& arg, const bool _use_libtool_arg) :
   { 
     if (_use_libtool)
     {
-      if (libtool() == NULL)
+      if (libtool() == nullptr)
       {
         FATAL("libtool requested, but know libtool was found");
       }
@@ -266,7 +266,7 @@ Application::error_t Application::run(const char *args[])
   }
   else
   {
-    spawn_ret= posix_spawn(&_pid, built_argv[0], &file_actions, &spawnattr, &built_argv[0], NULL);
+    spawn_ret= posix_spawn(&_pid, built_argv[0], &file_actions, &spawnattr, &built_argv[0], nullptr);
   }
 
   posix_spawn_file_actions_destroy(&file_actions);
@@ -295,7 +295,7 @@ Application::error_t Application::run(const char *args[])
 #if 0
   app_thread_st* _app_thread= new app_thread_st(_pid, _status, built_argv[0], _app_exit_state);
   int error;
-  if ((error= pthread_create(&_thread, NULL, &app_thread, _app_thread)) != 0)
+  if ((error= pthread_create(&_thread, nullptr, &app_thread, _app_thread)) != 0)
   {
     Error << "pthread_create() died during pthread_create(" << strerror(error) << ")";
     return Application::FAILURE;
@@ -848,7 +848,7 @@ void Application::create_argv(const char *args[])
       vchar::append(built_argv, *ptr);
     }
   }
-  built_argv.push_back(NULL);
+  built_argv.push_back(nullptr);
 }
 
 std::string Application::print()

@@ -54,7 +54,7 @@ public:
   std::vector<std::string> _extra_files;
 
   Context(server_startup_st &server_arg):
-    _worker(NULL),
+    _worker(nullptr),
     _port(get_free_port()),
     _worker_function_name("queue_test"),
     _servers(server_arg),
@@ -80,10 +80,10 @@ public:
       return _worker;
     }
 
-    _worker= gearman_worker_create(NULL);
+    _worker= gearman_worker_create(nullptr);
     ASSERT_TRUE(_worker);
 
-    ASSERT_TRUE(gearman_success(gearman_worker_add_server(_worker, NULL, _port)));
+    ASSERT_TRUE(gearman_success(gearman_worker_add_server(_worker, nullptr, _port)));
 
     return _worker;
   }
@@ -121,7 +121,7 @@ public:
     _servers.clear();
     gearman_worker_free(_worker);
 
-    _worker= NULL;
+    _worker= nullptr;
     extra_clear();
     _port= get_free_port();
   }
