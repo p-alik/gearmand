@@ -117,6 +117,11 @@ bool server_startup_st::shutdown(uint32_t host_to_shutdown)
 
 void server_startup_st::clear()
 {
+  for(auto s: servers)
+  {
+    s->kill();
+  }
+
   std::for_each(servers.begin(), servers.end(), DeleteFromVector());
   servers.clear();
 }
