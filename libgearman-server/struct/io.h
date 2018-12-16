@@ -44,11 +44,11 @@
 struct gearmand_io_st
 {
   struct {
-    bool ready;
-    bool packet_in_use;
-    bool external_fd;
-    bool ignore_lost_connection;
-    bool close_after_flush;
+    bool ready{};
+    bool packet_in_use{};
+    bool external_fd{};
+    bool ignore_lost_connection{};
+    bool close_after_flush{};
   } options;
   enum {
     GEARMAND_CON_UNIVERSAL_INVALID,
@@ -66,10 +66,10 @@ struct gearmand_io_st
     GEARMAND_CON_RECV_UNIVERSAL_READ,
     GEARMAND_CON_RECV_STATE_READ_DATA
   } recv_state;
-  short events;
-  short revents;
+  short events{};
+  short revents{};
   private:
-  int _fd;
+  int _fd{};
 
   public:
   gearmand_error_t set_fd(const int fd_)
@@ -99,29 +99,34 @@ struct gearmand_io_st
     revents= 0;
   }
 
-  uint32_t created_id;
-  uint32_t created_id_next;
-  size_t send_buffer_size;
-  size_t send_data_size;
-  size_t send_data_offset;
-  size_t recv_buffer_size;
-  size_t recv_data_size;
-  size_t recv_data_offset;
-  gearmand_connection_list_st *universal;
-  gearmand_io_st *next;
-  gearmand_io_st *prev;
-  gearmand_io_st *ready_next;
-  gearmand_io_st *ready_prev;
-  gearmand_con_st *context;
-  char *send_buffer_ptr;
-  gearmand_packet_st *recv_packet;
-  char *recv_buffer_ptr;
-  gearmand_packet_st packet;
-  gearman_server_con_st *root;
+  uint32_t created_id{};
+  uint32_t created_id_next{};
+  size_t send_buffer_size{};
+  size_t send_data_size{};
+  size_t send_data_offset{};
+  size_t recv_buffer_size{};
+  size_t recv_data_size{};
+  size_t recv_data_offset{};
+  gearmand_connection_list_st *universal{nullptr};
+  gearmand_io_st *next{nullptr};
+  gearmand_io_st *prev{nullptr};
+  gearmand_io_st *ready_next{nullptr};
+  gearmand_io_st *ready_prev{nullptr};
+  gearmand_con_st *context{nullptr};
+  char *send_buffer_ptr{nullptr};
+  gearmand_packet_st *recv_packet{nullptr};
+  char *recv_buffer_ptr{nullptr};
+  gearmand_packet_st packet{};
+  gearman_server_con_st *root{nullptr};
   char send_buffer[GEARMAND_SEND_BUFFER_SIZE];
   char recv_buffer[GEARMAND_RECV_BUFFER_SIZE];
 
-  gearmand_io_st() { }
+  gearmand_io_st() {
+    this->options = {};
+    this->_state = GEARMAND_CON_UNIVERSAL_INVALID;
+    this->send_state = GEARMAND_CON_SEND_STATE_NONE;
+    this->recv_state = GEARMAND_CON_RECV_UNIVERSAL_NONE;
+  }
 
   const char* host() const;
   const char* port() const;
@@ -139,42 +144,42 @@ namespace gearmand { namespace protocol {class Context; } }
 struct gearman_server_con_st
 {
   gearmand_io_st con;
-  bool is_sleeping;
-  bool is_exceptions;
-  bool is_dead;
-  bool is_noop_sent;
-  bool is_cleaned_up;
-  gearmand_error_t ret;
-  bool io_list;
-  bool proc_list;
-  bool proc_removed;
-  bool to_be_freed_list;
-  uint32_t io_packet_count;
-  uint32_t proc_packet_count;
-  uint32_t worker_count;
-  uint32_t client_count;
-  gearman_server_thread_st *thread;
-  gearman_server_con_st *next;
-  gearman_server_con_st *prev;
-  gearman_server_packet_st *packet;
-  gearman_server_packet_st *io_packet_list;
-  gearman_server_packet_st *io_packet_end;
-  gearman_server_packet_st *proc_packet_list;
-  gearman_server_packet_st *proc_packet_end;
-  gearman_server_con_st *io_next;
-  gearman_server_con_st *io_prev;
-  gearman_server_con_st *proc_next;
-  gearman_server_con_st *proc_prev;
-  gearman_server_con_st *to_be_freed_next;
-  gearman_server_con_st *to_be_freed_prev;
-  struct gearman_server_worker_st *worker_list;
-  struct gearman_server_client_st *client_list;
-  const char *_host; // client host
-  const char *_port; // client port
+  bool is_sleeping{};
+  bool is_exceptions{};
+  bool is_dead{};
+  bool is_noop_sent{};
+  bool is_cleaned_up{};
+  gearmand_error_t ret{};
+  bool io_list{};
+  bool proc_list{};
+  bool proc_removed{};
+  bool to_be_freed_list{};
+  uint32_t io_packet_count{};
+  uint32_t proc_packet_count{};
+  uint32_t worker_count{};
+  uint32_t client_count{};
+  gearman_server_thread_st *thread{nullptr};
+  gearman_server_con_st *next{nullptr};
+  gearman_server_con_st *prev{nullptr};
+  gearman_server_packet_st *packet{nullptr};
+  gearman_server_packet_st *io_packet_list{nullptr};
+  gearman_server_packet_st *io_packet_end{nullptr};
+  gearman_server_packet_st *proc_packet_list{nullptr};
+  gearman_server_packet_st *proc_packet_end{nullptr};
+  gearman_server_con_st *io_next{nullptr};
+  gearman_server_con_st *io_prev{nullptr};
+  gearman_server_con_st *proc_next{nullptr};
+  gearman_server_con_st *proc_prev{nullptr};
+  gearman_server_con_st *to_be_freed_next{nullptr};
+  gearman_server_con_st *to_be_freed_prev{nullptr};
+  struct gearman_server_worker_st *worker_list{nullptr};
+  struct gearman_server_client_st *client_list{nullptr};
+  const char *_host{nullptr}; // client host
+  const char *_port{nullptr}; // client port
   char id[GEARMAND_SERVER_CON_ID_SIZE];
-  gearmand::protocol::Context* protocol;
-  struct event *timeout_event;
-  SSL* _ssl;
+  gearmand::protocol::Context* protocol{nullptr};
+  struct event *timeout_event{nullptr};
+  SSL* _ssl{nullptr};
 
   gearman_server_con_st()
   {
@@ -217,9 +222,8 @@ struct gearman_server_con_st
       if (protocol->is_owner())
       {
         delete protocol;
-        protocol= NULL;
       }
-      protocol= NULL;
+      protocol= nullptr;
     }
   }
 };

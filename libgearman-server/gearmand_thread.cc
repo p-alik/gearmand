@@ -190,7 +190,7 @@ gearmand_thread_st::gearmand_thread_st(gearmand_st& gearmand_):
 gearmand_error_t gearmand_thread_create(gearmand_st& gearmand)
 {
   gearmand_thread_st* thread= new (std::nothrow) gearmand_thread_st(gearmand);
-  if (thread == NULL)
+  if (!thread)
   {
     return gearmand_merror("new", gearmand_thread_st, 1);
   }
@@ -214,9 +214,9 @@ gearmand_error_t gearmand_thread_create(gearmand_st& gearmand)
 
   GEARMAND_LIST__ADD(Gearmand()->thread, thread);
 
-  thread->dcon_list= NULL;
-  thread->dcon_add_list= NULL;
-  thread->free_dcon_list= NULL;
+  thread->dcon_list= nullptr;
+  thread->dcon_add_list= nullptr;
+  thread->free_dcon_list= nullptr;
 
   /* If we have no threads, we still create a fake thread that uses the main
      libevent instance. Otherwise create a libevent instance for each thread. */
@@ -228,9 +228,9 @@ gearmand_error_t gearmand_thread_create(gearmand_st& gearmand)
   {
     gearmand_debug("Initializing libevent for IO thread");
 
-    assert(thread->base == NULL);
+    assert(thread->base == nullptr);
     thread->base= event_base_new();
-    if (thread->base == NULL)
+    if (!thread->base)
     {
       gearmand_thread_free(thread);
       gearmand_fatal("event_base_new()");
@@ -253,7 +253,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st& gearmand)
 
   thread->count= gearmand.thread_count;
 
-  int pthread_ret= pthread_mutex_init(&(thread->lock), NULL);
+  int pthread_ret= pthread_mutex_init(&(thread->lock), nullptr);
   if (pthread_ret != 0)
   {
     thread->count= 0;
@@ -266,7 +266,7 @@ gearmand_error_t gearmand_thread_create(gearmand_st& gearmand)
 
   thread->server_thread.run(_run, thread);
 
-  pthread_ret= pthread_create(&(thread->id), NULL, _thread, thread);
+  pthread_ret= pthread_create(&(thread->id), nullptr, _thread, thread);
   if (pthread_ret != 0)
   {
     thread->count= 0;
@@ -297,7 +297,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
         if (fill_timespec(ts))
         {
           ts.tv_sec+= 300;
-          pthread_error= pthread_timedjoin_np(thread->id, NULL, &ts);
+          pthread_error= pthread_timedjoin_np(thread->id, nullptr, &ts);
           if (pthread_error)
           {
             gearmand_perror(pthread_error, "pthread_timedjoin_np");
@@ -311,11 +311,11 @@ void gearmand_thread_free(gearmand_thread_st *thread)
           {
             gearmand_perror(pthread_error, "pthread_kill(, SIGQUIT)");
           }
-          pthread_error= pthread_join(thread->id, NULL);
+          pthread_error= pthread_join(thread->id, nullptr);
         }
       }
 #else
-      pthread_error= pthread_join(thread->id, NULL);
+      pthread_error= pthread_join(thread->id, nullptr);
 #endif
 
       if (pthread_error)
@@ -335,12 +335,12 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
     _wakeup_close(thread);
 
-    while (thread->dcon_list != NULL)
+    while (thread->dcon_list)
     {
       gearmand_con_free(thread->dcon_list);
     }
 
-    while (thread->dcon_add_list != NULL)
+    while (thread->dcon_add_list)
     {
       gearmand_con_st* dcon= thread->dcon_add_list;
       thread->dcon_add_list= dcon->next;
@@ -348,7 +348,7 @@ void gearmand_thread_free(gearmand_thread_st *thread)
       delete dcon;
     }
 
-    while (thread->free_dcon_list != NULL)
+    while (thread->free_dcon_list)
     {
       gearmand_con_st* dcon= thread->free_dcon_list;
       thread->free_dcon_list= dcon->next;
@@ -361,14 +361,14 @@ void gearmand_thread_free(gearmand_thread_st *thread)
 
     if (Gearmand()->threads > 0)
     {
-      if (thread->base != NULL)
+      if (thread->base)
       {
         if (Gearmand()->base == thread->base)
         {
-          Gearmand()->base= NULL;
+          Gearmand()->base= nullptr;
         }
         event_base_free(thread->base);
-        thread->base= NULL;
+        thread->base= nullptr;
       }
 
       gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "Thread %u shutdown complete", thread->count);
@@ -428,7 +428,7 @@ void gearmand_thread_run(gearmand_thread_st *thread)
       return;
     }
 
-    if (dcon == NULL)
+    if (!dcon)
     {
       /* We either got a GEARMAND_SHUTDOWN or some other fatal internal error.
          Either way, we want to shut the server down. */
@@ -475,7 +475,7 @@ static void *_thread(void *data)
 
   gearmand_debug("Exiting thread event loop");
 
-  return NULL;
+  return nullptr;
 }
 
 static void _log(const char *line, gearmand_verbose_t verbose, gearmand_thread_st*)
@@ -524,7 +524,7 @@ static gearmand_error_t _wakeup_init(gearmand_thread_st *thread)
     gearmand_perror(errno, "event_base_set");
   }
 
-  if (event_add(&(thread->wakeup_event), NULL) < 0)
+  if (event_add(&(thread->wakeup_event), nullptr) < 0)
   {
     gearmand_perror(errno, "event_add");
     return GEARMAND_EVENT;
@@ -645,7 +645,7 @@ static void _clear_events(gearmand_thread_st *thread)
 {
   _wakeup_clear(thread);
 
-  while (thread->dcon_list != NULL)
+  while (thread->dcon_list)
   {
     gearmand_con_free(thread->dcon_list);
   }

@@ -88,16 +88,20 @@ Sqlite::~Sqlite()
 
 gearmand_error_t Sqlite::initialize()
 {
-  gearmand::queue::Instance* exec_queue= new gearmand::queue::Instance(schema, table);
+  gearmand::queue::Instance* exec_queue;
 
-  if (exec_queue == NULL)
+  try
+  {
+    exec_queue= new gearmand::queue::Instance { schema, table };
+  }
+  catch (std::bad_alloc &)
   {
     return GEARMAND_MEMORY_ALLOCATION_FAILURE;
   }
 
   exec_queue->store_on_shutdown(_store_on_shutdown);
 
-  gearmand_error_t rc;
+  gearmand_error_t rc{};
   if ((rc= exec_queue->init()) != GEARMAND_SUCCESS)
   {
     delete exec_queue;
@@ -110,7 +114,7 @@ gearmand_error_t Sqlite::initialize()
 
 void initialize_sqlite()
 {
-  static Sqlite local_instance;
+  static Sqlite local_instance{};
 }
 
 } // namespace queue

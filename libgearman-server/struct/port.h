@@ -53,10 +53,11 @@ public:
   struct event *listen_event;
 
   gearmand_port_st() :
-    listen_count(0),
-    _add_fn(NULL),
-    listen_fd(NULL),
-    listen_event(NULL)
+    listen_count{0},
+    _add_fn{nullptr},
+    _remove_fn{nullptr},
+    listen_fd{nullptr},
+    listen_event{nullptr}
   {
     port[0]= 0;
   }
