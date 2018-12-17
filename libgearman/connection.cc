@@ -867,6 +867,7 @@ gearman_return_t gearman_connection_st::flush()
                 write_size= SOCKET_ERROR;
                 break;
               }
+            /* fall-thru */
 
             case SSL_ERROR_SSL:
             default:
@@ -1180,6 +1181,7 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
             read_size= SOCKET_ERROR;
             break;
           }
+          /* fall-thru */
 
         case SSL_ERROR_SSL:
         default:

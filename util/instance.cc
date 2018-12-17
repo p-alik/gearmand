@@ -314,6 +314,7 @@ bool Instance::run()
                     break;
                   }
                 }
+              /* fall-thru */
 
               case SSL_ERROR_SSL:
               default:
@@ -397,6 +398,7 @@ bool Instance::run()
                       break;
                     }
                   }
+                /* fall-thru */
 
                 case SSL_ERROR_SSL:
                 default:

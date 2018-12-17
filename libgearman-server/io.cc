@@ -158,6 +158,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
             read_size= SOCKET_ERROR;
             break;
           }
+          /* fall-thru */
 
         case SSL_ERROR_SSL:
         default:
@@ -337,7 +338,8 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
                 write_size= SOCKET_ERROR;
                 break;
               }
-
+              /* fall-thru */
+              
             case SSL_ERROR_SSL:
             default:
               {
