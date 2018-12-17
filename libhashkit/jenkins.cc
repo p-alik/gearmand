@@ -241,9 +241,9 @@ uint32_t hashkit_jenkins(const char *key, size_t length, void *)
     case 4 : a+=((uint32_t)k[3])<<24; /* fall-thru */
     case 3 : a+=((uint32_t)k[2])<<16; /* fall-thru */
     case 2 : a+=((uint32_t)k[1])<<8; /* fall-thru */
-    case 1 : a+=k[0]; /* fall-thru */
+    case 1 : a+=k[0];
              break;
-    case 0 : return c; /* fall-thru */
+    case 0 : return c;
     default : return c;
     }
 #ifndef WORDS_BIGENDIAN
