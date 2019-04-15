@@ -158,6 +158,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
             read_size= SOCKET_ERROR;
             break;
           }
+          /* fall-thru */
 
         case SSL_ERROR_SSL:
         default:
@@ -337,7 +338,8 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
                 write_size= SOCKET_ERROR;
                 break;
               }
-
+              /* fall-thru */
+              
             case SSL_ERROR_SSL:
             default:
               {
@@ -668,6 +670,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
 
     /* Flush buffer now so we can start writing directly from data buffer. */
     connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH;
+    /* fall-thru */
 
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FORCE_FLUSH:
     {
@@ -676,6 +679,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
       {
         return local_ret;
       }
+      /* fall-thru */
     }
 
     connection->send_data_size= packet->data_size;
@@ -701,6 +705,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
 
     connection->send_buffer_ptr= const_cast<char *>(packet->data) + connection->send_data_offset;
     connection->send_state= gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA;
+    /* fall-thru */
 
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH:
   case gearmand_io_st::GEARMAND_CON_SEND_UNIVERSAL_FLUSH_DATA:
@@ -716,6 +721,7 @@ gearmand_error_t gearman_io_send(gearman_server_con_st *con,
       return local_ret;
     }
   }
+  /* fall-thru */
 
   if (flush)
   {
@@ -755,6 +761,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
     connection->recv_packet->reset(GEARMAN_MAGIC_TEXT, GEARMAN_COMMAND_TEXT);
 
     connection->recv_state= gearmand_io_st::GEARMAND_CON_RECV_UNIVERSAL_READ;
+    /* fall-thru */
 
   case gearmand_io_st::GEARMAND_CON_RECV_UNIVERSAL_READ:
     while (1)
@@ -833,6 +840,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
 
     packet->options.free_data= true;
     connection->recv_state= gearmand_io_st::GEARMAND_CON_RECV_STATE_READ_DATA;
+    /* fall-thru */
 
   case gearmand_io_st::GEARMAND_CON_RECV_STATE_READ_DATA:
     while (connection->recv_data_size)

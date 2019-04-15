@@ -144,6 +144,7 @@ gearmand_error_t gearman_server_run_command(gearman_server_con_st *server_con,
     {
       return GEARMAND_MEMORY_ALLOCATION_FAILURE;
     }
+    /* fall-thru */
 
   case GEARMAN_COMMAND_SUBMIT_REDUCE_JOB_BACKGROUND:
     {

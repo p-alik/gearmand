@@ -373,6 +373,7 @@ bool SimpleClient::message(const char* ptr, const size_t len)
                 write_size= SOCKET_ERROR;
                 break;
               }
+              /* fall-thru */
 
             case SSL_ERROR_SSL:
             default:
@@ -494,6 +495,7 @@ bool SimpleClient::response(libtest::vchar_t& response_)
                 read_size= SOCKET_ERROR;
                 break;
               }
+              /* fall-thru */
 
             case SSL_ERROR_SSL:
             default:
@@ -589,6 +591,7 @@ bool SimpleClient::response(std::string& response_)
               {
                 break;
               }
+              /* fall-thru */
 
             case SSL_ERROR_SSL:
             default:

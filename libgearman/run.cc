@@ -93,6 +93,7 @@ gearman_return_t _client_run_task(Task *task)
       task->created_id= task->con->created_id_next;
       task->con->created_id_next++;
     }
+    /* fall-thru */
 
   case GEARMAN_TASK_STATE_SUBMIT:
     while (1)
