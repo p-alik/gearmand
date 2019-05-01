@@ -166,7 +166,7 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
             char errorString[SSL_ERROR_SIZE];
             ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
             ret= GEARMAND_LOST_CONNECTION;
-            gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%d", errorString);
+            gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%d", errorString, errno);
             _connection_close(connection);
 
             return 0;
