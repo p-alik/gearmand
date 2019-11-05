@@ -338,6 +338,10 @@ determine_target_platform ()
     local fedora_version
     fedora_version="$(awk ' { print $3 } ' < /etc/fedora-release)"
     set_VENDOR 'redhat' 'fedora' "$fedora_version"
+  elif [[ -f '/etc/sl-release' ]]; then
+    local sl_version
+    sl_version="$(awk ' { print $4 } ' < /etc/sl-release)"
+    set_VENDOR 'centos' 'rhel' "$sl_version"
   elif [[ -f '/etc/centos-release' ]]; then
     local centos_version
     centos_version="$(awk ' { print $7 } ' < /etc/centos-release)"
