@@ -717,7 +717,9 @@ gearmand_error_t gearman_server_con_add_job_timeout(gearman_server_con_st *con, 
           and only set this one if it is longer than that one. */
 
         struct timeval timeout_tv = { 0 , 0 };
-        timeout_tv.tv_sec= worker->timeout;
+        time_t milliseconds= worker->timeout;
+        timeout_tv.tv_sec= milliseconds / 1000;
+        timeout_tv.tv_usec= (long)((milliseconds % 1000) * 1000);
         timeout_add(con->timeout_event, &timeout_tv);
       }
       else if (con->timeout_event) // Delete the timer if it exists
