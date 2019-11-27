@@ -680,10 +680,12 @@ gearman_return_t gearman_connection_st::enable_ssl()
     if (SSL_set_fd(_ssl, fd) != SSL_SUCCESS)
     {
       close_socket();
-      char errorString[SSL_ERROR_SIZE];
+      char errorString[SSL_ERROR_SIZE]= { 0 };
       ERR_error_string_n(SSL_get_error(_ssl, 0), errorString, sizeof(errorString));
       return gearman_error(universal, GEARMAN_COULD_NOT_CONNECT, errorString);
     }
+
+    SSL_set_connect_state(_ssl);
   }
 #endif
 
@@ -872,7 +874,11 @@ gearman_return_t gearman_connection_st::flush()
             case SSL_ERROR_SSL:
             default:
               {
-                char errorString[80];
+                if (ERR_peek_last_error())
+                {
+                  ssl_error = ERR_peek_last_error();
+                }
+                char errorString[SSL_ERROR_SIZE]= { 0 };
                 ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
                 close_socket();
                 return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "SSL failure(%s)", errorString);
@@ -1186,7 +1192,11 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
         case SSL_ERROR_SSL:
         default:
           {
-            char errorString[80];
+            if (ERR_peek_last_error())
+            {
+              ssl_error = ERR_peek_last_error();
+            }
+            char errorString[SSL_ERROR_SIZE]= { 0 };
             ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
             close_socket();
             return gearman_universal_set_error(universal, GEARMAN_LOST_CONNECTION, GEARMAN_AT, "SSL failure(%s)", errorString);

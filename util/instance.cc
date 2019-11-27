@@ -158,7 +158,15 @@ bool Instance::init_ssl()
     _last_error= message.str();
     return false;
   }
-#endif // defined(HAVE_WOLFSSL) && HAVE_WOLFSSL
+
+  if (SSL_CTX_check_private_key(_ctx_ssl) != SSL_SUCCESS)
+  {
+    std::stringstream message;
+    message << "Error check private key.";
+    _last_error = message.str();
+    return false;
+  }
+#endif // defined(HAVE_SSL) && HAVE_SSL
   return true;
 }
 
@@ -280,6 +288,8 @@ bool Instance::run()
             _last_error= "SSL_set_fd() failed";
             return false;
           }
+
+          SSL_set_connect_state(_ssl);
         }
 #endif
 
@@ -323,9 +333,13 @@ bool Instance::run()
               case SSL_ERROR_SSL:
               default:
                 {
-                  char wolfssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
-                  ERR_error_string_n(ssl_error, wolfssl_error_buffer, sizeof(wolfssl_error_buffer));
-                  _last_error= wolfssl_error_buffer;
+                  if (ERR_peek_last_error())
+                  {
+                    ssl_error = ERR_peek_last_error();
+                  }
+                  char ssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
+                  ERR_error_string_n(ssl_error, ssl_error_buffer, sizeof(ssl_error_buffer));
+                  _last_error= ssl_error_buffer;
 
                   errno= ECONNRESET;
                   write_size= SOCKET_ERROR;
@@ -407,9 +421,13 @@ bool Instance::run()
                 case SSL_ERROR_SSL:
                 default:
                   {
-                    char wolfssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
-                    ERR_error_string_n(ssl_error, wolfssl_error_buffer, sizeof(wolfssl_error_buffer));
-                    _last_error= wolfssl_error_buffer;
+                    if (ERR_peek_last_error())
+                    {
+                      ssl_error = ERR_peek_last_error();
+                    }
+                    char ssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
+                    ERR_error_string_n(ssl_error, ssl_error_buffer, sizeof(ssl_error_buffer));
+                    _last_error= ssl_error_buffer;
                     read_size= SOCKET_ERROR;
                     break;
                   }

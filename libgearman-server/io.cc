@@ -152,7 +152,6 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
           break;
 
         case SSL_ERROR_SYSCALL:
-
           if (errno) // If errno is really set, then let our normal error logic handle.
           {
             read_size= SOCKET_ERROR;
@@ -163,7 +162,11 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
         case SSL_ERROR_SSL:
         default:
           { // All other errors
-            char errorString[SSL_ERROR_SIZE];
+            if (ERR_peek_last_error())
+            {
+              ssl_error = ERR_peek_last_error();
+            }
+            char errorString[SSL_ERROR_SIZE]= { 0 };
             ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
             ret= GEARMAND_LOST_CONNECTION;
             gearmand_log_info(GEARMAN_DEFAULT_LOG_PARAM, "SSL failure(%s) errno:%d", errorString, errno);
@@ -343,7 +346,7 @@ static gearmand_error_t _connection_flush(gearman_server_con_st *con)
             case SSL_ERROR_SSL:
             default:
               {
-                char errorString[SSL_ERROR_SIZE];
+                char errorString[SSL_ERROR_SIZE]= { 0 };
                 ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
                 _connection_close(connection);
                 return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "SSL failure(%s)",
