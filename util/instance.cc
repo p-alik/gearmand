@@ -162,7 +162,7 @@ bool Instance::init_ssl()
   if (SSL_CTX_check_private_key(_ctx_ssl) != SSL_SUCCESS)
   {
     std::stringstream message;
-    message << "Error check private key.";
+    message << "Error checking private key";
     _last_error = message.str();
     return false;
   }
