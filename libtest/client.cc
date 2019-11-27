@@ -81,7 +81,11 @@ void SimpleClient::init_ssl()
     SSL_load_error_strings();
     SSL_library_init();
 
-    if ((_ctx_ssl= SSL_CTX_new(TLSv1_client_method())) == NULL)
+#if (OPENSSL_VERSION_NUMBER < 0x10100000L)
+    if ((_ctx_ssl= SSL_CTX_new(TLSv1_2_client_method())) == NULL)
+#else
+    if ((_ctx_ssl= SSL_CTX_new(TLS_client_method())) == NULL)
+#endif
     {
       FATAL("SSL_CTX_new error" == NULL);
     }
