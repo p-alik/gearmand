@@ -800,7 +800,7 @@ gearmand_error_t gearman_io_recv(gearman_server_con_st *con, bool recv_data)
       connection->recv_buffer_ptr= connection->recv_buffer;
 
       size_t recv_size= _connection_read(con, connection->recv_buffer + connection->recv_buffer_size,
-					 GEARMAND_RECV_BUFFER_SIZE - connection->recv_buffer_size, ret);
+                                         GEARMAND_RECV_BUFFER_SIZE - connection->recv_buffer_size, ret);
       if (gearmand_failed(ret))
       {
         // GEARMAND_LOST_CONNECTION is not worth a warning, clients/workers just
