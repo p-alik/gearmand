@@ -874,10 +874,6 @@ gearman_return_t gearman_connection_st::flush()
             case SSL_ERROR_SSL:
             default:
               {
-                if (ERR_peek_last_error())
-                {
-                  ssl_error = ERR_peek_last_error();
-                }
                 char errorString[SSL_ERROR_SIZE]= { 0 };
                 ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
                 close_socket();
@@ -1192,10 +1188,6 @@ size_t gearman_connection_st::recv_socket(void *data, size_t data_size, gearman_
         case SSL_ERROR_SSL:
         default:
           {
-            if (ERR_peek_last_error())
-            {
-              ssl_error = ERR_peek_last_error();
-            }
             char errorString[SSL_ERROR_SIZE]= { 0 };
             ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
             close_socket();

@@ -333,10 +333,6 @@ bool Instance::run()
               case SSL_ERROR_SSL:
               default:
                 {
-                  if (ERR_peek_last_error())
-                  {
-                    ssl_error = ERR_peek_last_error();
-                  }
                   char ssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
                   ERR_error_string_n(ssl_error, ssl_error_buffer, sizeof(ssl_error_buffer));
                   _last_error= ssl_error_buffer;
@@ -421,10 +417,6 @@ bool Instance::run()
                 case SSL_ERROR_SSL:
                 default:
                   {
-                    if (ERR_peek_last_error())
-                    {
-                      ssl_error = ERR_peek_last_error();
-                    }
                     char ssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
                     ERR_error_string_n(ssl_error, ssl_error_buffer, sizeof(ssl_error_buffer));
                     _last_error= ssl_error_buffer;
