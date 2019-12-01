@@ -162,10 +162,6 @@ static size_t _connection_read(gearman_server_con_st *con, void *data, size_t da
         case SSL_ERROR_SSL:
         default:
           { // All other errors
-            if (ERR_peek_last_error())
-            {
-              ssl_error = ERR_peek_last_error();
-            }
             char errorString[SSL_ERROR_SIZE]= { 0 };
             ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
             ret= GEARMAND_LOST_CONNECTION;

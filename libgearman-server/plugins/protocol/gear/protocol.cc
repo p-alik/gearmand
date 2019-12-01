@@ -395,10 +395,6 @@ static gearmand_error_t _gear_con_add(gearman_server_con_st *connection)
         default:
           {
             char ssl_error_buffer[SSL_ERROR_SIZE]= { 0 };
-            if (ERR_peek_last_error())
-            {
-              ssl_error = ERR_peek_last_error();
-            }
             ERR_error_string_n(ssl_error, ssl_error_buffer, sizeof(ssl_error_buffer));
             return gearmand_log_gerror(GEARMAN_DEFAULT_LOG_PARAM, GEARMAND_LOST_CONNECTION, "%s(%d)",
                                        ssl_error_buffer, ssl_error);
