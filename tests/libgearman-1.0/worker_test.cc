@@ -1636,19 +1636,20 @@ static test_return_t gearman_worker_set_identifier_TEST(void *)
   return TEST_SUCCESS;
 }
 
-#if __GNUC__ >= 7
-  #pragma GCC diagnostic warning "-Wformat-truncation"
-#endif
 static test_return_t gearman_worker_add_options_GEARMAN_WORKER_GRAB_UNIQ_worker_work(void *)
 {
   libgearman::Worker worker(libtest::default_port());
   ASSERT_EQ(GEARMAN_SUCCESS, gearman_worker_add_server(&worker, NULL, second_port));
 
   char function_name[GEARMAN_FUNCTION_MAX_SIZE];
-  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random())); 
+  snprintf(function_name, GEARMAN_FUNCTION_MAX_SIZE, "_%s%d", __func__, int(random()));
 
   char unique_name[GEARMAN_MAX_UNIQUE_SIZE];
-  snprintf(unique_name, GEARMAN_MAX_UNIQUE_SIZE, "_%s%d", __func__, int(random())); 
+  int n = snprintf(unique_name, sizeof unique_name, "_%s%06d",
+      std::string(__func__).substr(0, GEARMAN_MAX_UNIQUE_SIZE-7).c_str(),
+      int(random()) % 100000u);
+   ASSERT_TRUE(n >= 0);
+   ASSERT_TRUE((size_t)n <= sizeof unique_name);
 
   bool success= false;
   ASSERT_EQ(GEARMAN_SUCCESS,
