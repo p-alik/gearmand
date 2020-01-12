@@ -49,6 +49,12 @@
 #include <cstdlib>
 #include <unistd.h>
 
+#if defined(__linux__)
+# define TRUE_CMD "/bin/true"
+#else
+# define TRUE_CMD "/usr/bin/true"
+#endif
+
 using namespace libtest;
 
 static std::string testing_service;
@@ -596,8 +602,8 @@ static test_return_t memcached_sasl_test(void *object)
 
 static test_return_t application_true_BINARY(void *)
 {
-  test_skip(0, access("/usr/bin/true", X_OK ));
-  Application true_app("/usr/bin/true");
+  test_skip(0, access(TRUE_CMD, X_OK ));
+  Application true_app(TRUE_CMD);
 
   ASSERT_EQ(Application::SUCCESS, true_app.run());
   ASSERT_EQ(Application::SUCCESS, true_app.join());
@@ -608,9 +614,9 @@ static test_return_t application_true_BINARY(void *)
 static test_return_t application_gdb_true_BINARY2(void *)
 {
   test_skip(0, access("/usr/bin/gdb", X_OK ));
-  test_skip(0, access("/usr/bin/true", X_OK ));
+  test_skip(0, access(TRUE_CMD, X_OK ));
 
-  Application true_app("/usr/bin/true");
+  Application true_app(TRUE_CMD);
   true_app.use_gdb(true);
 
   ASSERT_EQ(Application::SUCCESS, true_app.run());
@@ -622,9 +628,9 @@ static test_return_t application_gdb_true_BINARY2(void *)
 static test_return_t application_gdb_true_BINARY(void *)
 {
   test_skip(0, access("/usr/bin/gdb", X_OK ));
-  test_skip(0, access("/usr/bin/true", X_OK ));
+  test_skip(0, access(TRUE_CMD, X_OK ));
 
-  Application true_app("/usr/bin/true");
+  Application true_app(TRUE_CMD);
   true_app.use_gdb(true);
 
   const char *args[]= { "--fubar", 0 };
@@ -636,8 +642,8 @@ static test_return_t application_gdb_true_BINARY(void *)
 
 static test_return_t application_true_fubar_BINARY(void *)
 {
-  test_skip(0, access("/usr/bin/true", X_OK ));
-  Application true_app("/usr/bin/true");
+  test_skip(0, access(TRUE_CMD, X_OK ));
+  Application true_app(TRUE_CMD);
 
   const char *args[]= { "--fubar", 0 };
   ASSERT_EQ(Application::SUCCESS, true_app.run(args));
