@@ -655,13 +655,23 @@ static test_return_t application_doesnotexist_BINARY(void *)
   true_app.will_fail();
 
   const char *args[]= { "--fubar", 0 };
-#if defined(__APPLE__) && __APPLE__
-  ASSERT_EQ(Application::INVALID_POSIX_SPAWN, true_app.run(args));
-#elif defined(__FreeBSD__) && __FreeBSD__
+#if ((defined(__APPLE__) && __APPLE__) || (defined(__FreeBSD__) && __FreeBSD__))
   ASSERT_EQ(Application::INVALID_POSIX_SPAWN, true_app.run(args));
 #else
-  ASSERT_EQ(Application::SUCCESS, true_app.run(args));
-  ASSERT_EQ(Application::INVALID_POSIX_SPAWN, true_app.join());
+  /* true_app.run(args) returns INVALID_POSIX_SPAWN here on Ubuntu 18.04, but
+     it returns SUCCESS on older Linux distributions such as Ubuntu 14.04 and
+     16.04, where one needs to follow up with true_app.join() to get
+     INVALID_POSIX_SPAWN. */
+  Application::error_t return_value = true_app.run(args);
+  if (return_value == Application::INVALID_POSIX_SPAWN)
+  {
+    ASSERT_EQ(Application::INVALID_POSIX_SPAWN, return_value);
+  }
+  else
+  {
+    ASSERT_EQ(Application::SUCCESS, return_value);
+    ASSERT_EQ(Application::INVALID_POSIX_SPAWN, true_app.join());
+  }
 #endif
 
   test_zero(true_app.stdout_result().size());
