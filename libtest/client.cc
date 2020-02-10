@@ -382,7 +382,7 @@ bool SimpleClient::message(const char* ptr, const size_t len)
             case SSL_ERROR_SSL:
             default:
               {
-                char errorString[SSL_ERROR_SIZE];
+                char errorString[SSL_ERROR_SIZE]= { 0 };
                 ERR_error_string_n(ssl_error, errorString, sizeof(errorString));
                 error(__FILE__, __LINE__, errorString);
                 close_socket();
@@ -504,7 +504,7 @@ bool SimpleClient::response(libtest::vchar_t& response_)
             case SSL_ERROR_SSL:
             default:
               {
-                char errorString[SSL_ERROR_SIZE];
+                char errorString[SSL_ERROR_SIZE]= { 0 };
                 ERR_error_string_n(readErr, errorString, sizeof(errorString));
                 error(__FILE__, __LINE__, errorString);
                 return false;
