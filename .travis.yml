@@ -2,9 +2,8 @@ os:
   - linux
 language: cpp
 dist: xenial
-sudo: required
 
-matrix:
+jobs:
   include:
     - compiler: clang
       addons:
