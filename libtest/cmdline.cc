@@ -61,8 +61,11 @@ using namespace libtest;
 #include <algorithm>
 #include <stdexcept>
 
-#ifndef __USE_GNU
-static char **environ= NULL;
+#if defined(__APPLE__) && __APPLE__
+# include <crt_externs.h>
+# define environ (*_NSGetEnviron ())
+#elif !defined(_GNU_SOURCE)
+extern char **environ= NULL;
 #endif
 
 #ifndef FD_CLOEXEC
