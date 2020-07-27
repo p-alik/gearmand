@@ -148,6 +148,7 @@ jobs:
         artifacts: true
       env:
         - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
+        - CXXFLAGS="-Wp,-D_GLIBCXX_ASSERTIONS"
 
 before_install:
   - eval "${MATRIX_EVAL}"
