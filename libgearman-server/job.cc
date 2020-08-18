@@ -301,7 +301,10 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
       server_job->function->job_running--;
     }
 
-    server_job->function->job_total--;
+    if (server_job->function->job_total > 0)
+    {
+      server_job->function->job_total--;
+    }
 
     if (server_job->data != NULL)
     {
