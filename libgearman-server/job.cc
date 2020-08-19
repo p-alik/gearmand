@@ -296,7 +296,7 @@ void gearman_server_job_free(gearman_server_job_st *server_job)
 {
   if (server_job)
   {
-    if (server_job->worker != NULL)
+    if (server_job->worker != NULL && server_job->function->job_running > 0)
     {
       server_job->function->job_running--;
     }
