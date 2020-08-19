@@ -385,10 +385,13 @@ gearmand_error_t gearman_server_job_queue(gearman_server_job_st *job)
 
     GEARMAND_LIST_DEL(job->worker->job, job, worker_);
     job->worker= NULL;
-    job->function->job_running--;
     job->function_next= NULL;
     job->numerator= 0;
     job->denominator= 0;
+    if (job->function->job_running)
+    {
+      job->function->job_running--;
+    }
   }
 
   /* Queue NOOP for possible sleeping workers. */
