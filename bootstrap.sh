@@ -194,6 +194,9 @@ set_VENDOR_DISTRIBUTION ()
     opensuse*)
       VENDOR_DISTRIBUTION='opensuse'
       ;;
+    alpine)
+      VENDOR_DISTRIBUTION='alpine'
+      ;;
     *)
       die "attempt to set an invalid VENDOR_DISTRIBUTION=$dist"
       ;;
@@ -263,6 +266,9 @@ set_VENDOR_RELEASE ()
     opensuse)
       VENDOR_RELEASE="$release"
       ;;
+    alpine)
+      VENDOR_RELEASE="$release"
+      ;;
     unknown)
       die "attempt to set VENDOR_RELEASE without setting VENDOR_DISTRIBUTION"
       ;;
@@ -273,13 +279,16 @@ set_VENDOR_RELEASE ()
 }
 
 
-#  Valid values are: apple, redhat, centos, canonical, oracle, suse
+#  Valid values are: alpine, apple, redhat, centos, canonical, oracle, suse
 set_VENDOR ()
 {
   local vendor
   vendor="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
 
   case $vendor in
+    alpine)
+      VENDOR='alpine'
+      ;;
     apple)
       VENDOR='apple'
       ;;
@@ -372,6 +381,10 @@ determine_target_platform ()
     # shellcheck disable=SC1091
     source '/etc/lsb-release'
     set_VENDOR 'canonical' "$DISTRIB_ID" "$DISTRIB_CODENAME"
+  elif [[ -f '/etc/alpine-release' ]]; then
+    local alpine_version
+    alpine_version="$(cat /etc/alpine-release)"
+    set_VENDOR 'alpine' 'alpine' "$alpine_version"
   fi
 
   rebuild_host_os
