@@ -44,7 +44,7 @@ checks out ok. You can also streamline the process of building and testing by ru
 
 Once you have it installed, you can start the Gearman job server with:
 
-    gearmand -d
+    gearmand --verbose INFO
 
 This will start it while printing some verbose messages. To try
 running a job through it, look in the examples/ directory of this
