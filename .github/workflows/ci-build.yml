@@ -1,0 +1,47 @@
+name : macos-latest
+
+on:
+  push
+
+jobs:
+  gearman:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          # - ubuntu-latest
+          - macos-latest
+        include:
+          # - os: ubuntu-latest
+          #   apt-get: autoconf automake libtool
+          - os: macos-latest
+            brew: autoconf automake m4 git make ossp-uuid libevent gperf boost sphinx-doc
+            # python-version: [3.8]
+
+    steps:
+      - name: Get Packages
+        uses: mstksg/get-package@v1
+        with:
+          brew: ${{ matrix.brew }}
+          # apt-get: ${{ matrix.apt-get }}
+      - uses: actions/checkout@v2
+      # - name: Set up Python
+      #   uses: actions/setup-python@v2
+      #   with:
+      #     python-version: ${{ matrix.python-version }}
+      # - name: Install Sphinx
+      #   run: pip3 install sphinx
+      # - name: Install deps
+      #   run:
+      #     brew clang clang++ autoconf automake m4 git make util-linux-dev libuuid libevent-dev gperf boost-dev
+      - name: Configure
+        run: |
+          brew link sphinx-doc --force
+          ./bootstrap.sh -a
+          ./configure --with-mysql=no --with-postgresql=no
+      - name: build
+        run:
+          make
+      - name: test
+        run:
+          make test
