@@ -1794,7 +1794,7 @@ merge ()
 
     bzr push "$BRANCH"
   elif [[ -n "$VCS_CHECKOUT" ]]; then
-    die "Merge attempt occured, current VCS setup does not support this"
+    die "Merge attempt occurred, current VCS setup does not support this"
   fi
 }
 
