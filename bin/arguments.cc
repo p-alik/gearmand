@@ -91,13 +91,26 @@ void Args::init(int argc)
 {
   int c;
 
-  /* Portable handling of --ping to avoid non-portable getopt_long(). */
+  static const char short_opts[]= "bc:f:h:HILnNp:Pst:u:vwi:dS";
+
   for (int i= 1; i < argc; )
   {
+    if (strcmp(argv[i], "--") == 0)
+    {
+      break;
+    }
+    if (argv[i][0] == '-' && argv[i][1] != '\0' && argv[i][2] == '\0')
+    {
+      const char *opt= strchr(short_opts, argv[i][1]);
+      if (opt && opt[1] == ':')
+      {
+        i += 2;
+        continue;
+      }
+    }
     if (strcmp(argv[i], "--ping") == 0)
     {
       _ping= true;
-      /* Remove this argument so getopt() does not treat it as invalid. */
       for (int j= i; j < argc - 1; j++)
       {
         argv[j]= argv[j + 1];

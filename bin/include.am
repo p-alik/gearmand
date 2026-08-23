@@ -65,7 +65,7 @@ client-test-basic: $(GEARMAN_CLIENT_TEST)
 client-test-ping: $(GEARMAN_CLIENT_TEST)
 	@gearmand/gearmand --port=$(GEARMAND_PORT) --daemon --pid-file=$(GEARMAND_PIDFILE)
 	@$(GEARMAN_CLIENT_TEST) --ping -p $(GEARMAND_PORT)
-	@$(GEARMAN_CLIENT_TEST) --ping $(GEARMAND_PORT) -v | grep -q "ping ok"
+	@$(GEARMAN_CLIENT_TEST) --ping -p $(GEARMAND_PORT) -v | grep -q "ping OK"
 	@if $(GEARMAN_CLIENT_TEST) --ping -p 1 -t 500; then \
 	  echo "ping unexpectedly succeeded against closed port"; \
 	  exit 1; \

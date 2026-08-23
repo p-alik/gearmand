@@ -270,12 +270,14 @@ void _ping(Args &args)
     if (gearman_failed(gearman_client_add_servers(&client, getenv("GEARMAN_SERVER"))))
     {
       error::message("Error occurred while parsing GEARMAN_SERVER", &client);
+      args.set_error();
       return;
     }
   }
   else if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
   {
     error::message("gearman_client_add_server", &client);
+    args.set_error();
     return;
   }
 
@@ -291,6 +293,7 @@ void _ping(Args &args)
   if (gearman_failed(rc))
   {
     error::message("gearman_client_echo", &client);
+    args.set_error();
     return;
   }
 
