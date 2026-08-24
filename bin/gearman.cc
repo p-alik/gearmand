@@ -88,6 +88,11 @@ struct worker_argument_t
 static void _client(Args &args);
 
 /**
+ * Establish connection to the server in client and ping modes.
+ */
+static bool _client_connect(Args &args, libgearman::Client& client);
+
+/**
  * Run client jobs.
  */
 static void _client_run(libgearman::Client& client, Args &args,
@@ -265,27 +270,10 @@ void _ping(Args &args)
     gearman_client_set_timeout(&client, 2000);
   }
 
-  if (getenv("GEARMAN_SERVER"))
+  if (not _client_connect(args, client))
   {
-    if (gearman_failed(gearman_client_add_servers(&client, getenv("GEARMAN_SERVER"))))
-    {
-      error::message("Error occurred while parsing GEARMAN_SERVER", &client);
-      args.set_error();
-      return;
-    }
-  }
-  else if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
-  {
-    error::message("gearman_client_add_server", &client);
     args.set_error();
     return;
-  }
-
-  if (args.use_ssl())
-  {
-    /* Paths from GEARMAND_CA_CERTIFICATE / GEARMAN_CLIENT_PEM /
-       GEARMAN_CLIENT_KEY environment variables or compile-time defaults. */
-    gearman_client_add_options(&client, GEARMAN_CLIENT_SSL);
   }
 
   static const char payload[]= "ping";
@@ -379,6 +367,32 @@ void _client(Args &args)
       _client_run(client, args, args.argument(x), strlen(args.argument(x)));
     }
   }
+}
+
+static bool _client_connect(Args &args, libgearman::Client& client)
+{
+  if (getenv("GEARMAN_SERVER"))
+  {
+    if (gearman_failed(gearman_client_add_servers(&client, getenv("GEARMAN_SERVER"))))
+    {
+      error::message("Error occurred while parsing GEARMAN_SERVER", &client);
+      return false;
+    }
+  }
+  else if (gearman_failed(gearman_client_add_server(&client, args.host(), args.port())))
+  {
+    error::message("gearman_client_add_server", &client);
+    return false;
+  }
+
+  if (args.use_ssl())
+  {
+    /* Paths from GEARMAND_CA_CERTIFICATE / GEARMAN_CLIENT_PEM /
+       GEARMAN_CLIENT_KEY environment variables or compile-time defaults. */
+    gearman_client_add_options(&client, GEARMAN_CLIENT_SSL);
+  }
+
+  return true;
 }
 
 void _client_run(libgearman::Client& client, Args &args,
