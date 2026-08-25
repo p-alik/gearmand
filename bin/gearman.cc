@@ -387,9 +387,14 @@ static bool _client_connect(Args &args, libgearman::Client& client)
 
   if (args.use_ssl())
   {
+#if defined(HAVE_SSL) && HAVE_SSL
     /* Paths from GEARMAND_CA_CERTIFICATE / GEARMAN_CLIENT_PEM /
        GEARMAN_CLIENT_KEY environment variables or compile-time defaults. */
     gearman_client_add_options(&client, GEARMAN_CLIENT_SSL);
+#else
+    error::message("SSL (-S) was requested, but this gearman executable was not built with SSL support");
+    return false;
+#endif
   }
 
   return true;
