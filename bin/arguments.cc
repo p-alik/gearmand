@@ -72,6 +72,7 @@ Args::Args(int p_argc, char *p_argv[]) :
   _usage(false),
   _is_error(false),
   _use_ssl(false),
+  _ping(false),
   _arg_error(NULL),
   _priority(GEARMAN_JOB_PRIORITY_NORMAL),
   _timeout(-1),
@@ -89,6 +90,38 @@ Args::~Args()
 void Args::init(int argc)
 {
   int c;
+
+  static const char short_opts[]= "bc:f:h:HILnNp:Pst:u:vwi:dS";
+
+  for (int i= 1; i < argc; )
+  {
+    if (strcmp(argv[i], "--") == 0)
+    {
+      break;
+    }
+    if (argv[i][0] == '-' && argv[i][1] != '\0' && argv[i][2] == '\0')
+    {
+      const char *opt= strchr(short_opts, argv[i][1]);
+      if (opt && opt[1] == ':')
+      {
+        i += 2;
+        continue;
+      }
+    }
+    if (strcmp(argv[i], "--ping") == 0)
+    {
+      _ping= true;
+      for (int j= i; j < argc - 1; j++)
+      {
+        argv[j]= argv[j + 1];
+      }
+      argv[--argc]= NULL;
+    }
+    else
+    {
+      i++;
+    }
+  }
 
   opterr= 0;
 
