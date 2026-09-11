@@ -230,7 +230,7 @@ private:
   // GEARMAN_IO_WAIT) reset the recv state machine and drop the borrowed
   // _recv_packet alias before returning to the caller, which may free the
   // packet it passed in. Always returns NULL.
-  gearman_packet_st *recv_error(gearman_return_t& ret);
+  gearman_packet_st *handle_recv_error(gearman_return_t& ret);
 
   gearman_packet_st *_recv_packet;
 };
