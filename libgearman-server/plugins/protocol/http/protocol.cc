@@ -110,10 +110,7 @@ public:
     {
     case GEARMAN_COMMAND_WORK_DATA:
       {
-        for (const char *ptr= packet->data; ptr <= (packet->data +packet->data_size) -2; ptr++)
-        {
-          content.push_back(*ptr);
-        }
+        content.insert(content.end(), packet->data, packet->data +packet->data_size);
 
         gearmand_log_debug(GEARMAN_DEFAULT_LOG_PARAM, "HTTP gearmand_command_t: GEARMAN_COMMAND_WORK_DATA length:%" PRIu64, uint64_t(content.size()));
         ret_ptr= GEARMAND_IGNORE_PACKET;
@@ -223,7 +220,7 @@ public:
                                     http_version,
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  (int)packet->arg_size[0] : (int)packet->arg_size[0] - 1,
                                     (const char *)packet->arg[0],
-                                    (uint64_t)packet->data_size,
+                                    uint64_t(packet->data_size + content.size()),
                                     connection_header);
       }
       else if (method() == gearmand::protocol::httpd::TRACE)
@@ -250,7 +247,7 @@ public:
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1),
                                     (const char *)packet->arg[0],
                                     gearman_strcommand(packet->command),
-                                    (uint64_t)packet->data_size,
+                                    uint64_t(packet->data_size + content.size()),
                                     connection_header);
       }
       else
@@ -267,22 +264,27 @@ public:
                                     packet->command == GEARMAN_COMMAND_JOB_CREATED ?  int(packet->arg_size[0]) : int(packet->arg_size[0] - 1),
                                     (const char *)packet->arg[0],
                                     gearman_strcommand(packet->command),
-                                    (uint64_t)packet->data_size,
+                                    uint64_t(packet->data_size + content.size()),
                                     connection_header);
       }
 
       _sent_header= true;
     }
 
-    if (pack_size > send_buffer_size)
+    if (pack_size + content.size() > send_buffer_size)
     {
       gearmand_debug("Sending HTTP had to flush");
       ret_ptr= GEARMAND_FLUSH_DATA;
       return 0;
     }
 
-    memcpy(send_buffer, &content[0], content.size());
-    pack_size+= content.size();
+    // content holds data from earlier WORK_DATA packets and is frequently
+    // empty, so content[0] must not be touched; it belongs after the header.
+    if (content.empty() == false)
+    {
+      memcpy((char *)send_buffer + pack_size, content.data(), content.size());
+      pack_size+= content.size();
+    }
 
 #if 0
     if (keep_alive() == false)
