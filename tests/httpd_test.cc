@@ -111,9 +111,15 @@ static test_return_t curl_function_TEST(void *)
   ASSERT_EQ(Application::SUCCESS, curl.join());
   test_zero(curl.stdout_result_length());
 
-  struct stat stat_buffer;
-  test_zero(stat("var/tmp/curl_function_TEST.out", &stat_buffer));
-  ASSERT_TRUE(stat_buffer.st_size >= off_t(146));
+  // The echo worker returns the workload via WORK_DATA, which must make it
+  // into the body intact and after the HTTP header (issue #516).
+  char body[64]= { 0 };
+  FILE *output= fopen("var/tmp/curl_function_TEST.out", "r");
+  ASSERT_TRUE(output);
+  size_t body_size= fread(body, 1, sizeof(body) - 1, output);
+  fclose(output);
+  ASSERT_EQ(size_t(5), body_size);
+  ASSERT_STREQ("fubar", body);
   test_zero(unlink("var/tmp/curl_function_TEST.out"));
 
   return TEST_SUCCESS;
