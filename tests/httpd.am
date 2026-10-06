@@ -17,7 +17,7 @@ t_httpd_SOURCES+= tests/httpd_test.cc
 
 t_httpd_LDADD+= $(CLIENT_LDADD)
 
-#check_PROGRAMS+= t/httpd
+check_PROGRAMS+= t/httpd
 noinst_PROGRAMS+= t/httpd
 
 test-httpd: t/httpd gearmand/gearmand
