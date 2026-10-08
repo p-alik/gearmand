@@ -62,3 +62,12 @@ const struct gearman_command_info_st * gearman_command_lookup (const char *str, 
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+/*
+  True for the commands a server answers with JOB_CREATED. Only these take a
+  created_id slot on a connection; every other request a task can send
+  (GET_STATUS, GET_STATUS_UNIQUE) must leave created_id/created_id_next alone.
+*/
+bool gearman_command_expects_job_created(gearman_command_t command);
+#endif

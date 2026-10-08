@@ -49,3 +49,4 @@ test_return_t coalescence_by_data_FAIL_TEST(void*);
 test_return_t gearman_client_unique_status_TEST(void*);
 test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object);
 test_return_t gearman_client_unique_status_then_do_background_TEST(void *object);
+test_return_t gearman_client_unique_status_ERROR_then_do_background_TEST(void *object);
