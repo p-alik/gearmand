@@ -61,7 +61,7 @@ gearman_return_t _client_run_task(Task *task)
   switch(task->state)
   {
   case GEARMAN_TASK_STATE_NEW:
-    
+
     if (task->client->universal.has_connections() == false)
     {
       assert(task->client->universal.con_count == 0);
@@ -118,7 +118,7 @@ gearman_return_t _client_run_task(Task *task)
 
         if (ret == GEARMAN_COULD_NOT_CONNECT)
         {
-          for (task->con= task->con->next_connection(); 
+          for (task->con= task->con->next_connection();
                task->con;
                task->con= task->con->next_connection())
           {
@@ -150,7 +150,7 @@ gearman_return_t _client_run_task(Task *task)
           return ret;
         }
 
-        if (task->send.command != GEARMAN_COMMAND_GET_STATUS && 
+        if (task->send.command != GEARMAN_COMMAND_GET_STATUS &&
             task->send.command != GEARMAN_COMMAND_GET_STATUS_UNIQUE)
         {
           task->created_id= task->con->created_id_next;
