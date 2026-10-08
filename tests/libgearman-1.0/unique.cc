@@ -473,6 +473,39 @@ test_return_t gearman_client_unique_status_TEST(void *object)
   return TEST_SUCCESS;
 }
 
+/*
+  Regression test for #520: a GET_STATUS_UNIQUE request must not consume a
+  created_id slot, otherwise the JOB_CREATED of a following background submit
+  on the same connection is never matched and the client hangs.
+*/
+test_return_t gearman_client_unique_status_then_do_background_TEST(void *object)
+{
+  gearman_client_st *original_client= (gearman_client_st *)object;
+
+  libgearman::Client client(original_client);
+  gearman_client_set_timeout(&client, 2000);
+
+  const char* unique_handle= YATL_UNIQUE;
+
+  {
+    gearman_status_t status= gearman_client_unique_status(&client,
+                                                          unique_handle, strlen(unique_handle));
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_status_return(status));
+    ASSERT_EQ(false, gearman_status_is_known(status));
+  }
+
+  gearman_job_handle_t job_handle;
+  ASSERT_EQ(GEARMAN_SUCCESS,
+            gearman_client_do_background(&client,
+                                         __func__, // function
+                                         unique_handle, // unique
+                                         test_literal_param("do_background"), // workload
+                                         job_handle));
+  ASSERT_TRUE(job_handle[0]);
+
+  return TEST_SUCCESS;
+}
+
 test_return_t gearman_client_unique_status_NOT_FOUND_TEST(void *object)
 {
   gearman_client_st *original_client= (gearman_client_st *)object;
