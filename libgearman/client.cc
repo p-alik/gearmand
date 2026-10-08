@@ -1605,7 +1605,10 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
 
               if (client->con->_packet.command == GEARMAN_COMMAND_JOB_CREATED)
               {
-                if (client->task->impl()->created_id != client->con->created_id)
+                // Status tasks never take a created_id slot, so their default
+                // created_id of 0 must not be mistaken for a pending submit.
+                if (not gearman_command_expects_job_created(client->task->impl()->send.command) or
+                    client->task->impl()->created_id != client->con->created_id)
                 {
                   continue;
                 }
@@ -1637,7 +1640,17 @@ static inline gearman_return_t _client_run_tasks(gearman_client_st *client_shell
 
                 /* This step copied from _client_run_tasks() above: */
                 /* Increment this value because new job created then failed. */
-                client->con->created_id++;
+                /*
+                  Only when a submit is still waiting for JOB_CREATED: an ERROR
+                  in reply to GET_STATUS/GET_STATUS_UNIQUE (e.g. from a server
+                  that does not implement GET_STATUS_UNIQUE) has no slot to
+                  release, and advancing created_id past created_id_next would
+                  make the next submit's JOB_CREATED unmatchable.
+                */
+                if (client->con->created_id != client->con->created_id_next)
+                {
+                  client->con->created_id++;
+                }
 
                 return maybe_server_error;
               }

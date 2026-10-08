@@ -42,6 +42,13 @@ using namespace libtest;
 
 #include <cassert>
 #include <cstring>
+#include <vector>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #include <libgearman/gearman.h>
 #include <tests/unique.h>
 
@@ -502,6 +509,182 @@ test_return_t gearman_client_unique_status_then_do_background_TEST(void *object)
                                          test_literal_param("do_background"), // workload
                                          job_handle));
   ASSERT_TRUE(job_handle[0]);
+
+  return TEST_SUCCESS;
+}
+
+namespace {
+
+/*
+  Minimal single-connection stand-in for a server that does not implement
+  GET_STATUS_UNIQUE: it answers that request with ERROR and answers
+  SUBMIT_JOB_BG with JOB_CREATED.
+*/
+struct error_on_status_unique_server_st
+{
+  int listen_fd;
+  in_port_t port;
+  pthread_t thread;
+};
+
+bool read_exact(int fd, void* buffer, size_t length)
+{
+  char* ptr= static_cast<char*>(buffer);
+  while (length)
+  {
+    ssize_t read_length= recv(fd, ptr, length, 0);
+    if (read_length <= 0)
+    {
+      return false;
+    }
+    ptr+= read_length;
+    length-= size_t(read_length);
+  }
+
+  return true;
+}
+
+bool send_exact(int fd, const void* buffer, size_t length)
+{
+  const char* ptr= static_cast<const char*>(buffer);
+  while (length)
+  {
+    ssize_t sent_length= send(fd, ptr, length, MSG_NOSIGNAL);
+    if (sent_length <= 0)
+    {
+      return false;
+    }
+    ptr+= sent_length;
+    length-= size_t(sent_length);
+  }
+
+  return true;
+}
+
+bool send_response(int fd, gearman_command_t command, const char* data, uint32_t data_size)
+{
+  char header[12]= { '\0', 'R', 'E', 'S' };
+  uint32_t value= htonl(uint32_t(command));
+  memcpy(header +4, &value, sizeof(value));
+  value= htonl(data_size);
+  memcpy(header +8, &value, sizeof(value));
+
+  return send_exact(fd, header, sizeof(header)) and
+         send_exact(fd, data, data_size);
+}
+
+void* error_on_status_unique_server_run(void* object)
+{
+  error_on_status_unique_server_st* server= static_cast<error_on_status_unique_server_st*>(object);
+
+  int fd= accept(server->listen_fd, NULL, NULL);
+  if (fd == -1)
+  {
+    return NULL;
+  }
+
+  char header[12];
+  while (read_exact(fd, header, sizeof(header)))
+  {
+    uint32_t command;
+    uint32_t data_size;
+    memcpy(&command, header +4, sizeof(command));
+    memcpy(&data_size, header +8, sizeof(data_size));
+    command= ntohl(command);
+    data_size= ntohl(data_size);
+
+    std::vector<char> data(data_size);
+    if (data_size and read_exact(fd, &data[0], data_size) == false)
+    {
+      break;
+    }
+
+    if (command == GEARMAN_COMMAND_GET_STATUS_UNIQUE)
+    {
+      static const char error[]= "ERR_UNKNOWN_COMMAND\0Unknown+server+command";
+      send_response(fd, GEARMAN_COMMAND_ERROR, error, sizeof(error) -1);
+    }
+    else if (command == GEARMAN_COMMAND_SUBMIT_JOB_BG)
+    {
+      static const char job_handle[]= "H:stub:1";
+      send_response(fd, GEARMAN_COMMAND_JOB_CREATED, job_handle, sizeof(job_handle) -1);
+    }
+  }
+
+  close(fd);
+  return NULL;
+}
+
+bool error_on_status_unique_server_start(error_on_status_unique_server_st& server)
+{
+  server.listen_fd= socket(AF_INET, SOCK_STREAM, 0);
+  if (server.listen_fd == -1)
+  {
+    return false;
+  }
+
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family= AF_INET;
+  addr.sin_addr.s_addr= htonl(INADDR_LOOPBACK);
+  socklen_t addr_length= sizeof(addr);
+
+  if (bind(server.listen_fd, (struct sockaddr*)&addr, sizeof(addr)) == -1 or
+      listen(server.listen_fd, 1) == -1 or
+      getsockname(server.listen_fd, (struct sockaddr*)&addr, &addr_length) == -1)
+  {
+    close(server.listen_fd);
+    return false;
+  }
+  server.port= ntohs(addr.sin_port);
+
+  if (pthread_create(&server.thread, NULL, error_on_status_unique_server_run, &server) != 0)
+  {
+    close(server.listen_fd);
+    return false;
+  }
+
+  return true;
+}
+
+} // namespace
+
+/*
+  An ERROR in reply to GET_STATUS_UNIQUE (a server without GET_STATUS_UNIQUE
+  support) has no created_id slot to release, so it must not advance created_id:
+  otherwise the following background submit's JOB_CREATED is never matched.
+*/
+test_return_t gearman_client_unique_status_ERROR_then_do_background_TEST(void *)
+{
+  error_on_status_unique_server_st server;
+  ASSERT_TRUE(error_on_status_unique_server_start(server));
+
+  {
+    libgearman::Client client;
+    // The stub speaks plain TCP only.
+    gearman_client_remove_options(&client, GEARMAN_CLIENT_SSL);
+    gearman_client_set_timeout(&client, 2000);
+    ASSERT_EQ(GEARMAN_SUCCESS, gearman_client_add_server(&client, "127.0.0.1", server.port));
+
+    const char* unique_handle= YATL_UNIQUE;
+
+    gearman_status_t status= gearman_client_unique_status(&client,
+                                                          unique_handle, strlen(unique_handle));
+    ASSERT_TRUE(gearman_failed(gearman_status_return(status)));
+
+    gearman_job_handle_t job_handle;
+    ASSERT_EQ(GEARMAN_SUCCESS,
+              gearman_client_do_background(&client,
+                                           __func__, // function
+                                           unique_handle, // unique
+                                           test_literal_param("do_background"), // workload
+                                           job_handle));
+    ASSERT_STREQ("H:stub:1", job_handle);
+  }
+
+  // The client has disconnected, so the server thread's read loop ends.
+  pthread_join(server.thread, NULL);
+  close(server.listen_fd);
 
   return TEST_SUCCESS;
 }

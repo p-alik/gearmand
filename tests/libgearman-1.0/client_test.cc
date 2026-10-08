@@ -2385,6 +2385,7 @@ test_st unique_tests[] ={
   {"gearman_client_unique_status(NOT_FOUND)", 0, gearman_client_unique_status_NOT_FOUND_TEST },
   {"gearman_client_unique_status()", 0, gearman_client_unique_status_TEST },
   {"gearman_client_unique_status() then do_background() (#520)", 0, gearman_client_unique_status_then_do_background_TEST },
+  {"gearman_client_unique_status() ERROR then do_background()", 0, gearman_client_unique_status_ERROR_then_do_background_TEST },
   {0, 0, 0}
 };
 

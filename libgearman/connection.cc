@@ -315,7 +315,8 @@ void gearman_connection_st::close_socket()
 
     options.server_options_sent= false;
 
-    // created_id_next is incremented for every outbound packet (except status).
+    // created_id_next is incremented for every outbound job submission (see
+    // gearman_command_expects_job_created()).
     // created_id is incremented for every response packet received, and also when
     // no packets are received due to an error. There are lots of such error paths
     // and it seems simpler to just reset these both to zero when a connection is
