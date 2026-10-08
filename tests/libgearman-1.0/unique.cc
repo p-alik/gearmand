@@ -544,6 +544,23 @@ bool read_exact(int fd, void* buffer, size_t length)
   return true;
 }
 
+bool send_exact(int fd, const void* buffer, size_t length)
+{
+  const char* ptr= static_cast<const char*>(buffer);
+  while (length)
+  {
+    ssize_t sent_length= send(fd, ptr, length, MSG_NOSIGNAL);
+    if (sent_length <= 0)
+    {
+      return false;
+    }
+    ptr+= sent_length;
+    length-= size_t(sent_length);
+  }
+
+  return true;
+}
+
 bool send_response(int fd, gearman_command_t command, const char* data, uint32_t data_size)
 {
   char header[12]= { '\0', 'R', 'E', 'S' };
@@ -552,8 +569,8 @@ bool send_response(int fd, gearman_command_t command, const char* data, uint32_t
   value= htonl(data_size);
   memcpy(header +8, &value, sizeof(value));
 
-  return send(fd, header, sizeof(header), MSG_NOSIGNAL) == ssize_t(sizeof(header)) and
-         send(fd, data, data_size, MSG_NOSIGNAL) == ssize_t(data_size);
+  return send_exact(fd, header, sizeof(header)) and
+         send_exact(fd, data, data_size);
 }
 
 void* error_on_status_unique_server_run(void* object)
