@@ -385,6 +385,9 @@ gearman_client_options_t gearman_client_options(const gearman_client_st *client_
     if (client->ssl())
       options|= int(GEARMAN_CLIENT_SSL);
 
+    if (client->options.server_selection_hash_unique)
+      options|= int(GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+
     return gearman_client_options_t(options);
   }
 
@@ -427,6 +430,9 @@ bool gearman_client_has_option(gearman_client_st *client_shell,
     case GEARMAN_CLIENT_SSL:
       return client->ssl();
 
+    case GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE:
+      return client->options.server_selection_hash_unique;
+
     default:
     case GEARMAN_CLIENT_TASK_IN_USE:
     case GEARMAN_CLIENT_MAX:
@@ -450,6 +456,7 @@ void gearman_client_set_options(gearman_client_st *client_shell,
       GEARMAN_CLIENT_GENERATE_UNIQUE,
       GEARMAN_CLIENT_EXCEPTION,
       GEARMAN_CLIENT_SSL,
+      GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE,
       GEARMAN_CLIENT_MAX
     };
 
@@ -508,6 +515,11 @@ void gearman_client_add_options(gearman_client_st *client_shell,
     {
       client->ssl(true);
     }
+
+    if (options & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE)
+    {
+      client->options.server_selection_hash_unique= true;
+    }
   }
 }
 
@@ -560,6 +572,11 @@ void gearman_client_remove_options(gearman_client_st *client_shell,
     if (options & GEARMAN_CLIENT_GENERATE_UNIQUE)
     {
       client->options.generate_unique= false;
+    }
+
+    if (options & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE)
+    {
+      client->options.server_selection_hash_unique= false;
     }
   }
 }

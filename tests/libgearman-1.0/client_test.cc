@@ -467,6 +467,68 @@ static test_return_t server_selection_by_unique_option_clone_test(void *)
   return TEST_SUCCESS;
 }
 
+// The same option is reachable as GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE
+// through the gearman_client_*_options() family, so language bindings that
+// only pass an options bitmask through (e.g. pecl-gearman's addOptions())
+// can enable it without wrapping the dedicated setter. Both paths must stay
+// in sync with each other.
+static test_return_t server_selection_by_unique_flag_test(void *)
+{
+  gearman_client_st *gear= gearman_client_create(NULL);
+  ASSERT_TRUE(gear);
+
+  ASSERT_FALSE(gearman_client_has_option(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+  ASSERT_EQ(0, gearman_client_options(gear) & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+
+  gearman_client_add_options(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_TRUE(gearman_client_has_option(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+  ASSERT_TRUE(gearman_client_options(gear) & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_TRUE(gearman_client_server_selection_by_unique(gear));
+
+  gearman_client_remove_options(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_FALSE(gearman_client_has_option(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+  ASSERT_EQ(0, gearman_client_options(gear) & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_FALSE(gearman_client_server_selection_by_unique(gear));
+
+  // The dedicated setter is reflected in the options bitmask.
+  gearman_client_set_server_selection_by_unique(gear, true);
+  ASSERT_TRUE(gearman_client_has_option(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+  ASSERT_TRUE(gearman_client_options(gear) & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  gearman_client_set_server_selection_by_unique(gear, false);
+  ASSERT_FALSE(gearman_client_has_option(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+
+  // gearman_client_set_options() only honours flags in its usable_options[]
+  // list; make sure this one is in it, both for setting and for clearing.
+  gearman_client_set_options(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_TRUE(gearman_client_server_selection_by_unique(gear));
+  ASSERT_TRUE(gearman_client_options(gear) & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+
+  gearman_client_set_options(gear, gearman_client_options_t());
+  ASSERT_FALSE(gearman_client_server_selection_by_unique(gear));
+  ASSERT_EQ(0, gearman_client_options(gear) & GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+
+  // Enabling it alongside other flags leaves those flags alone.
+  gearman_client_add_options(gear, GEARMAN_CLIENT_FREE_TASKS);
+  gearman_client_add_options(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_TRUE(gearman_client_has_option(gear, GEARMAN_CLIENT_FREE_TASKS));
+  ASSERT_TRUE(gearman_client_has_option(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+  gearman_client_remove_options(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  ASSERT_TRUE(gearman_client_has_option(gear, GEARMAN_CLIENT_FREE_TASKS));
+
+  // And the flag survives gearman_client_clone() like the setter does.
+  gearman_client_add_options(gear, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE);
+  gearman_client_st *clone= gearman_client_clone(NULL, gear);
+  ASSERT_TRUE(clone);
+  ASSERT_TRUE(gearman_client_has_option(clone, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+  gearman_client_free(clone);
+
+  ASSERT_FALSE(gearman_client_has_option(NULL, GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE));
+
+  gearman_client_free(gear);
+
+  return TEST_SUCCESS;
+}
+
 static test_return_t echo_test(void *object)
 {
   gearman_client_st *client= (gearman_client_st *)object;
@@ -2379,6 +2441,7 @@ test_st gearman_client_st_init_TESTS[] ={
   {"options", 0, option_test },
   {"gearman_client_set_server_selection_by_unique()", 0, server_selection_by_unique_option_test },
   {"gearman_client_set_server_selection_by_unique() survives gearman_client_clone()", 0, server_selection_by_unique_option_clone_test },
+  {"GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE", 0, server_selection_by_unique_flag_test },
   {0, 0, 0}
 };
 

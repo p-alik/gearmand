@@ -114,7 +114,8 @@ typedef enum
   GEARMAN_CLIENT_EXCEPTION=         (1 << 7),
   GEARMAN_CLIENT_SSL=               (1 << 8),
   GEARMAN_CLIENT_MAX=               (1 << 9),
-  GEARMAN_CLIENT_STOP_WAIT_ON_SIGNAL= (1 << 10)
+  GEARMAN_CLIENT_STOP_WAIT_ON_SIGNAL= (1 << 10),
+  GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE= (1 << 11)
 } gearman_client_options_t;
 
 /**

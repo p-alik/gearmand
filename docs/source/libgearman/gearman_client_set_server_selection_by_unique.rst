@@ -41,10 +41,13 @@ next server in ring order rather than failing the submission outright, the
 same way the default selection falls through the server list on a
 connection failure.
 
-This option is disabled by default and is not one of the bit flags
-controlled by :c:func:`gearman_client_add_options` /
-:c:func:`gearman_client_remove_options`; it is copied by
-:c:func:`gearman_client_clone` like the client's other persistent settings.
+This option is disabled by default. It can also be enabled or disabled
+with the :c:type:`GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE` flag via
+:c:func:`gearman_client_add_options` / :c:func:`gearman_client_remove_options`
+(and queried with :c:func:`gearman_client_has_option`), which is useful for
+language bindings that pass an options bitmask through to libgearman. Both
+ways change the same setting. It is copied by :c:func:`gearman_client_clone`
+like the client's other persistent settings.
 
 :c:func:`gearman_client_server_selection_by_unique` returns whether the
 option is currently enabled.

@@ -170,6 +170,9 @@ void gearman_client_remove_options(gearman_client_st *client,
  * behavior of submitting to the first idle server in the order servers were
  * added.
  *
+ * Equivalent to adding/removing GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE
+ * with gearman_client_add_options()/gearman_client_remove_options().
+ *
  * @param[in] client Structure previously initialized with
  *  gearman_client_create() or gearman_client_clone().
  * @param[in] enable Whether to route submissions by hashing task->unique.
