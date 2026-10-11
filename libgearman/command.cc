@@ -57,7 +57,7 @@
  * Command info. Update GEARMAN_MAX_COMMAND_ARGS to the largest number in the
  * args column.
  */
-gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
+gearman_command_info_st gearmand_command_info_list[]=
 {
   { "GEARMAN_TEXT", GEARMAN_COMMAND_TEXT, 5, false },
   { "GEARMAN_CAN_DO", GEARMAN_COMMAND_CAN_DO, 1, false },
@@ -103,6 +103,8 @@ gearman_command_info_st gearmand_command_info_list[GEARMAN_COMMAND_MAX]=
   { "GEARMAN_GET_STATUS_UNIQUE", GEARMAN_COMMAND_GET_STATUS_UNIQUE, 1, false },
   { "GEARMAN_STATUS_RES_UNIQUE", GEARMAN_COMMAND_STATUS_RES_UNIQUE, 6, false }
 };
+static_assert(sizeof(gearmand_command_info_list) / sizeof(gearmand_command_info_list[0]) == GEARMAN_COMMAND_MAX,
+              "gearmand_command_info_list[] must have one entry per gearman_command_t");
 
 const char *gearman_strcommand(gearman_command_t command)
 {
