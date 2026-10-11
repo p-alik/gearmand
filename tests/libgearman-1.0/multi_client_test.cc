@@ -48,6 +48,7 @@ using namespace libtest;
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #define GEARMAN_CORE
@@ -167,62 +168,105 @@ static test_return_t multi_client_test(void *object)
 
 // Issue #64: gearman_client_set_server_selection_by_unique() opts a client
 // into routing a job to a server picked by hashing its unique, instead of
-// the default "first idle connection in add-server order". Confirm it
-// actually routes consistently against real servers: a second, independent
-// client with the same server list and the option enabled must land the
-// same unique on the same server as the first -- which the server itself
-// proves by coalescing the second submission into the job already queued
-// there, so both come back with the identical job_handle.
+// the default "first idle connection in add-server order". Confirm against
+// real servers that it actually does so:
 //
-// This deliberately avoids querying connected_to_1_client()/
-// connected_to_2_client() here: those clones are shared, cached fixture
-// state, and an earlier test in this same collection (multi_client_test)
-// intentionally drives connected_to_1_client() into GEARMAN_COULD_NOT_CONNECT
-// while its server is down. Reusing that clone afterwards against the
-// now-restarted server can hang rather than cleanly reconnect, which is a
-// pre-existing fixture/library quirk unrelated to hash-based selection --
-// so this test only ever talks through fresh connected_to_both clones.
+// - Each unique is queued on exactly one of the two servers, checked by
+//   asking each server directly via GET_STATUS_UNIQUE.
+// - Both servers receive some of the jobs. The default selection would put
+//   every job on the same server, so this is what fails if hashing is not
+//   in effect. The ring is keyed on host:port and the ports are random per
+//   run, so no single unique can be relied on to map to a given server;
+//   with kUniqueCount uniques the chance of all of them hashing to one
+//   server is negligible.
+// - A second, independent client with the same server list and the option
+//   enabled lands every unique on the same server as the first, which the
+//   server proves by coalescing the resubmission into the queued job and
+//   returning the identical job_handle.
+//
+// The per-server clients are always fresh clones: an earlier test in this
+// collection (multi_client_test) drives connected_to_1_client() into
+// GEARMAN_COULD_NOT_CONNECT while its server is down, and reusing that
+// cached clone against the restarted server can hang rather than reconnect.
 static test_return_t server_selection_by_unique_test(void *object)
 {
   multi_client_test_st *test_client= (multi_client_test_st*)object;
   ASSERT_TRUE(test_client);
 
+  static const size_t kUniqueCount= 32;
+  gearman_string_t value= { test_literal_param("background_test") };
+  const char *worker_function= "nothing";
+
+  std::vector<std::string> uniques;
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "hash_selection_routing_unique_%u", unsigned(x));
+    uniques.push_back(buffer);
+  }
+
   test_client->reset_connected_to_both_clone();
   gearman_client_st *client_to_both= test_client->connected_to_both_client();
   ASSERT_TRUE(client_to_both);
-
-  ASSERT_FALSE(gearman_client_server_selection_by_unique(client_to_both));
   gearman_client_set_server_selection_by_unique(client_to_both, true);
   ASSERT_TRUE(gearman_client_server_selection_by_unique(client_to_both));
 
-  (void)gearman_client_set_context(client_to_both, const_cast<char *>("nothing"));
-  gearman_string_t value= { test_literal_param("background_test") };
-  const char *worker_function= (const char *)gearman_client_context(client_to_both);
-  ASSERT_TRUE(worker_function);
+  std::vector<std::string> job_handles;
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    gearman_job_handle_t job_handle;
+    test_compare(GEARMAN_SUCCESS,
+                 gearman_client_do_background(client_to_both, worker_function, uniques[x].c_str(), gearman_string_param(value), job_handle));
+    job_handles.push_back(job_handle);
+  }
 
-  const char* hashed_unique= "hash_selection_consistency_unique";
-  gearman_job_handle_t job_handle_first;
-  test_compare(GEARMAN_SUCCESS,
-               gearman_client_do_background(client_to_both, worker_function, hashed_unique, gearman_string_param(value), job_handle_first));
+  test_client->reset_connected_to_1_clone();
+  test_client->reset_connected_to_2_clone();
+  gearman_client_st *client_to_1= test_client->connected_to_1_client();
+  gearman_client_st *client_to_2= test_client->connected_to_2_client();
+  ASSERT_TRUE(client_to_1);
+  ASSERT_TRUE(client_to_2);
+
+  size_t on_server_1= 0;
+  size_t on_server_2= 0;
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    gearman_status_t status_1= gearman_client_unique_status(client_to_1, uniques[x].c_str(), uniques[x].size());
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status_1));
+    gearman_status_t status_2= gearman_client_unique_status(client_to_2, uniques[x].c_str(), uniques[x].size());
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status_2));
+
+    bool known_1= gearman_status_is_known(status_1);
+    bool known_2= gearman_status_is_known(status_2);
+    ASSERT_TRUE_(known_1 != known_2, "%s queued on %s", uniques[x].c_str(),
+                 known_1 ? "both servers" : "neither server");
+
+    if (known_1)
+    {
+      ++on_server_1;
+    }
+    else
+    {
+      ++on_server_2;
+    }
+  }
+
+  ASSERT_TRUE_(on_server_1 > 0 and on_server_2 > 0,
+               "all %u jobs landed on one server (server 1: %u, server 2: %u)",
+               unsigned(kUniqueCount), unsigned(on_server_1), unsigned(on_server_2));
 
   test_client->reset_connected_to_both_clone();
   gearman_client_st *client_to_both_again= test_client->connected_to_both_client();
   ASSERT_TRUE(client_to_both_again);
   gearman_client_set_server_selection_by_unique(client_to_both_again, true);
-  (void)gearman_client_set_context(client_to_both_again, const_cast<char *>("nothing"));
 
-  gearman_job_handle_t job_handle_second;
-  test_compare(GEARMAN_SUCCESS,
-               gearman_client_do_background(client_to_both_again, worker_function, hashed_unique, gearman_string_param(value), job_handle_second));
-
-  ASSERT_STREQ(job_handle_first, job_handle_second);
-
-  // A different unique need not land on the same server, but submission
-  // must still succeed either way.
-  const char* other_unique= "hash_selection_consistency_other_unique";
-  gearman_job_handle_t other_job_handle;
-  test_compare(GEARMAN_SUCCESS,
-               gearman_client_do_background(client_to_both_again, worker_function, other_unique, gearman_string_param(value), other_job_handle));
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    gearman_job_handle_t job_handle;
+    test_compare(GEARMAN_SUCCESS,
+                 gearman_client_do_background(client_to_both_again, worker_function, uniques[x].c_str(), gearman_string_param(value), job_handle));
+    ASSERT_STREQ(job_handles[x].c_str(), job_handle);
+  }
 
   return TEST_SUCCESS;
 }
