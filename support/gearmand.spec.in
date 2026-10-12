@@ -100,7 +100,7 @@ fi
 %{_bindir}/gearadmin
 %{_bindir}/gearman
 %{_libdir}/libgearman.so.8
-%{_libdir}/libgearman.so.8.0.0
+%{_libdir}/libgearman.so.8.1.0
 %{_mandir}/man1/gearadmin.1.gz
 %{_mandir}/man1/gearman.1.gz
 
