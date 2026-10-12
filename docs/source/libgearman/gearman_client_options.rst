@@ -57,6 +57,13 @@ the entire data result and pass that back.
 
 Generate a unique id for each task created by generating a UUID.
 
+.. c:type:: GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE
+
+Choose the server a job is submitted to by hashing its unique, instead of
+using the first idle server. Equivalent to
+:c:func:`gearman_client_set_server_selection_by_unique`, which describes the
+behavior in detail.
+
 ------------
 RETURN VALUE
 ------------

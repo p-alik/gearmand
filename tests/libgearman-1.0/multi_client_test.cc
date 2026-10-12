@@ -48,6 +48,7 @@ using namespace libtest;
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #define GEARMAN_CORE
@@ -165,6 +166,217 @@ static test_return_t multi_client_test(void *object)
   return TEST_SUCCESS;
 }
 
+// Issue #64: gearman_client_set_server_selection_by_unique() opts a client
+// into routing a job to a server picked by hashing its unique, instead of
+// the default "first idle connection in add-server order". Confirm against
+// real servers that it actually does so:
+//
+// - Each unique is queued on exactly one of the two servers, checked by
+//   asking each server directly via GET_STATUS_UNIQUE.
+// - Both servers receive some of the jobs. The default selection would put
+//   every job on the same server, so this is what fails if hashing is not
+//   in effect. The ring is keyed on host:port and the ports are random per
+//   run, so no single unique can be relied on to map to a given server;
+//   with kUniqueCount uniques the chance of all of them hashing to one
+//   server is negligible.
+// - A second, independent client with the same server list and the option
+//   enabled lands every unique on the same server as the first, which the
+//   server proves by coalescing the resubmission into the queued job and
+//   returning the identical job_handle.
+//
+// The per-server clients are always fresh clones: an earlier test in this
+// collection (multi_client_test) drives connected_to_1_client() into
+// GEARMAN_COULD_NOT_CONNECT while its server is down, and reusing that
+// cached clone against the restarted server can hang rather than reconnect.
+static test_return_t server_selection_by_unique_test(void *object)
+{
+  multi_client_test_st *test_client= (multi_client_test_st*)object;
+  ASSERT_TRUE(test_client);
+
+  static const size_t kUniqueCount= 32;
+  gearman_string_t value= { test_literal_param("background_test") };
+  const char *worker_function= "nothing";
+
+  std::vector<std::string> uniques;
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), "hash_selection_routing_unique_%u", unsigned(x));
+    uniques.push_back(buffer);
+  }
+
+  test_client->reset_connected_to_both_clone();
+  gearman_client_st *client_to_both= test_client->connected_to_both_client();
+  ASSERT_TRUE(client_to_both);
+  gearman_client_set_server_selection_by_unique(client_to_both, true);
+  ASSERT_TRUE(gearman_client_server_selection_by_unique(client_to_both));
+
+  std::vector<std::string> job_handles;
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    gearman_job_handle_t job_handle;
+    test_compare(GEARMAN_SUCCESS,
+                 gearman_client_do_background(client_to_both, worker_function, uniques[x].c_str(), gearman_string_param(value), job_handle));
+    job_handles.push_back(job_handle);
+  }
+
+  test_client->reset_connected_to_1_clone();
+  test_client->reset_connected_to_2_clone();
+  gearman_client_st *client_to_1= test_client->connected_to_1_client();
+  gearman_client_st *client_to_2= test_client->connected_to_2_client();
+  ASSERT_TRUE(client_to_1);
+  ASSERT_TRUE(client_to_2);
+
+  size_t on_server_1= 0;
+  size_t on_server_2= 0;
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    gearman_status_t status_1= gearman_client_unique_status(client_to_1, uniques[x].c_str(), uniques[x].size());
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status_1));
+    gearman_status_t status_2= gearman_client_unique_status(client_to_2, uniques[x].c_str(), uniques[x].size());
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status_2));
+
+    bool known_1= gearman_status_is_known(status_1);
+    bool known_2= gearman_status_is_known(status_2);
+    ASSERT_TRUE_(known_1 != known_2, "%s queued on %s", uniques[x].c_str(),
+                 known_1 ? "both servers" : "neither server");
+
+    if (known_1)
+    {
+      ++on_server_1;
+    }
+    else
+    {
+      ++on_server_2;
+    }
+  }
+
+  ASSERT_TRUE_(on_server_1 > 0 and on_server_2 > 0,
+               "all %u jobs landed on one server (server 1: %u, server 2: %u)",
+               unsigned(kUniqueCount), unsigned(on_server_1), unsigned(on_server_2));
+
+  test_client->reset_connected_to_both_clone();
+  gearman_client_st *client_to_both_again= test_client->connected_to_both_client();
+  ASSERT_TRUE(client_to_both_again);
+  gearman_client_set_server_selection_by_unique(client_to_both_again, true);
+
+  for (size_t x= 0; x < kUniqueCount; ++x)
+  {
+    gearman_job_handle_t job_handle;
+    test_compare(GEARMAN_SUCCESS,
+                 gearman_client_do_background(client_to_both_again, worker_function, uniques[x].c_str(), gearman_string_param(value), job_handle));
+    ASSERT_STREQ(job_handles[x].c_str(), job_handle);
+  }
+
+  return TEST_SUCCESS;
+}
+
+// With hash-based selection enabled, a task submitted with an empty unique
+// (unique_length == 0, e.g. a caller that passes "" rather than a real
+// unique and isn't using GEARMAN_CLIENT_GENERATE_UNIQUE) must fall back to
+// the default head-of-list connection selection instead of hashing zero
+// bytes. This confirms the unique_length > 0 gate in
+// use_hash_server_selection() (run.cc) actually takes effect end-to-end,
+// not just that submission with a real unique works.
+static test_return_t server_selection_by_unique_empty_unique_test(void *object)
+{
+  multi_client_test_st *test_client= (multi_client_test_st*)object;
+  ASSERT_TRUE(test_client);
+
+  test_client->reset_connected_to_both_clone();
+  gearman_client_st *client_to_both= test_client->connected_to_both_client();
+  ASSERT_TRUE(client_to_both);
+  gearman_client_set_server_selection_by_unique(client_to_both, true);
+
+  (void)gearman_client_set_context(client_to_both, const_cast<char *>("nothing"));
+  gearman_string_t value= { test_literal_param("background_test") };
+  const char *worker_function= (const char *)gearman_client_context(client_to_both);
+  ASSERT_TRUE(worker_function);
+
+  gearman_job_handle_t job_handle;
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_do_background(client_to_both, worker_function, "", gearman_string_param(value), job_handle));
+
+  return TEST_SUCCESS;
+}
+
+// With hash-based selection enabled, submitting while the hash-picked
+// server happens to be down must still succeed by failing over, in ring
+// order, to the one surviving server -- exercising the GEARMAN_COULD_NOT_CONNECT
+// retry path in _client_run_task() (run.cc) for the hash-selection case.
+static test_return_t server_selection_by_unique_failover_test(void *object)
+{
+  multi_client_test_st *test_client= (multi_client_test_st*)object;
+  ASSERT_TRUE(test_client);
+
+  server_startup_st& server_container= test_client->server_container();
+
+  test_client->reset_connected_to_both_clone();
+  gearman_client_st *client_to_both= test_client->connected_to_both_client();
+  ASSERT_TRUE(client_to_both);
+  gearman_client_set_server_selection_by_unique(client_to_both, true);
+
+  (void)gearman_client_set_context(client_to_both, const_cast<char *>("nothing"));
+  gearman_string_t value= { test_literal_param("background_test") };
+  const char *worker_function= (const char *)gearman_client_context(client_to_both);
+  ASSERT_TRUE(worker_function);
+
+  in_port_t gearmand_port_1= test_client->port(0);
+  in_port_t gearmand_port_2= test_client->port(1);
+
+  // server_startup_st never reuses or reindexes slots: shutdown()+
+  // server_startup() (as multi_client_test() above already does once) always
+  // *appends* the restarted server rather than replacing its old, now-dead
+  // entry. So the two currently-live servers are always the *last* two
+  // entries pushed, not indices 0/1 -- shutting down a stale, already-dead
+  // index here would silently no-op and leave the real server 1 running,
+  // masking the fail-over path entirely.
+  uint32_t server_1_index= server_container.count() - 2;
+
+  ASSERT_TRUE(server_container.shutdown(server_1_index));
+  libtest::reserve_port(gearmand_port_1);
+
+  const char* unique= "hash_selection_failover_unique";
+  gearman_job_handle_t job_handle;
+
+  // Right after shutdown there is an inherent race -- also relied on by
+  // multi_client_test() above, which expects its own first post-shutdown
+  // submission to come back GEARMAN_LOST_CONNECTION rather than a clean
+  // failure -- where the very first send can land in the dying server's
+  // kernel accept backlog and get a misleading GEARMAN_SUCCESS or
+  // GEARMAN_LOST_CONNECTION before the process is actually gone, instead of
+  // the GEARMAN_COULD_NOT_CONNECT that triggers the fail-over path being
+  // tested here. Submit the same unique once first to flush that race out;
+  // only the submission after it is guaranteed to see the server as truly
+  // down.
+  {
+    gearman_return_t warmup_ret= gearman_client_do_background(client_to_both, worker_function, unique, gearman_string_param(value), job_handle);
+    ASSERT_TRUE(warmup_ret == GEARMAN_SUCCESS or warmup_ret == GEARMAN_LOST_CONNECTION or warmup_ret == GEARMAN_COULD_NOT_CONNECT);
+  }
+
+  test_compare(GEARMAN_SUCCESS,
+               gearman_client_do_background(client_to_both, worker_function, unique, gearman_string_param(value), job_handle));
+
+  // client_to_2's connection was never driven into a failure state (server 2
+  // stayed up throughout), so a fresh clone here is just defensive, not a
+  // workaround for anything broken.
+  test_client->reset_connected_to_2_clone();
+  gearman_client_st *client_to_2= test_client->connected_to_2_client();
+  {
+    gearman_status_t status= gearman_client_unique_status(client_to_2, unique, strlen(unique));
+    test_compare(GEARMAN_SUCCESS, gearman_status_return(status));
+    ASSERT_TRUE(gearman_status_is_known(status));
+  }
+
+  // Bring both servers back up so later tests see them running.
+  server_container.shutdown();
+  libtest::reserve_port(gearmand_port_2);
+  ASSERT_TRUE(server_startup(server_container, "gearmand", gearmand_port_1, server_argv));
+  ASSERT_TRUE(server_startup(server_container, "gearmand", gearmand_port_2, server_argv));
+
+  return TEST_SUCCESS;
+}
+
 static void *world_create(server_startup_st& servers, test_return_t&)
 {
   multi_client_test_st *test= new multi_client_test_st(servers, 1000); // setting a default timeout
@@ -193,6 +405,9 @@ static bool world_destroy(void *object)
 
 test_st multi_client_TESTS[] ={
   {"multi_client_test", 0, multi_client_test },
+  {"server_selection_by_unique routes consistently", 0, server_selection_by_unique_test },
+  {"server_selection_by_unique falls back for an empty unique", 0, server_selection_by_unique_empty_unique_test },
+  {"server_selection_by_unique fails over when primary is down", 0, server_selection_by_unique_failover_test },
   {0, 0, 0}
 };
 

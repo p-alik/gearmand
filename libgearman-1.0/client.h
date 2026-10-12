@@ -160,6 +160,35 @@ void gearman_client_remove_options(gearman_client_st *client,
                                    gearman_client_options_t options);
 
 /**
+ * Opt in to (or out of) picking which job server a task is submitted to by
+ * hashing the task's unique identifier, via a ketama consistent-hash ring
+ * over the servers added with gearman_client_add_server(). This keeps a
+ * given unique routed to the same server across submissions, only remapping
+ * the jobs owned by a server that is added or removed.
+ *
+ * Disabled by default: with this off, the client keeps its historical
+ * behavior of submitting to the first idle server in the order servers were
+ * added.
+ *
+ * Equivalent to adding/removing GEARMAN_CLIENT_SERVER_SELECTION_BY_UNIQUE
+ * with gearman_client_add_options()/gearman_client_remove_options().
+ *
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
+ * @param[in] enable Whether to route submissions by hashing task->unique.
+ */
+GEARMAN_API
+void gearman_client_set_server_selection_by_unique(gearman_client_st *client, bool enable);
+
+/**
+ * @param[in] client Structure previously initialized with
+ *  gearman_client_create() or gearman_client_clone().
+ * @return Whether hash-based server selection is currently enabled.
+ */
+GEARMAN_API
+bool gearman_client_server_selection_by_unique(const gearman_client_st *client);
+
+/**
  * See gearman_universal_timeout() for details.
  */
 GEARMAN_API
